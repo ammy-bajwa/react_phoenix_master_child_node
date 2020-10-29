@@ -10,7 +10,7 @@ defmodule AlivaWeb.Endpoint do
     signing_salt: "LOlti+7w"
   ]
 
-  socket "/socket", AlivaWeb.UserSocket,
+  socket "/ws", AlivaWeb.UserSocket,
   websocket: [
     connect_info: [pow_config: @pow_config]
   ],

@@ -1,13 +1,13 @@
 import { Socket } from "phoenix";
-
+import history from "./history";
 
 export function configureChannel() {
-  // const socket = new Socket("/socket", {
-  //   params: { token: localStorage.getItem("UserToken") },
-  // });
-  // socket.connect();
-  // console.log("Ok ", socket);
+  const socket = new Socket("/ws");
+  socket.connect();
+  socket.onOpen = function (event) {
+    console.log("Socket Open ", socket);
+  };
 
-  // const channel = socket.channel("products:join");
+  const channel = socket.channel("initial:join");
   return { channel, socket };
 }

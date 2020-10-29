@@ -27,17 +27,6 @@ defmodule AlivaWeb.Router do
     get "/*path", PageController, :index
   end
 
-  scope "/api", AlivaWeb do
-    pipe_through :api
-
-    resources "/registration", RegistrationController, singleton: true, only: [:create]
-    resources "/session", SessionController, singleton: true, only: [:create, :delete]
-    post "/session/renew", SessionController, :renew
-  end
-  scope "/api", AlivaWeb do
-    pipe_through [:api, :api_protected]
-    resources "/products", ProductController, except: [:new, :edit, :show, :index]
-  end
 
   # Other scopes may use custom stacks.
   # scope "/api", AlivaWeb do

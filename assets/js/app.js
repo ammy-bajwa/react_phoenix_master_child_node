@@ -1,10 +1,11 @@
 // import '../css/app.css';
 
 import "phoenix_html";
+import "antd/dist/antd.css";
 
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import Root from "./routes/Root";
+import Root from "./Root";
 import { Provider } from "react-redux";
 import { store } from "./redux/store";
 // This code starts up the React app when it runs in a browser. It sets up the routing

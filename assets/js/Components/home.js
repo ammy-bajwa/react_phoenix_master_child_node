@@ -1,12 +1,22 @@
-// import React form 'react';
 import React from "react";
 
-import { Redirect, withRouter, Link } from "react-router-dom";
+import { configureChannel } from "../socket";
 
 class Home extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+  componentDidMount() {
+    configureChannel();
+  }
+
   render() {
-    return <div>Home Page</div>;
+    return (
+      <div>
+        <h1>Home</h1>
+      </div>
+    );
   }
 }
 
-export default withRouter(Home);
+export default Home;

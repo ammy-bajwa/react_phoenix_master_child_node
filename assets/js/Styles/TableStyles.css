@@ -1,0 +1,20 @@
+#aliva_grid_table {
+  display: table;
+  width: 100%;
+  position: fixed;
+  margin-top: 82px;
+}
+
+#grid-heading-container,
+.grid-row {
+  display: table-row;
+  flex-shrink: 0;
+  scroll-behavior: smooth;
+}
+
+.grid-heading,
+.grid-col {
+  display: table-cell;
+  padding: 3px 10px;
+  border: 1px solid #999999;
+}

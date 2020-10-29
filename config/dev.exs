@@ -3,7 +3,7 @@ use Mix.Config
 # Configure your database
 config :aliva, Aliva.Repo,
   username: "postgres",
-  password: "admin",
+  password: "postgres",
   database: "aliva_test_dev",
   hostname: "localhost",
   show_sensitive_data_on_connection_error: true,
