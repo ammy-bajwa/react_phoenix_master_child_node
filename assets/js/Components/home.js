@@ -1,13 +1,16 @@
 import React from "react";
 
+import { getMyIp } from "../utils";
 import { configureChannel } from "../socket";
 
 class Home extends React.Component {
+  state = {};
   constructor(props) {
     super(props);
   }
   componentDidMount() {
     configureChannel();
+    getMyIp();
   }
 
   render() {
