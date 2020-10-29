@@ -1,7 +1,7 @@
 defmodule AlivaWeb.UserChannel do
   use AlivaWeb, :channel
 
-  def join("initial:join", _message, socket) do
+  def join("initial:peer", message, socket) do
     IO.inspect(socket)
   end
 

@@ -1,22 +1,24 @@
 defmodule Aliva.Nodes do
-  defstruct %{}
+  defstruct [nodes: %{ip: [%{id: "", type: "", connection: ""}]}]
+
+  # %Main{nodes: %{
+	# "1.1.1.1": [%{connection: "myCon", id: "1", type: "Master"},%{connection: "myCon", id: "2", type: "Child"}],
+	# "2.2.2.2": [%{connection: "myCon", id: "1", type: "Master"},%{connection: "myCon", id: "2", type: "Child"}]
+	# }}
 
   def addNode(ip, id, socket, type, peers) do
-    my_peer_struct = generate_peer_struct(id, type, socket)
-    new_list = merge_lists(peers, my_peer_struct)
-    ip_key = convert_ip_to_atom(ip);
-    Map.put(%Nodes{}, ip_key,  new_list)
-g
-    %Nodes{}
-    |> genrate_ip(ip_key,new_list)
-    |>
+    new_list = generate_peer_struct(id, type, socket)
+    |> merge_lists(peers)
+    # ip_key = convert_ip_to_atom(ip)
+    updated_map = %{%Nodes{}.nodes | "#{ip}": new_list }
+    Map.put(%Nodes{}, :nodes,  updated_map)
   end
 
   def generate_peer_struct(id, socket, type) do
     %{id: id, type: type, connection: socket}
   end
 
-  def merge_lists(peers, my_peer_struct) do
+  def merge_lists(my_peer_struct, peers) do
     Enum.concat(peers,[my_peer_struct] )
   end
 

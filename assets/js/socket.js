@@ -8,6 +8,6 @@ export function configureChannel() {
     console.log("Socket Open ", socket);
   };
 
-  const channel = socket.channel("initial:join");
+  const channel = socket.channel("initial:peer");
   return { channel, socket };
 }
