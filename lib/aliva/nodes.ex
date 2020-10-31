@@ -11,8 +11,8 @@ defmodule Aliva.Nodes do
       |> merge_lists(peers)
       # ip_key = convert_ip_to_atom(ip)
       # updated_map = %{%Main{}.my_nodes | "#{ip}": new_list }
-      updated_map = Map.put(%Main{}.my_nodes, "#{ip}", new_list)
-      Map.put(%Main{}, :my_nodes,  updated_map)
+      updated_map = Map.put(%Aliva.Nodes{}.my_nodes, "#{ip}", new_list)
+      Map.put(%Aliva.Nodes{}, :my_nodes,  updated_map)
     end
 
     def generate_peer_struct(id, socket, type) do
