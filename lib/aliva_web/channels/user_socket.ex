@@ -1,5 +1,5 @@
 defmodule AlivaWeb.UserSocket do
-use Phoenix.Socket
+  use Phoenix.Socket
   ## Channels
   channel "initial:*", AlivaWeb.NodeChannel
   def connect(_params, socket, _connect_info) do
@@ -7,4 +7,4 @@ use Phoenix.Socket
     end
 
     def id(_socket), do: nil
-  end
+end

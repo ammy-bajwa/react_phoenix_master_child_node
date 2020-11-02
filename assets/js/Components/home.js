@@ -10,9 +10,12 @@ class Home extends React.Component {
   constructor(props) {
     super(props);
   }
-  async componentDidMount() {
+  componentDidMount() {
+    // configureChannel();
     const { channel, socket } = configureChannel();
-    console.log(await getMyIp());
+    console.log(socket.connectionState());
+    
+    // console.log(await getMyIp());
   }
 
   render() {
