@@ -12,7 +12,6 @@ defmodule Aliva.Nodes do
     end
 
     def add_node(ip, id, socket) do
-      IO.inspect(get_peers(ip), label: "get_peers(ip)")
       case get_peers(ip) do
         nil -> handle_master_creation(id, socket, ip)
         peers_list -> handle_child_creation(peers_list, id, socket, ip)
@@ -42,7 +41,7 @@ defmodule Aliva.Nodes do
 
     def update_nodes_data(nodes_map) do
       set_tuple_in_agent({:my_nodes, nodes_map})
-      IO.inspect(get_all_node_tuple(), label: "All Nodes -----------------")
+      # IO.inspect(get_all_node_tuple(), label: "All Nodes -----------------")
     end
 
     def set_tuple_in_agent(my_tuple) do
