@@ -12,8 +12,10 @@ defmodule Aliva.Nodes do
     end
 
     def add_node(ip, id, socket) do
+      IO.inspect(get_peers(ip), label: "get_peers(ip)")
       case get_peers(ip) do
         nil -> handle_master_creation(id, socket, ip)
+        peer_list -> IO.inspect(peer_list)
       end
       # new_list = generate_peer_struct(id, type, socket)
       # |> merge_lists(peers)
