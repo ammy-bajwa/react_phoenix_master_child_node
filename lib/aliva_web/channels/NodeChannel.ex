@@ -4,9 +4,9 @@ defmodule AlivaWeb.UserChannel do
 
   def join("initial:peer", _message, socket) do
     id = Ecto.UUID.generate
-    # addNode(ip, id, socket, type, peers)
-    peers = Map.fetch(%Aliva.Nodes{}.my_nodes, "1.1.1.1" )
-    addNode("1.1.1.1", id, socket, "MASTER", peers);
+    addNode("1.1.1.1", id, socket, "MASTER");
+    addNode("1.1.1.1", id, socket, "CHILD");
+    addNode("1.1.1.1", id, socket, "CHILD");
     IO.inspect(socket)
   end
 

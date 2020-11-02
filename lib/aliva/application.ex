@@ -4,6 +4,7 @@ defmodule Aliva.Application do
   @moduledoc false
 
   use Application
+  import Aliva.Nodes
 
   def start(_type, _args) do
     children = [
@@ -14,7 +15,11 @@ defmodule Aliva.Application do
       # Start the PubSub system
       {Phoenix.PubSub, name: Aliva.PubSub},
       # Start the Endpoint (http/https)
-      AlivaWeb.Endpoint
+      AlivaWeb.Endpoint,
+      %{
+        id: Aliva.Nodes,
+        start: {Aliva.Nodes, :start_link, [my_nodes: %{}]}
+      }
       # Start a worker by calling: Aliva.Worker.start_link(arg)
       # {Aliva.Worker, arg}
     ]
