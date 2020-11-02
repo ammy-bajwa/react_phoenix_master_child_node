@@ -12,8 +12,6 @@ defmodule AlivaWeb.NodeChannel do
     IO.inspect(socket)
     add_node("1.1.1.1", id, socket);
     add_node("2.2.2.2", id, socket);
-    # addNode("1.1.1.1", id, socket, "CHILD");
-    # addNode("1.1.1.1", id, socket, "CHILD");
     {:ok, %{}, socket}
   end
 
