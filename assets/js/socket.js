@@ -10,15 +10,6 @@ export function configureChannel() {
   };
 
   const channel = socket.channel("initial:peer");
-  channel
-    .join()
-    .receive("ok", (data) => console.log("Ok data ", data))
-    .receive("error", ({ reason }) => {
-      alert("Something wrong with socket");
-      console.log("failed join", reason);
-    })
-    .receive("timeout", () => {
-      alert("Networking issue. Still waiting....");
-    });
+
   return { channel, socket };
 }

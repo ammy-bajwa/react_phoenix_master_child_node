@@ -15,12 +15,23 @@ defmodule Aliva.Nodes do
       IO.inspect(get_peers(ip), label: "get_peers(ip)")
       case get_peers(ip) do
         nil -> handle_master_creation(id, socket, ip)
-        peer_list -> IO.inspect(peer_list)
+        peers_list -> handle_child_creation(peers_list, id, socket, ip)
       end
       # new_list = generate_peer_struct(id, type, socket)
       # |> merge_lists(peers)
       # updated_map = Map.put(%Aliva.Nodes{}.my_nodes, "#{ip}", new_list)
       # Agent.update(__MODULE__, fn _ -> updated_map end)
+    end
+
+    def handle_child_creation(peers_list, id, socket, ip) do
+      generate_peer_struct(id, socket, "CHILD")
+      |> add_struct_to_map_child(peers_list, ip)
+      |> update_nodes_data()
+    end
+
+    def add_struct_to_map_child(struct, peers_list, ip) do
+      ips_map = get_ips_map()
+      Map.put(ips_map, ip, [struct] ++ peers_list)
     end
 
     def update_ip_map_node_list(ip, nodes_list) do

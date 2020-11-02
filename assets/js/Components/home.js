@@ -13,8 +13,16 @@ class Home extends React.Component {
   componentDidMount() {
     // configureChannel();
     const { channel, socket } = configureChannel();
-    console.log(socket.connectionState());
-    
+    channel
+      .join()
+      .receive("ok", (data) => console.log("Ok data ", data))
+      .receive("error", ({ reason }) => {
+        alert("Something wrong with socket");
+        console.log("failed join", reason);
+      })
+      .receive("timeout", () => {
+        alert("Networking issue. Still waiting....");
+      });
     // console.log(await getMyIp());
   }
 
