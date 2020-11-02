@@ -11,14 +11,9 @@ defmodule Aliva.Nodes do
       Agent.start_link(fn -> initial_state end, name: __MODULE__)
     end
 
-    def addNode(ip, id, socket, type) do
-      IO.inspect("#{ip} ip")
-      IO.inspect("#{id} id")
-      IO.inspect("#{socket} socket")
-      IO.inspect("#{type} type")
-      IO.inspect(get_peers(ip), label: "Get Peers")
+    def add_node(ip, id, socket) do
       case get_peers(ip) do
-        nil -> IO.inspect("There is no peer at #{ip}")
+        nil -> handle_master_creation(id, socket, ip)
       end
       # new_list = generate_peer_struct(id, type, socket)
       # |> merge_lists(peers)
@@ -26,13 +21,45 @@ defmodule Aliva.Nodes do
       # Agent.update(__MODULE__, fn _ -> updated_map end)
     end
 
+    def update_ip_map_node_list(ip, nodes_list) do
+      ips_map = get_ips_map()
+      Map.put(ips_map, ip, nodes_list)
+      |> set_tuple_in_agent()
+    end
+
+    def update_nodes_data(nodes_map) do
+      set_tuple_in_agent({:my_nodes, nodes_map})
+      IO.inspect(get_all_node_tuple(), label: "All Nodes -----------------")
+    end
+
+    def set_tuple_in_agent(my_tuple) do
+      Agent.update(__MODULE__, fn _ -> my_tuple end)
+    end
+
+    def handle_master_creation(id, socket, ip) do
+      generate_peer_struct(id, socket, "MASTER")
+      |> add_struct_to_map_master(ip)
+      |> update_nodes_data()
+
+    end
+
+    def add_struct_to_map_master(struct, ip) do
+      ips_map = get_ips_map()
+      Map.put(ips_map, ip, [struct])
+    end
+
     def get_peers(ip) do
 
-      get_all_node_map()
+      get_ips_map()
       |> get_peers(ip)
     end
 
-    def get_peers({_, ips_map}, ip) do
+    def get_ips_map() do
+      {_, ips_map} = get_all_node_tuple()
+      ips_map
+    end
+
+    def get_peers(ips_map, ip) do
       Map.get(ips_map, ip)
     end
 
@@ -47,7 +74,7 @@ defmodule Aliva.Nodes do
     def convert_ip_to_atom(ip) do
       String.to_atom(ip)
     end
-    def get_all_node_map do
+    def get_all_node_tuple do
       Agent.get(__MODULE__, fn nodes_list -> nodes_list end)
     end
 end
