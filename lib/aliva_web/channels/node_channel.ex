@@ -15,8 +15,9 @@ defmodule AlivaWeb.NodeChannel do
 
   def terminate(_reason, socket) do
     id = Map.get(socket, :id)
-    IO.inspect("Node disconnect #{id}")
-    IO.inspect(socket)
+    %{ip: ip} = Map.get(socket, :assigns)
+    IO.inspect("Node disconnect #{ip} #{id}")
+    # IO.inspect(socket)
     {:ok, %{}, socket}
   end
 
