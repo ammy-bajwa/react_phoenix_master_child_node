@@ -16,10 +16,6 @@ defmodule Aliva.Nodes do
         nil -> handle_master_creation(id, socket, ip)
         peers_list -> handle_child_creation(peers_list, id, socket, ip)
       end
-      # new_list = generate_peer_struct(id, type, socket)
-      # |> merge_lists(peers)
-      # updated_map = Map.put(%Aliva.Nodes{}.my_nodes, "#{ip}", new_list)
-      # Agent.update(__MODULE__, fn _ -> updated_map end)
     end
 
     def handle_child_creation(peers_list, id, socket, ip) do
@@ -41,7 +37,7 @@ defmodule Aliva.Nodes do
 
     def update_nodes_data(nodes_map) do
       set_tuple_in_agent({:my_nodes, nodes_map})
-      # IO.inspect(get_all_node_tuple(), label: "All Nodes -----------------")
+      IO.inspect(get_all_node_tuple(), label: "All Nodes -----------------")
     end
 
     def set_tuple_in_agent(my_tuple) do
