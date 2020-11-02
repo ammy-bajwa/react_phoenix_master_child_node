@@ -10,7 +10,7 @@ class Home extends React.Component {
   constructor(props) {
     super(props);
   }
-  componentDidMount() {
+  async componentDidMount() {
     // configureChannel();
     const { channel, socket } = configureChannel();
     channel
@@ -23,7 +23,7 @@ class Home extends React.Component {
       .receive("timeout", () => {
         alert("Networking issue. Still waiting....");
       });
-    // console.log(await getMyIp());
+    console.log(await getMyIp());
   }
 
   render() {
