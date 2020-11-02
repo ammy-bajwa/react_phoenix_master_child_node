@@ -7,6 +7,7 @@ defmodule AlivaWeb.NodeChannel do
   def join("initial:peer", %{"ip" => ip}, socket) do
     IO.inspect("Channel is joined by peer")
     id = Ecto.UUID.generate
+    socket = assign(socket, :ip , ip)
     socket = Map.update(socket, :id, nil, fn _value -> id end)
     add_node(ip, id, socket);
     {:ok, %{}, socket}
