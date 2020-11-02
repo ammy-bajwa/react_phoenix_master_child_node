@@ -12,7 +12,7 @@ class Home extends React.Component {
   }
   async componentDidMount() {
     // configureChannel();
-    const { channel, socket } = configureChannel();
+    const { channel, socket } =await configureChannel();
     channel
       .join()
       .receive("ok", (data) => console.log("Ok data ", data))
