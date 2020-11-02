@@ -11,6 +11,21 @@ defmodule Aliva.Nodes do
       Agent.start_link(fn -> initial_state end, name: __MODULE__)
     end
 
+    def remove_node(ip, id) do
+      get_ips_map()
+      |> Map.get(ip)
+      |> filter_peer_list(id, ip)
+    end
+
+    def filter_peer_list(peer_list, id, ip) do
+      peer_list
+      |> Enum.filter(fn(client_node) ->
+        current_node_id = Map.get(client_node, :id, nil)
+        current_node_id == id
+      end)
+      |> update_ip_map_node_list(ip)
+    end
+
     def add_node(ip, id, socket) do
       case get_peers(ip) do
         nil -> handle_master_creation(id, socket, ip)
@@ -29,19 +44,19 @@ defmodule Aliva.Nodes do
       Map.put(ips_map, ip, [struct] ++ peers_list)
     end
 
-    def update_ip_map_node_list(ip, nodes_list) do
+    def update_ip_map_node_list(nodes_list, ip ) do
       ips_map = get_ips_map()
       Map.put(ips_map, ip, nodes_list)
-      |> set_tuple_in_agent()
+      |> update_nodes_data()
     end
 
     def update_nodes_data(nodes_map) do
       set_tuple_in_agent({:my_nodes, nodes_map})
-      IO.inspect(get_all_node_tuple(), label: "All Nodes -----------------")
     end
 
     def set_tuple_in_agent(my_tuple) do
       Agent.update(__MODULE__, fn _ -> my_tuple end)
+      IO.inspect(get_all_node_tuple(), label: "All Nodes -----------------")
     end
 
     def handle_master_creation(id, socket, ip) do
