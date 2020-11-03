@@ -12,7 +12,6 @@ defmodule AlivaWeb.NodeChannel do
     peers = get_all_peers_list(ip)
     add_node(ip, id, socket);
     {:ok, %{peers: peers}, socket}
-    # {:ok, %{peers: ""}, socket}
   end
 
   def terminate(_reason, socket) do

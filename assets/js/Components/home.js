@@ -6,16 +6,17 @@ import { configureChannel } from "../socket";
 class Home extends React.Component {
   state = {
     ip: "",
+    peers: [],
   };
   constructor(props) {
     super(props);
   }
   async componentDidMount() {
     // configureChannel();
-    const { channel, socket } =await configureChannel();
+    const { channel, socket } = await configureChannel();
     channel
       .join()
-      .receive("ok", (data) => console.log("Ok data ", data))
+      .receive("ok", ({ peers }) => this.setState({ peers }))
       .receive("error", ({ reason }) => {
         alert("Something wrong with socket");
         console.log("failed join", reason);
