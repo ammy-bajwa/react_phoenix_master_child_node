@@ -14,16 +14,39 @@ defmodule Aliva.Nodes do
     def remove_node(ip, id) do
       get_ips_map()
       |> Map.get(ip)
-      |> filter_peer_list(id, ip)
+      |> filter_peers_list(id, ip)
     end
 
-    def filter_peer_list(peer_list, id, ip) do
-      peer_list
+    def filter_peers_list(peers_list, id, ip) do
+      peers_list
       |> Enum.filter(fn(client_node) ->
         current_node_id = Map.get(client_node, :id, nil)
         current_node_id != id
       end)
+      |> make_a_node_master_if_required()
       |> update_ip_map_node_list(ip)
+    end
+
+    def make_a_node_master_if_required(peers_list) do
+      count = Enum.count(peers_list)
+      Agent.start_link(fn -> false end, name: :has_master)
+      peers_list
+      |> Enum.with_index()
+      |> Enum.map(fn ({node, _index}) ->
+        node_type = Map.get(node, :type)
+        if node_type == "MASTER" do
+          Agent.update(:has_master, fn _ -> true end)
+        end
+        node
+      end)
+
+      has_master = Agent.get(:has_master, fn  has_master -> has_master end)
+
+      if has_master == false && count > 0 do
+        List.update_at(peers_list, 0, fn node -> Map.put(node, :type, "MASTER")  end)
+      else
+        peers_list
+      end
     end
 
     def add_node(ip, id, socket) do
