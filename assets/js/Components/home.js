@@ -53,10 +53,14 @@ class Home extends React.Component {
   removeNodeListener = (channel) => {
     const { ip } = this.state;
     channel.on(`initial:remove_${ip}`, (data) => {
-      const { localPeers } = this.state;
+      const { localPeers, localPeersWebRtcConnections } = this.state;
       const updatedPeers = localPeers.filter((node) => node.id !== data.id);
+      const updatedPeersWebRtcConnections = localPeersWebRtcConnections.filter(
+        (nodeObj) => nodeObj.id !== data.id
+      );
       this.setState({
         localPeers: updatedPeers,
+        localPeersWebRtcConnections: updatedPeersWebRtcConnections,
       });
     });
   };
