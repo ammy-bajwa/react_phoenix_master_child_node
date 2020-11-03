@@ -23,6 +23,7 @@ class Home extends React.Component {
         const ip = await getMyIp();
         this.setState({ localPeers: local_peers, id, type, ip }, () => {
           this.newNodeListener(channel);
+          this.removeNodeListener(channel);
           this.sendBroadcast(channel);
         });
       })
@@ -46,6 +47,17 @@ class Home extends React.Component {
         componentThis.setState({ localPeers: updatedPeers });
         componentThis.setupPeerConn(data);
       }
+    });
+  };
+
+  removeNodeListener = (channel) => {
+    const { ip } = this.state;
+    channel.on(`initial:remove_${ip}`, (data) => {
+      const { localPeers } = this.state;
+      const updatedPeers = localPeers.filter((node) => node.id !== data.id);
+      this.setState({
+        localPeers: updatedPeers,
+      });
     });
   };
 

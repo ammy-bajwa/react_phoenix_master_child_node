@@ -35,6 +35,7 @@ defmodule AlivaWeb.NodeChannel do
     id = Map.get(socket, :id)
     %{ip: ip} = Map.get(socket, :assigns)
     remove_node(ip, id)
+    broadcast(socket, "initial:remove_#{ip}", %{id: id, ip: ip})
     {:ok, %{}, socket}
   end
 
