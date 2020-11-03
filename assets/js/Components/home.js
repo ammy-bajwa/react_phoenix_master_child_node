@@ -9,6 +9,7 @@ class Home extends React.Component {
     id: "",
     type: "",
     localPeers: [],
+    localPeersConnections: [],
   };
   constructor(props) {
     super(props);
