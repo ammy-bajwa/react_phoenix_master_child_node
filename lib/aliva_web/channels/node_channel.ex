@@ -14,9 +14,9 @@ defmodule AlivaWeb.NodeChannel do
     add_node(ip, id, socket);
     # Broadcast this node to all peers
     if count > 0 do
-      {:ok, %{peers: peers, id: id, type: "CHILD"}, socket}
+      {:ok, %{local_peers: peers, id: id, type: "CHILD"}, socket}
     else
-      {:ok, %{peers: peers, id: id, type: "MASTER"}, socket}
+      {:ok, %{local_peers: peers, id: id, type: "MASTER"}, socket}
     end
   end
 

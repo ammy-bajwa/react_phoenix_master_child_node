@@ -8,7 +8,7 @@ class Home extends React.Component {
     ip: "",
     id: "",
     type: "",
-    peers: [],
+    localPeers: [],
   };
   constructor(props) {
     super(props);
@@ -19,9 +19,9 @@ class Home extends React.Component {
     const componentThis = this;
     channel
       .join()
-      .receive("ok", async ({ peers, id, type }) => {
+      .receive("ok", async ({ local_peers, id, type }) => {
         const ip = await getMyIp();
-        this.setState({ peers, id, type, ip }, () => {
+        this.setState({ localPeers: local_peers, id, type, ip }, () => {
           this.newNodeListener(channel);
           this.sendBroadcast(channel);
         });
@@ -37,8 +37,15 @@ class Home extends React.Component {
 
   newNodeListener = (channel) => {
     const { ip } = this.state;
-    channel.on(`initial:new_${ip}`, function (data) {
-      console.log(`initial:new_${ip} `, data);
+    const componentThis = this;
+    channel.on(`initial:new_${ip}`, (data) => {
+      const { id } = this.state;
+      if (id !== data.id) {
+        const { localPeers } = this.state;
+        const updatedPeers = [...localPeers, data];
+        componentThis.setState({ localPeers: updatedPeers });
+        // console.log(`initial:new_${ip} `, data);
+      }
     });
   };
 
