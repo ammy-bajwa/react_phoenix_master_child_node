@@ -24,9 +24,9 @@ defmodule AlivaWeb.NodeChannel do
     peers = get_all_peers_list(ip)
     count = Enum.count(peers)
     if count > 1 do
-      broadcast(socket, "initial:new_#{ip}", %{type: "CHILD", id: id})
+      broadcast(socket, "initial:new_#{ip}", %{type: "CHILD", id: id, ip: ip})
     else
-      broadcast(socket, "initial:new_#{ip}", %{type: "MASTER", id: id})
+      broadcast(socket, "initial:new_#{ip}", %{type: "MASTER", id: id, ip: ip})
     end
     {:noreply, socket}
   end

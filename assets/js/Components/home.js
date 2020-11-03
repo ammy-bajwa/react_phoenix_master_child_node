@@ -9,7 +9,7 @@ class Home extends React.Component {
     id: "",
     type: "",
     localPeers: [],
-    localPeersConnections: [],
+    localPeersWebRtcConnections: [],
   };
   constructor(props) {
     super(props);
@@ -44,8 +44,70 @@ class Home extends React.Component {
         const { localPeers } = this.state;
         const updatedPeers = [...localPeers, data];
         componentThis.setState({ localPeers: updatedPeers });
-        // console.log(`initial:new_${ip} `, data);
+        componentThis.setupPeerConn(data);
       }
+    });
+  };
+
+  setupPeerConn = ({ id, type }) => {
+    //creating our RTCPeerConnection object
+    const configuration = {
+      iceServers: [{ url: "stun:stun.12connect.com:3478" }],
+    };
+
+    const peeConnection = new webkitRTCPeerConnection(configuration);
+
+    console.log("RTCPeerConnection object was created");
+
+    //setup ice handling
+    //when the browser finds an ice candidate we send it to another peer
+    peeConnection.onicecandidate = function (event) {
+      if (event.candidate) {
+        send({
+          type: "candidate",
+          candidate: event.candidate,
+        });
+      }
+    };
+
+    peeConnection.ondatachannel = function (event) {
+      const dataChannel = event.channel;
+      console.log("Channel Successfull.......");
+    };
+
+    const dataChannelOptions = {
+      reliable: true,
+    };
+
+    const dataChannel = peeConnection.createDataChannel(
+      "myDataChannel",
+      dataChannelOptions
+    );
+    dataChannel.onopen = function (event) {
+      console.log("myDataChannel is open", dataChannel);
+    };
+    dataChannel.onerror = function (error) {
+      console.log("Error:", error);
+    };
+
+    dataChannel.onmessage = function (event) {
+      console.log("Got message:", event.data);
+    };
+
+    this.addToLocalPeersWebRtcConnections(peeConnection, dataChannel, id, type);
+  };
+
+  addToLocalPeersWebRtcConnections = (peeConnection, dataChannel, id, type) => {
+    const { localPeersWebRtcConnections } = this.state;
+    const peerConnObj = {
+      peeConnection,
+      dataChannel,
+      id,
+      type,
+    };
+    const updatedArr = [...localPeersWebRtcConnections, peerConnObj];
+    this.setState({
+      localPeersWebRtcConnections: updatedArr,
     });
   };
 
