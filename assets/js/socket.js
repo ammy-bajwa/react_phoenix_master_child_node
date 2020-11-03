@@ -7,7 +7,7 @@ export async function configureChannel() {
   const socket = new Socket("/socket");
   socket.connect();
   socket.onOpen = function (event) {
-    console.log("Socket Open ", socket);
+    console.log("Socket is Open ");
     // const channel = socket.channel("initial:peer", {});
   };
 

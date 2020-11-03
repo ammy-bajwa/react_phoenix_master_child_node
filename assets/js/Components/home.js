@@ -16,7 +16,6 @@ class Home extends React.Component {
   async componentDidMount() {
     // configureChannel();
     const { channel, socket } = await configureChannel();
-    const componentThis = this;
     channel
       .join()
       .receive("ok", async ({ local_peers, id, type }) => {
