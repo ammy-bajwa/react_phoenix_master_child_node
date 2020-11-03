@@ -9,8 +9,10 @@ defmodule AlivaWeb.NodeChannel do
     id = Ecto.UUID.generate
     socket = assign(socket, :ip , ip)
     socket = Map.update(socket, :id, nil, fn _value -> id end)
+    peers = get_all_peers_list(ip)
     add_node(ip, id, socket);
-    {:ok, %{}, socket}
+    {:ok, %{peers: peers}, socket}
+    # {:ok, %{peers: ""}, socket}
   end
 
   def terminate(_reason, socket) do

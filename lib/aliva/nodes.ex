@@ -1,6 +1,4 @@
 defmodule Aliva.Nodes do
-  defstruct [my_nodes: %{}]
-
     # %Main{nodes: %{
   	# "1.1.1.1": [%{connection: "myCon", id: "1", type: "Master"},%{connection: "myCon", id: "2", type: "Child"}],
   	# "2.2.2.2": [%{connection: "myCon", id: "1", type: "Master"},%{connection: "myCon", id: "2", type: "Child"}]
@@ -80,7 +78,7 @@ defmodule Aliva.Nodes do
 
     def set_tuple_in_agent(my_tuple) do
       Agent.update(__MODULE__, fn _ -> my_tuple end)
-      IO.inspect(get_all_node_tuple(), label: "All Nodes -----------------")
+      # IO.inspect(get_all_node_tuple(), label: "All Nodes -----------------")
     end
 
     def handle_master_creation(id, socket, ip) do
@@ -123,5 +121,14 @@ defmodule Aliva.Nodes do
     end
     def get_all_node_tuple do
       Agent.get(__MODULE__, fn nodes_list -> nodes_list end)
+    end
+
+    def get_all_peers_list(ip) do
+      ips_map = get_ips_map()
+      Map.get(ips_map, ip)
+      |> case  do
+         nil -> []
+         peers -> Enum.map(peers, fn (node) -> %{id: Map.get(node, :id), type: Map.get(node, :type)} end)
+      end
     end
 end
