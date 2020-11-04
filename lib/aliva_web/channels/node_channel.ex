@@ -31,6 +31,17 @@ defmodule AlivaWeb.NodeChannel do
     {:noreply, socket}
   end
 
+
+  # def handle_in("initial:send_new_offer", %{"offer" => offer, "sender_id" => sender_id}, socket) do
+  #   broadcast(socket, "initial:new_offer_#{sender_id}", %{"offer" => offer, "sender_id" => sender_id})
+  #   {:noreply, socket}
+  # end
+
+  def handle_in("initial:send_new_offer", message, socket) do
+    IO.inspect(message, label: "initial:send_new_offer----------------------")
+    {:noreply, socket}
+  end
+
   def terminate(_reason, socket) do
     id = Map.get(socket, :id)
     %{ip: ip} = Map.get(socket, :assigns)

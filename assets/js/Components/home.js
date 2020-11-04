@@ -17,6 +17,7 @@ class Home extends React.Component {
   async componentDidMount() {
     // configureChannel();
     const { channel, socket } = await configureChannel();
+
     channel
       .join()
       .receive("ok", async ({ local_peers, id, type }) => {
@@ -27,7 +28,8 @@ class Home extends React.Component {
           this.sendBroadcast(channel);
           this.makeThisNodeMaster(channel);
           this.updateMaster(channel);
-          this.addLocalPeersWebRtcConnections(local_peers);
+          this.listenForLocalWebRtcOffer(channel);
+          this.addLocalPeersWebRtcConnections(local_peers, channel);
         });
       })
       .receive("error", ({ reason }) => {
@@ -39,13 +41,33 @@ class Home extends React.Component {
       });
   }
 
-  addLocalPeersWebRtcConnections = (local_peers) => {
-    for (let index = 0; index < local_peers.length; index++) {
-      const { id, type } = local_peers[index];
-      this.setupPeerConn({ id, type });
-    }
+  listenForLocalWebRtcOffer = (channel) => {
+    const { id } = this.state;
+    channel.on(`initial:new_offer_${id}`, ({ offer, from }) => {
+      console.log("listenForLocalWebRtcOffer receive", offer);
+    });
   };
 
+  // This will be called when new node added
+  addLocalPeersWebRtcConnections = (local_peers, channel) => {
+    for (let index = 0; index < local_peers.length; index++) {
+      const data = local_peers[index];
+      this.setupPeerConn(data);
+    }
+    this.createAndSendOffers(channel);
+  };
+
+  createAndSendOffers = (channel) => {
+    const { localPeersWebRtcConnections } = this.state;
+    localPeersWebRtcConnections.forEach(({ id, peerConnection }) => {
+      peerConnection.createOffer().then((offer) => {
+        channel.push("initial:send_new_offer", { offer, id });
+        console.log("Offer sended");
+      });
+    });
+  };
+
+  // This will be called when new node added in already existed node
   newNodeListener = (channel) => {
     const { ip } = this.state;
     const componentThis = this;
@@ -167,13 +189,18 @@ class Home extends React.Component {
       id,
       type,
     };
-    this.setState((prevState) => {
-      console.log(peerConnObj, prevState.localPeersWebRtcConnections);
-      return {
-        localPeersWebRtcConnections: prevState.localPeersWebRtcConnections.push(peerConnObj),
-        ...prevState,
-      };
-    }, () => console.log(this.state.localPeersWebRtcConnections));
+    this.setState(
+      (prevState) => {
+        console.log(peerConnObj, prevState.localPeersWebRtcConnections);
+        return {
+          localPeersWebRtcConnections: prevState.localPeersWebRtcConnections.push(
+            peerConnObj
+          ),
+          ...prevState,
+        };
+      },
+      () => console.log(this.state.localPeersWebRtcConnections)
+    );
   };
 
   sendBroadcast = (channel) => {
