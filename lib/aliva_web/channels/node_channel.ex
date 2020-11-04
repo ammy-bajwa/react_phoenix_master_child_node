@@ -34,8 +34,16 @@ defmodule AlivaWeb.NodeChannel do
   def terminate(_reason, socket) do
     id = Map.get(socket, :id)
     %{ip: ip} = Map.get(socket, :assigns)
+    [master_node_beforre | _tail] = get_master_node(ip)
+    master_id_before = Map.get(master_node_beforre, :id)
     remove_node(ip, id)
     broadcast(socket, "initial:remove_#{ip}", %{id: id, ip: ip})
+    [master_node | _tail] = get_master_node(ip)
+    master_id = Map.get(master_node, :id)
+    if master_id_before != master_id do
+      broadcast(socket, "initial:make_me_master_#{master_id}", %{ip: ip})
+      broadcast(socket, "initial:update_master_#{ip}", %{id: master_id, ip: ip})
+    end
     {:ok, %{}, socket}
   end
 

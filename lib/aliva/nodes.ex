@@ -131,4 +131,12 @@ defmodule Aliva.Nodes do
          peers -> Enum.map(peers, fn (node) -> %{id: Map.get(node, :id), type: Map.get(node, :type)} end)
       end
     end
+
+    def get_master_node(ip) do
+      get_all_peers_list(ip)
+      |>Enum.filter(fn(client_node) ->
+        current_node_type = Map.get(client_node, :type)
+        current_node_type == "MASTER"
+      end)
+    end
 end

@@ -25,6 +25,9 @@ class Home extends React.Component {
           this.newNodeListener(channel);
           this.removeNodeListener(channel);
           this.sendBroadcast(channel);
+          this.makeThisNodeMaster(channel);
+          this.updateMaster(channel);
+          this.addLocalPeersWebRtcConnections(local_peers);
         });
       })
       .receive("error", ({ reason }) => {
@@ -35,6 +38,13 @@ class Home extends React.Component {
         alert("Networking issue. Still waiting....");
       });
   }
+
+  addLocalPeersWebRtcConnections = (local_peers) => {
+    for (let index = 0; index < local_peers.length; index++) {
+      const { id, type } = local_peers[index];
+      this.setupPeerConn({ id, type });
+    }
+  };
 
   newNodeListener = (channel) => {
     const { ip } = this.state;
@@ -65,6 +75,43 @@ class Home extends React.Component {
     });
   };
 
+  makeThisNodeMaster = (channel) => {
+    const { id } = this.state;
+    channel.on(`initial:make_me_master_${id}`, (data) => {
+      console.log("makeThisNodeMaster");
+      this.setState({
+        type: "MASTER",
+      });
+    });
+  };
+
+  updateMaster = (channel) => {
+    const { ip } = this.state;
+    channel.on(`initial:update_master_${ip}`, (data) => {
+      const { localPeers, localPeersWebRtcConnections } = this.state;
+      const updatedPeers = localPeers.map((node) => {
+        if (node.id === data.id) {
+          node.type = "MASTER";
+          return node;
+        }
+        return node;
+      });
+      const updatedPeersWebRtcConnections = localPeersWebRtcConnections.map(
+        (node) => {
+          if (node.id === data.id) {
+            node.type = "MASTER";
+            return node;
+          }
+          return node;
+        }
+      );
+      this.setState({
+        localPeers: updatedPeers,
+        localPeersWebRtcConnections: updatedPeersWebRtcConnections,
+      });
+    });
+  };
+
   setupPeerConn = ({ id, type }) => {
     //creating our RTCPeerConnection object
     const configuration = {
@@ -79,10 +126,10 @@ class Home extends React.Component {
     //when the browser finds an ice candidate we send it to another peer
     peeConnection.onicecandidate = function (event) {
       if (event.candidate) {
-        send({
-          type: "candidate",
-          candidate: event.candidate,
-        });
+        // send({
+        //   type: "candidate",
+        //   candidate: event.candidate,
+        // });
       }
     };
 
@@ -114,17 +161,19 @@ class Home extends React.Component {
   };
 
   addToLocalPeersWebRtcConnections = (peeConnection, dataChannel, id, type) => {
-    const { localPeersWebRtcConnections } = this.state;
     const peerConnObj = {
       peeConnection,
       dataChannel,
       id,
       type,
     };
-    const updatedArr = [...localPeersWebRtcConnections, peerConnObj];
-    this.setState({
-      localPeersWebRtcConnections: updatedArr,
-    });
+    this.setState((prevState) => {
+      console.log(peerConnObj, prevState.localPeersWebRtcConnections);
+      return {
+        localPeersWebRtcConnections: prevState.localPeersWebRtcConnections.push(peerConnObj),
+        ...prevState,
+      };
+    }, () => console.log(this.state.localPeersWebRtcConnections));
   };
 
   sendBroadcast = (channel) => {
