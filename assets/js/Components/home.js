@@ -1,7 +1,12 @@
 import React from "react";
 
 import { getMyIp } from "../utils/index";
-import { setIdIfRequired, getMachineId } from "../utils/indexedDbUtils";
+import {
+  setIdIfRequired,
+  getMachineId,
+  setNodeType,
+  getNodeType,
+} from "../utils/indexedDbUtils";
 import { configureChannel } from "../socket";
 
 class Home extends React.Component {
@@ -9,20 +14,35 @@ class Home extends React.Component {
     ip: "",
     machineId: "",
     type: "",
-    localPeers: [],
+    lanPeers: [],
     localPeersWebRtcConnections: [],
   };
   constructor(props) {
     super(props);
   }
+
+  async componentWillUnmount() {
+    await setNodeType("");
+  }
+
   async componentDidMount() {
     const { channel, socket } = await configureChannel();
+    const componentThis = this;
     await this.setupIp();
     await this.manageMachineId();
     channel
       .join()
-      .receive("ok", async (data) => {
-        console.log("Channel join data", data);
+      .receive("ok", async ({ lan_peers }) => {
+        console.log("lan_peers ", lan_peers);
+        if (lan_peers.length > 0) {
+          await setNodeType("CHILD");
+        } else {
+          setNodeType("MASTER");
+        }
+        const nodeType = await getNodeType();
+        this.setState({ lanPeers: lan_peers, type: nodeType }, () => {
+          componentThis.addSelfToIpNodeList(channel);
+        });
       })
       .receive("error", ({ reason }) => {
         alert("Something wrong with socket");
@@ -32,6 +52,18 @@ class Home extends React.Component {
         alert("Networking issue. Still waiting....");
       });
   }
+
+  addSelfToIpNodeList = (channel) => {
+    const { ip, machineId, type } = this.state;
+    channel.push("web:add_self_to_ip_node_list", {
+      ip,
+      machine_id: machineId,
+      type,
+    });
+    console.log("addSelfToIpNodeList");
+  };
+
+  setupChild = async () => {};
 
   setupIp = async () => {
     const ip = await getMyIp();

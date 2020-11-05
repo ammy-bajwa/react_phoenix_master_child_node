@@ -50,16 +50,15 @@ defmodule Aliva.Nodes do
     end
   end
 
-  def add_node(ip, id, socket) do
+  def add_node(ip, machine_id, type, socket) do
     case get_peers(ip) do
-      nil -> handle_master_creation(id, socket, ip)
-      [] -> handle_master_creation(id, socket, ip)
-      peers_list -> handle_child_creation(peers_list, id, socket, ip)
+      [] -> handle_master_creation(ip, machine_id, type, socket)
+      peers_list -> handle_child_creation(peers_list, ip, machine_id, type, socket)
     end
   end
 
-  def handle_child_creation(peers_list, id, socket, ip) do
-    generate_peer_struct(id, socket, "CHILD")
+  def handle_child_creation(peers_list, ip, machine_id, type, socket) do
+    generate_peer_struct(machine_id, type, socket)
     |> add_struct_to_map_child(peers_list, ip)
     |> update_nodes_data()
   end
@@ -82,11 +81,11 @@ defmodule Aliva.Nodes do
 
   def set_tuple_in_agent(my_tuple) do
     Agent.update(__MODULE__, fn _ -> my_tuple end)
-    # IO.inspect(get_all_node_tuple(), label: "All Nodes -----------------")
+    IO.inspect(get_all_node_tuple(), label: "All Nodes -----------------")
   end
 
-  def handle_master_creation(id, socket, ip) do
-    generate_peer_struct(id, socket, "MASTER")
+  def handle_master_creation(ip, machine_id, type, socket) do
+    generate_peer_struct(machine_id, type, socket)
     |> add_struct_to_map_master(ip)
     |> update_nodes_data()
   end
@@ -108,10 +107,14 @@ defmodule Aliva.Nodes do
 
   def get_peers(ips_map, ip) do
     Map.get(ips_map, ip)
+    |> case do
+      nil -> []
+      peers -> peers
+    end
   end
 
-  def generate_peer_struct(id, socket, type) do
-    %{id: id, type: type, connection: socket}
+  def generate_peer_struct(machine_id, type, socket) do
+    %{machine_id: machine_id, type: type, connection: socket}
   end
 
   def merge_lists(my_peer_struct, peers) do
