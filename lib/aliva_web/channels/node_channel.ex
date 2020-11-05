@@ -4,8 +4,8 @@ defmodule AlivaWeb.NodeChannel do
 
   defstruct id: ""
 
-  def join("web:peer", %{"ip" => ip}, socket) do
-    IO.inspect("Channel is joined by peer")
+  def join("web:peer", %{"machineId" => machine_id, "ip" => ip}, socket) do
+    IO.inspect("Channel is joined by peer #{machine_id} #{ip}")
     {:ok, %{}, socket}
   end
 

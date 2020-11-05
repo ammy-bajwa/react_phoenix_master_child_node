@@ -1,13 +1,13 @@
 import React from "react";
 
 import { getMyIp } from "../utils/index";
-import { setIdIfRequired } from "../utils/indexedDbUtils";
+import { setIdIfRequired, getMachineId } from "../utils/indexedDbUtils";
 import { configureChannel } from "../socket";
 
 class Home extends React.Component {
   state = {
     ip: "",
-    id: "",
+    machineId: "",
     type: "",
     localPeers: [],
     localPeersWebRtcConnections: [],
@@ -17,20 +17,27 @@ class Home extends React.Component {
   }
   async componentDidMount() {
     const { channel, socket } = await configureChannel();
-    setIdIfRequired();
-    // channel
-    //   .join()
-    //   .receive("ok", async (data) => {
-    //     const ip = await getMyIp();
-    //   })
-    //   .receive("error", ({ reason }) => {
-    //     alert("Something wrong with socket");
-    //     console.log("failed join", reason);
-    //   })
-    //   .receive("timeout", () => {
-    //     alert("Networking issue. Still waiting....");
-    //   });
+    await manageMachineId();
+    channel
+      .join()
+      .receive("ok", async (data) => {
+        const ip = await getMyIp();
+      })
+      .receive("error", ({ reason }) => {
+        alert("Something wrong with socket");
+        console.log("failed join", reason);
+      })
+      .receive("timeout", () => {
+        alert("Networking issue. Still waiting....");
+      });
   }
+
+  manageMachineId = async () => {
+    const machineId = await getMachineId();
+    this.setState({
+      machineId,
+    });
+  };
   render() {
     return (
       <div>

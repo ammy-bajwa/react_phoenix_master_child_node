@@ -10,9 +10,20 @@ export async function setIdIfRequired() {
 
   const machineId = await db.get("idStore", "id");
   if (!machineId) {
-    await db.put("idStore", uuidv4(), "id" );
+    await db.put("idStore", uuidv4(), "id");
   }
-  console.log("machineId ", machineId);
+
+  db.close();
+}
+
+export async function getMachineId() {
+  const db = await openDB("machineIdentification", 1, {
+    upgrade(db) {
+      db.createObjectStore("idStore");
+    },
+  });
+
+  return await db.get("idStore", "id");
 }
 
 // async function initialiseIdb() {
