@@ -9,6 +9,15 @@ defmodule Aliva.Nodes do
     Agent.start_link(fn -> initial_state end, name: __MODULE__)
   end
 
+  def is_from_same_machine(ip, machine_id) do
+    get_all_peers_list(ip)
+    |> Enum.find(fn machine_struct -> Map.get(machine_struct, :machine_id) == machine_id end)
+    |> case do
+      nil -> false
+      _ -> true
+    end
+  end
+
   def remove_node(ip, id) do
     get_ips_map()
     |> Map.get(ip)
@@ -18,7 +27,7 @@ defmodule Aliva.Nodes do
   def filter_peers_list(peers_list, id, ip) do
     peers_list
     |> Enum.filter(fn client_node ->
-      current_node_id = Map.get(client_node, :id, nil)
+      current_node_id = Map.get(client_node, :machine_id, nil)
       current_node_id != id
     end)
     |> make_a_node_master_if_required()
@@ -138,7 +147,9 @@ defmodule Aliva.Nodes do
         []
 
       peers ->
-        Enum.map(peers, fn node -> %{id: Map.get(node, :id), type: Map.get(node, :type)} end)
+        Enum.map(peers, fn node ->
+          %{machine_id: Map.get(node, :machine_id), type: Map.get(node, :type)}
+        end)
     end
   end
 

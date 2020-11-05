@@ -14,17 +14,24 @@ defmodule AlivaWeb.NodeChannel do
         %{"ip" => ip, "machine_id" => machine_id, "type" => type},
         socket
       ) do
-    # is_same = is_from_same_machine(ip, machine_id)
-    socket = assign(socket, :type, type)
-    if type == "MASTER" do
-      handle_master_creation(ip, machine_id, type, socket)
+    is_same = is_from_same_machine(ip, machine_id)
+
+    if is_same do
+      {:noreply, socket}
     else
-      peers_list = get_all_peers_list(ip)
-      handle_child_creation(peers_list, ip, machine_id, type, socket)
+      socket = assign(socket, :type, type)
+
+      if type == "MASTER" do
+        handle_master_creation(ip, machine_id, type, socket)
+      else
+        peers_list = get_peers(ip)
+        handle_child_creation(peers_list, ip, machine_id, type, socket)
+      end
+
+      socket = Map.update(socket, :id, machine_id, fn _value -> machine_id end)
+      IO.inspect(socket, label: "add_self_to_ip_node_list------------")
+      {:noreply, socket}
     end
-    socket = Map.update(socket, :id, machine_id, fn _value -> machine_id end)
-    IO.inspect(socket, label: "add_self_to_ip_node_list------------")
-    {:noreply, socket}
   end
 
   def terminate(_reason, socket) do
