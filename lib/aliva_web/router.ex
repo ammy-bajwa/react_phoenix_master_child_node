@@ -1,19 +1,22 @@
 defmodule AlivaWeb.Router do
   use AlivaWeb, :router
   use Pow.Phoenix.Router
+
   use Pow.Extension.Phoenix.Router,
     extensions: [PowResetPassword, PowEmailConfirmation]
+
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
     plug :fetch_flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
-
   end
+
   pipeline :api_protected do
     plug Pow.Plug.RequireAuthenticated, error_handler: AlivaWeb.ApiAuthErrorHandler
   end
+
   pipeline :api do
     plug :accepts, ["json"]
     # resources "/products", ProductController, except: [:new, :edit]
@@ -26,7 +29,6 @@ defmodule AlivaWeb.Router do
     get "/", PageController, :index
     get "/*path", PageController, :index
   end
-
 
   # Other scopes may use custom stacks.
   # scope "/api", AlivaWeb do

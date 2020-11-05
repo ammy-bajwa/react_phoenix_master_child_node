@@ -11,9 +11,9 @@ defmodule AlivaWeb.Endpoint do
   ]
 
   socket "/socket", AlivaWeb.UserSocket,
-  websocket: [
-    connect_info: [pow_config: @pow_config]
-  ],
+    websocket: [
+      connect_info: [pow_config: @pow_config]
+    ],
     websocket: true,
     longpoll: false
 

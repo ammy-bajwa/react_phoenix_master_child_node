@@ -18,9 +18,10 @@ config :aliva, AlivaWeb.Endpoint,
   pubsub_server: Aliva.PubSub,
   live_view: [signing_salt: "buOH4/R0"]
 
-  config :aliva, :pow,
+config :aliva, :pow,
   user: Aliva.Users.User,
   repo: Aliva.Repo
+
 # Configures Elixir's Logger
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",
@@ -28,8 +29,6 @@ config :logger, :console,
 
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
-
-
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

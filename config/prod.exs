@@ -17,7 +17,7 @@ use Mix.Config
 # config :logger, level: :info
 
 config :aliva, AlivaWeb.Endpoint,
-http: [port: {:system, "PORT"}],
+  http: [port: {:system, "PORT"}],
   load_from_system_env: true,
   url: [scheme: "https", host: "aliva.herokuapp.com", port: 443],
   force_ssl: [rewrite_on: [:x_forwarded_proto]],

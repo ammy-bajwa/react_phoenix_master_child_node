@@ -11,7 +11,7 @@ export async function configureChannel() {
     // const channel = socket.channel("initial:peer", {});
   };
 
-  const channel = socket.channel("initial:peer", { ip });
+  const channel = socket.channel("web:peer", { ip });
 
   return { channel, socket };
 }

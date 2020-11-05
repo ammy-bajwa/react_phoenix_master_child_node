@@ -6,8 +6,20 @@ defmodule Aliva.InventoryTest do
   describe "products" do
     alias Aliva.Inventory.Product
 
-    @valid_attrs %{firstname: "some firstname", lastname: "some lastname", percent: 42, rank: 42, score: 42}
-    @update_attrs %{firstname: "some updated firstname", lastname: "some updated lastname", percent: 43, rank: 43, score: 43}
+    @valid_attrs %{
+      firstname: "some firstname",
+      lastname: "some lastname",
+      percent: 42,
+      rank: 42,
+      score: 42
+    }
+    @update_attrs %{
+      firstname: "some updated firstname",
+      lastname: "some updated lastname",
+      percent: 43,
+      rank: 43,
+      score: 43
+    }
     @invalid_attrs %{firstname: nil, lastname: nil, percent: nil, rank: nil, score: nil}
 
     def product_fixture(attrs \\ %{}) do
