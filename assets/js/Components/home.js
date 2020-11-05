@@ -17,7 +17,7 @@ class Home extends React.Component {
   }
   async componentDidMount() {
     const { channel, socket } = await configureChannel();
-    await manageMachineId();
+    await this.manageMachineId();
     channel
       .join()
       .receive("ok", async (data) => {
