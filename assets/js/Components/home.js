@@ -45,6 +45,7 @@ class Home extends React.Component {
           componentThis.removeNodeListener(channel);
           componentThis.newNodeListener(channel);
           componentThis.makeThisNodeMaster(channel);
+          componentThis.updateMaster(channel);
         });
       })
       .receive("error", ({ reason }) => {
@@ -56,9 +57,36 @@ class Home extends React.Component {
       });
   }
 
+  updateMaster = (channel) => {
+    const { ip } = this.state;
+    channel.on(`web:update_master_${ip}`, (data) => {
+      const { lanPeers, lanPeersWebRtcConnections } = this.state;
+      const updatedPeers = lanPeers.map((node) => {
+        if (node.machine_id === data.machine_id) {
+          node.type = "MASTER";
+          return node;
+        }
+        return node;
+      });
+      const updatedPeersWebRtcConnections = localPeersWebRtcConnections.map(
+        (node) => {
+          if (node.machine_id === data.machine_id) {
+            node.type = "MASTER";
+            return node;
+          }
+          return node;
+        }
+      );
+      this.setState({
+        lanPeers: updatedPeers,
+        lanPeersWebRtcConnections: updatedPeersWebRtcConnections,
+      });
+    });
+  };
+
   makeThisNodeMaster = (channel) => {
     const { machineId } = this.state;
-    channel.on(`initial:make_me_master_${machineId}`, async () => {
+    channel.on(`web:make_me_master_${machineId}`, async () => {
       this.setState({
         type: "MASTER",
       });
@@ -71,7 +99,7 @@ class Home extends React.Component {
     const componentThis = this;
     channel.on(`web:new_${ip}`, (data) => {
       const { machineId } = this.state;
-      if (machineId !== data.machineId) {
+      if (machineId !== data.machine_id) {
         const { lanPeers } = this.state;
         const updatedPeers = [...lanPeers, data];
         componentThis.setState({ lanPeers: updatedPeers });
