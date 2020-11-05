@@ -18,17 +18,17 @@ defmodule Aliva.Nodes do
     end
   end
 
-  def remove_node(ip, id) do
+  def remove_node(ip, machine_id) do
     get_ips_map()
     |> Map.get(ip)
-    |> filter_peers_list(id, ip)
+    |> filter_peers_list(machine_id, ip)
   end
 
-  def filter_peers_list(peers_list, id, ip) do
+  def filter_peers_list(peers_list, machine_id, ip) do
     peers_list
     |> Enum.filter(fn client_node ->
       current_node_id = Map.get(client_node, :machine_id, nil)
-      current_node_id != id
+      current_node_id != machine_id
     end)
     |> make_a_node_master_if_required()
     |> update_ip_map_node_list(ip)

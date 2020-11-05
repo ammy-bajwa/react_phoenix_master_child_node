@@ -15,7 +15,7 @@ class Home extends React.Component {
     machineId: "",
     type: "",
     lanPeers: [],
-    localPeersWebRtcConnections: [],
+    lanPeersWebRtcConnections: [],
   };
   constructor(props) {
     super(props);
@@ -42,6 +42,9 @@ class Home extends React.Component {
         const nodeType = await getNodeType();
         this.setState({ lanPeers: lan_peers, type: nodeType }, () => {
           componentThis.addSelfToIpNodeList(channel);
+          componentThis.removeNodeListener(channel);
+          componentThis.newNodeListener(channel);
+          componentThis.makeThisNodeMaster(channel);
         });
       })
       .receive("error", ({ reason }) => {
@@ -52,6 +55,46 @@ class Home extends React.Component {
         alert("Networking issue. Still waiting....");
       });
   }
+
+  makeThisNodeMaster = (channel) => {
+    const { machineId } = this.state;
+    channel.on(`initial:make_me_master_${machineId}`, async () => {
+      this.setState({
+        type: "MASTER",
+      });
+      await setNodeType("MASTER");
+    });
+  };
+  // This will be called when new node added in already existed node
+  newNodeListener = (channel) => {
+    const { ip } = this.state;
+    const componentThis = this;
+    channel.on(`web:new_${ip}`, (data) => {
+      const { machineId } = this.state;
+      if (machineId !== data.machineId) {
+        const { lanPeers } = this.state;
+        const updatedPeers = [...lanPeers, data];
+        componentThis.setState({ lanPeers: updatedPeers });
+      }
+    });
+  };
+
+  removeNodeListener = (channel) => {
+    const { ip } = this.state;
+    channel.on(`web:remove_${ip}`, (data) => {
+      const { lanPeers, lanPeersWebRtcConnections } = this.state;
+      const updatedPeers = lanPeers.filter(
+        (node) => node.machine_id !== data.machine_id
+      );
+      const updatedPeersWebRtcConnections = lanPeersWebRtcConnections.filter(
+        (nodeObj) => nodeObj.machine_id !== data.machine_id
+      );
+      this.setState({
+        lanPeers: updatedPeers,
+        lanPeersWebRtcConnections: updatedPeersWebRtcConnections,
+      });
+    });
+  };
 
   addSelfToIpNodeList = (channel) => {
     const { ip, machineId, type } = this.state;
