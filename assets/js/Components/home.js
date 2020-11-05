@@ -17,11 +17,12 @@ class Home extends React.Component {
   }
   async componentDidMount() {
     const { channel, socket } = await configureChannel();
+    await this.setupIp();
     await this.manageMachineId();
     channel
       .join()
       .receive("ok", async (data) => {
-        const ip = await getMyIp();
+        console.log("Channel join data", data);
       })
       .receive("error", ({ reason }) => {
         alert("Something wrong with socket");
@@ -31,6 +32,11 @@ class Home extends React.Component {
         alert("Networking issue. Still waiting....");
       });
   }
+
+  setupIp = async () => {
+    const ip = await getMyIp();
+    this.setState({ ip });
+  };
 
   manageMachineId = async () => {
     const machineId = await getMachineId();
