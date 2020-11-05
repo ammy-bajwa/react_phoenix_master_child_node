@@ -1,6 +1,7 @@
 import React from "react";
 
-import { getMyIp } from "../utils";
+import { getMyIp } from "../utils/index";
+import { setIdIfRequired } from "../utils/indexedDbUtils";
 import { configureChannel } from "../socket";
 
 class Home extends React.Component {
@@ -16,7 +17,7 @@ class Home extends React.Component {
   }
   async componentDidMount() {
     const { channel, socket } = await configureChannel();
-
+    setIdIfRequired();
     // channel
     //   .join()
     //   .receive("ok", async (data) => {
