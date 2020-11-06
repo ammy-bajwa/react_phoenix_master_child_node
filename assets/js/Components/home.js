@@ -21,9 +21,9 @@ class Home extends React.Component {
     super(props);
   }
 
-  async componentWillUnmount() {
-    await setNodeType("");
-  }
+  // async componentWillUnmount() {
+  //   await setNodeType("");
+  // }
 
   async componentDidMount() {
     const { channel, socket } = await configureChannel();
@@ -33,6 +33,10 @@ class Home extends React.Component {
     channel
       .join()
       .receive("ok", async ({ lan_peers }) => {
+        if (!lan_peers) {
+          channel.leave();
+          return;
+        }
         console.log("lan_peers ", lan_peers);
         if (lan_peers.length > 0) {
           await setNodeType("CHILD");
@@ -68,7 +72,7 @@ class Home extends React.Component {
         }
         return node;
       });
-      const updatedPeersWebRtcConnections = localPeersWebRtcConnections.map(
+      const updatedPeersWebRtcConnections = lanPeersWebRtcConnections.map(
         (node) => {
           if (node.machine_id === data.machine_id) {
             node.type = "MASTER";

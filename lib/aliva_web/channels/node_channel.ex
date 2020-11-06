@@ -2,11 +2,16 @@ defmodule AlivaWeb.NodeChannel do
   use AlivaWeb, :channel
   import Aliva.Nodes
 
-  def join("web:peer", %{"ip" => ip}, socket) do
+  def join("web:peer", %{"ip" => ip, "machine_id" => machine_id}, socket) do
     IO.inspect("Channel is joined by peer #{ip}")
     socket = assign(socket, :ip, ip)
+    is_same = is_from_same_machine(ip, machine_id)
     peers_list = get_all_peers_list(ip)
-    {:ok, %{lan_peers: peers_list}, socket}
+    if is_same do
+      {:ok, %{lan_peers: nil}, socket}
+    else
+      {:ok, %{lan_peers: peers_list}, socket}
+    end
   end
 
   def handle_in(
