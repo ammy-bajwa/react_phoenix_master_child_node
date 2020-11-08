@@ -42,9 +42,9 @@ class Home extends React.Component {
         this.setState({ lanPeers: lan_peers, type }, () => {
           if (type === "MASTER") {
             componentThis.newNodeListener(channel);
-            componentThis.updateMaster(channel);
             componentThis.removeNodeListener(channel);
           }
+          componentThis.updateMasterInChild(channel);
           componentThis.addSelfToIpNodeList(channel);
           componentThis.makeThisNodeMaster(channel);
         });
@@ -58,26 +58,13 @@ class Home extends React.Component {
       });
   }
 
-  updateMaster = (channel) => {
+  updateMasterInChild = (channel) => {
     const { ip } = this.state;
-    channel.on(`web:update_master_${ip}`, (data) => {
-      const { lanPeers, lanPeersWebRtcConnections } = this.state;
-      const updatedPeers = lanPeers.map((node) => {
-        if (node.machine_id === data.machine_id) {
-          node.type = "MASTER";
-          return node;
-        }
-        return node;
-      });
-      const updatedPeersWebRtcConnections = lanPeersWebRtcConnections.map(
-        (node) => {
-          if (node.machine_id === data.machine_id) {
-            node.type = "MASTER";
-            return node;
-          }
-          return node;
-        }
-      );
+    channel.on(`web:update_master_in_child${ip}`, (data) => {
+      const updatedPeers = [
+        { machine_id: data.machine_id, ip: data.ip, type: "MASTER" },
+      ];
+      const updatedPeersWebRtcConnections = [];
       this.setState({
         lanPeers: updatedPeers,
         lanPeersWebRtcConnections: updatedPeersWebRtcConnections,
@@ -87,10 +74,14 @@ class Home extends React.Component {
 
   makeThisNodeMaster = (channel) => {
     const { machineId } = this.state;
-    channel.on(`web:make_me_master_${machineId}`, async () => {
+    channel.on(`web:make_me_master_${machineId}`, async ({ ip, lan_peers }) => {
       this.setState({
+        lanPeers: lan_peers,
         type: "MASTER",
       });
+
+      this.newNodeListener(channel);
+      this.removeNodeListener(channel);
       await setNodeType("MASTER");
     });
   };
