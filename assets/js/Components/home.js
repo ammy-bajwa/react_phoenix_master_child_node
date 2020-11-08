@@ -32,24 +32,21 @@ class Home extends React.Component {
     await this.manageMachineId();
     channel
       .join()
-      .receive("ok", async ({ lan_peers }) => {
+      .receive("ok", async ({ lan_peers, type }) => {
+        // Receiving null here if request is from same browser
         if (!lan_peers) {
           channel.leave();
           return;
         }
-        console.log("lan_peers ", lan_peers);
-        if (lan_peers.length > 0) {
-          await setNodeType("CHILD");
-        } else {
-          setNodeType("MASTER");
-        }
-        const nodeType = await getNodeType();
-        this.setState({ lanPeers: lan_peers, type: nodeType }, () => {
+        await setNodeType(type);
+        this.setState({ lanPeers: lan_peers, type }, () => {
+          if (type === "MASTER") {
+            componentThis.newNodeListener(channel);
+            componentThis.updateMaster(channel);
+            componentThis.removeNodeListener(channel);
+          }
           componentThis.addSelfToIpNodeList(channel);
-          componentThis.removeNodeListener(channel);
-          componentThis.newNodeListener(channel);
           componentThis.makeThisNodeMaster(channel);
-          componentThis.updateMaster(channel);
         });
       })
       .receive("error", ({ reason }) => {
