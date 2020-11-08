@@ -75,14 +75,15 @@ class Home extends React.Component {
   makeThisNodeMaster = (channel) => {
     const { machineId } = this.state;
     channel.on(`web:make_me_master_${machineId}`, async ({ ip, lan_peers }) => {
+      console.log("make_me_master ", lan_peers);
       this.setState({
         lanPeers: lan_peers,
         type: "MASTER",
       });
 
+      await setNodeType("MASTER");
       this.newNodeListener(channel);
       this.removeNodeListener(channel);
-      await setNodeType("MASTER");
     });
   };
   // This will be called when new node added in already existed node
@@ -140,9 +141,21 @@ class Home extends React.Component {
     });
   };
   render() {
+    const { ip, type, lanPeers, machineId } = this.state;
     return (
       <div>
-        <h1>Home</h1>
+        <h1>Self</h1>
+        <h2>{ip}</h2>
+        <h2>
+          I am {type} - {machineId}
+        </h2>
+        <hr />
+        <h1>Peers</h1>
+        {lanPeers.map(({ ip, type, machine_id }, i) => (
+          <h2 key={i}>
+            {ip} - {type} - {machine_id}
+          </h2>
+        ))}
       </div>
     );
   }

@@ -54,9 +54,9 @@ defmodule AlivaWeb.NodeChannel do
     [master_node | _tail] = get_master_node(ip)
     master_node_id = Map.get(master_node, :machine_id)
     if type == "MASTER" do
-      peers_list = get_all_peers_list(ip)
-      broadcast(socket, "web:make_me_master_#{master_node_id}", %{ip: ip, lan_peers: peers_list})
+      peers_list = get_all_peers_list_exclude_master(ip)
       broadcast(socket, "web:update_master_in_child#{ip}", %{machine_id: master_node_id, ip: ip})
+      broadcast(socket, "web:make_me_master_#{master_node_id}", %{ip: ip, lan_peers: peers_list})
     end
     {:ok, %{}, socket}
   end

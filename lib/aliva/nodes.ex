@@ -138,6 +138,24 @@ defmodule Aliva.Nodes do
     Agent.get(__MODULE__, fn nodes_list -> nodes_list end)
   end
 
+  def get_all_peers_list_exclude_master(ip)  do
+    ips_map = get_ips_map()
+
+    Map.get(ips_map, ip)
+    |> case do
+      nil ->
+        []
+
+      peers ->
+        Enum.map(peers, fn node ->
+          %{machine_id: Map.get(node, :machine_id), type: Map.get(node, :type)}
+        end)
+        |> Enum.filter(fn node ->
+          node.type == "CHILD"
+        end)
+    end
+  end
+
   def get_all_peers_list(ip) do
     ips_map = get_ips_map()
 
