@@ -49,8 +49,8 @@ class Home extends React.Component {
             componentThis.listenForAnswerFromChild(channel);
           } else {
             componentThis.setupLanPeerConnectionChild(channel);
-            componentThis.listenAnswerFromMaster(channel);
             componentThis.listenOfferFromMaster(channel);
+            componentThis.listenAnswerFromMaster(channel);
           }
           componentThis.listenForIceCandidate(channel);
           componentThis.updateMasterInChild(channel);
@@ -68,203 +68,156 @@ class Home extends React.Component {
   }
 
   listenForIceCandidate = (channel) => {
-    const { machineId } = this.state;
-    channel.on(`web:add_ice_candidate${machineId}`, async (data) => {
-      const { lanPeersWebRtcConnections } = this.state;
-      let updatedArr = lanPeersWebRtcConnections.map(async (connObj) => {
-        if (connObj.machineId === data.sender) {
-          console.log("Ice agent added");
-          connObj.peerConnection.ondatachannel = function (event) {
-            dataChannel = event.channel;
-            console.log("Channel Successfull.......");
-          };
-          setTimeout(async () => {
-            await connObj.peerConnection.addIceCandidate(
-              new RTCIceCandidate(data.candidate)
-            );
-          }, 1000);
-        }
-        return connObj;
-      });
-      updatedArr = await Promise.all(updatedArr);
-      this.setState({
-        lanPeersWebRtcConnections: updatedArr,
-      });
-    });
+    // const { machineId } = this.state;
+    // channel.on(`web:add_ice_candidate${machineId}`, async (data) => {
+    //   const { lanPeersWebRtcConnections } = this.state;
+    //   let updatedArr = lanPeersWebRtcConnections.map(async (connObj) => {
+    //     if (connObj.machineId === data.sender) {
+    //       console.log("Ice agent added");
+    //       connObj.peerConnection.ondatachannel = function (event) {
+    //         dataChannel = event.channel;
+    //         console.log("Channel Successfull.......");
+    //       };
+    //       setTimeout(async () => {
+    //         await connObj.peerConnection.addIceCandidate(
+    //           new RTCIceCandidate(data.candidate)
+    //         );
+    //       }, 1000);
+    //     }
+    //     return connObj;
+    //   });
+    //   updatedArr = await Promise.all(updatedArr);
+    //   this.setState({
+    //     lanPeersWebRtcConnections: updatedArr,
+    //   });
+    // });
   };
 
   listenOfferFromMaster = (channel) => {
-    const { machineId, ip } = this.state;
-    channel.on(
-      `web:offer_from_master_${machineId}`,
-      async ({ offer_for_child, master_id, child_id }) => {
-        const { lanPeersWebRtcConnections } = this.state;
-        let updatedArr = lanPeersWebRtcConnections.map(async (peerObj) => {
-          if (peerObj.machineId === master_id) {
-            if (!peerObj.peerConnection.localDescription) {
-              await peerObj.peerConnection.setRemoteDescription(
-                new RTCSessionDescription(offer_for_child)
-              );
-              console.log("master offer setRemote");
-              const answerForMaster = await peerObj.peerConnection.createAnswer();
-              console.log("master answer created");
-              await peerObj.peerConnection.setLocalDescription(answerForMaster);
-              console.log("master answer setLocal");
-              channel.push(`web:send_answer_to_master`, {
-                answer_for_master: answerForMaster,
-                master_id: peerObj.machineId,
-                child_id: machineId,
-                ip: ip,
-              });
-            }
-          }
-          return peerObj;
-        });
-        updatedArr = await Promise.all(updatedArr);
-        console.log("listenOfferFromMaster: ", updatedArr);
-        this.setState({
-          lanPeersWebRtcConnections: updatedArr,
-        });
-      }
-    );
+    // const { machineId, ip } = this.state;
+    // channel.on(
+    //   `web:offer_from_master_${machineId}`,
+    //   async ({ offer_for_child, master_id, child_id }) => {
+    //     const { lanPeersWebRtcConnections } = this.state;
+    //     let updatedArr = lanPeersWebRtcConnections.map(async (peerObj) => {
+    //       if (peerObj.machineId === master_id) {
+    //         if (!peerObj.peerConnection.localDescription) {
+    //           await peerObj.peerConnection.setRemoteDescription(
+    //             new RTCSessionDescription(offer_for_child)
+    //           );
+    //           console.log("master offer setRemote");
+    //           const answerForMaster = await peerObj.peerConnection.createAnswer();
+    //           console.log("master answer created");
+    //           await peerObj.peerConnection.setLocalDescription(answerForMaster);
+    //           console.log("master answer setLocal");
+    //           channel.push(`web:send_answer_to_master`, {
+    //             answer_for_master: answerForMaster,
+    //             master_id: peerObj.machineId,
+    //             child_id: machineId,
+    //             ip: ip,
+    //           });
+    //         }
+    //       }
+    //       return peerObj;
+    //     });
+    //     updatedArr = await Promise.all(updatedArr);
+    //     console.log("listenOfferFromMaster: ", updatedArr);
+    //     this.setState({
+    //       lanPeersWebRtcConnections: updatedArr,
+    //     });
+    //   }
+    // );
   };
 
   listenAnswerFromMaster = (channel) => {
-    const { machineId } = this.state;
-    channel.on(
-      `web:answer_from_master_${machineId}`,
-      async ({ answer_for_child, master_id, child_id }) => {
-        const { lanPeersWebRtcConnections } = this.state;
-        console.log(
-          "answer_from_master_ lanPeersWebRtcConnections: ",
-          lanPeersWebRtcConnections
-        );
-        let updatedArr = lanPeersWebRtcConnections.map(async (peerObj) => {
-          if (peerObj.machineId === master_id) {
-            if (!peerObj.peerConnection.remoteDescription) {
-              await peerObj.peerConnection.setRemoteDescription(
-                answer_for_child
-              );
-            }
-          }
-          return peerObj;
-        });
-        updatedArr = await Promise.all(updatedArr);
-        console.log("listenAnswerFromMaster: ", updatedArr);
-        this.setState({
-          lanPeersWebRtcConnections: updatedArr,
-        });
-      }
-    );
+    // const { machineId } = this.state;
+    // channel.on(
+    //   `web:answer_from_master_${machineId}`,
+    //   async ({ answer_for_child, master_id, child_id }) => {
+    //     const { lanPeersWebRtcConnections } = this.state;
+    //     console.log(
+    //       "answer_from_master_ lanPeersWebRtcConnections: ",
+    //       lanPeersWebRtcConnections
+    //     );
+    //     let updatedArr = lanPeersWebRtcConnections.map(async (peerObj) => {
+    //       if (peerObj.machineId === master_id) {
+    //         if (!peerObj.peerConnection.remoteDescription) {
+    //           await peerObj.peerConnection.setRemoteDescription(
+    //             answer_for_child
+    //           );
+    //         }
+    //       }
+    //       return peerObj;
+    //     });
+    //     updatedArr = await Promise.all(updatedArr);
+    //     console.log("listenAnswerFromMaster: ", updatedArr);
+    //     this.setState({
+    //       lanPeersWebRtcConnections: updatedArr,
+    //     });
+    //   }
+    // );
   };
 
   setupLanPeerConnectionChild = async (channel) => {
     const { ip, machineId, lanPeers, type } = this.state;
     const masterNode = lanPeers[lanPeers.length - 1];
     // Here we will create the connection for child to connect to master
-    const peerConnection = this.createPeerConnectionObj(
-      channel,
-      masterNode.machine_id,
-      type
-    );
+    const peerConnection = this.createPeerConnectionForMasterFromChild();
   };
 
   createOffer = async (peerConnection) => {
     return await peerConnection.createOffer();
   };
 
-  createPeerConnectionObj = (channel, toReceive, currentMachineType) => {
+  createPeerConnectionForChildFromMaster = () => {
     const componentThis = this;
-
-    const { lanPeers, ip, machineId, lanPeersWebRtcConnections } = this.state;
-    const masterNode = lanPeers[lanPeers.length - 1];
-
     const configuration = {
       iceServers: [{ url: "stun:stun.12connect.com:3478" }],
     };
 
     const peerConnection = new webkitRTCPeerConnection(configuration);
 
-    peerConnection.onnegotiationneeded = async () => {
-      setTimeout(async () => {
-        // Create and send offer
-        if (currentMachineType === "CHILD") {
-          // From Child to Master
-          console.log("child peerConnection created");
-          if (!peerConnection.localDescription) {
-            const offerForMaster = await this.createOffer(peerConnection);
-            console.log("child offer created");
-            await peerConnection.setLocalDescription(offerForMaster);
-            console.log("child offer setLocal");
-            const connObj = {
-              ip,
-              machineId: masterNode.machine_id,
-              type: "MASTER",
-              peerConnection,
-            };
-            this.setState(
-              {
-                lanPeersWebRtcConnections: [connObj],
-              },
-              () => {
-                const { lanPeersWebRtcConnections } = this.state;
-                channel.push("web:send_offer_to_master", {
-                  offer_for_master: offerForMaster,
-                  ip,
-                  machine_id: machineId,
-                });
+    peerConnection.onnegotiationneeded = async () => {};
 
-                console.log(
-                  "onnegotion lanPeersWebRtcConnections: ",
-                  lanPeersWebRtcConnections
-                );
-              }
-            );
-          }
-        } else {
-          // From Master to Child
-          if (!peerConnection.localDescription) {
-            const offerForChild = await this.createOffer(peerConnection);
-            await peerConnection.setLocalDescription(offerForChild);
-            console.log("Master offer setLocal");
+    peerConnection.onicecandidate = function (event) {};
 
-            channel.push("web:send_offer_to_child", {
-              offer_for_child: offerForChild,
-              ip,
-              child_id: toReceive,
-              master_id: machineId,
-            });
-            console.log("onnegotiationneeded MASTER", currentMachineType);
-          }
-        }
-        console.log("onnegotiationneeded", currentMachineType);
-      }, 50);
+    peerConnection.ondatachannel = function (event) {
+      const dataChannel = event.channel;
+      console.log("Channel Successfull ondatachannel.......", dataChannel);
+    };
+    const dataChannelOptions = {
+      reliable: true,
+      RtpDataChannels: true,
+    };
+    const peerDataChannel = peerConnection.createDataChannel(
+      "myDataChannel",
+      dataChannelOptions
+    );
+    peerDataChannel.onopen = function (event) {
+      console.log("myDataChannel is open", peerDataChannel);
+      console.log("Ready........");
+    };
+    peerDataChannel.onerror = function (error) {
+      console.log("Error:", error);
+    };
+    peerDataChannel.onmessage = function (event) {
+      console.log("Got message:", event.data);
     };
 
-    peerConnection.onicecandidate = function (event) {
-      const { machineId, lanPeers, type } = componentThis.state;
-      console.log("onicecandidate event: ", type, event);
-      if (event.candidate) {
-        if (type === "CHILD") {
-          console.log("Must be master id: ", masterNode);
-          const masterNode = lanPeers[lanPeers.length - 1];
-          componentThis.addIceMessage(
-            channel,
-            machineId,
-            masterNode.machine_id,
-            event.candidate
-          );
-        } else {
-          console.log("Must be child id: ", toReceive);
-          componentThis.addIceMessage(
-            channel,
-            machineId,
-            toReceive,
-            event.candidate
-          );
-        }
-      }
+    return peerConnection;
+  };
+
+  createPeerConnectionForMasterFromChild = () => {
+    const componentThis = this;
+    const configuration = {
+      iceServers: [{ url: "stun:stun.12connect.com:3478" }],
     };
+
+    const peerConnection = new webkitRTCPeerConnection(configuration);
+
+    peerConnection.onnegotiationneeded = async () => {};
+
+    peerConnection.onicecandidate = function (event) {};
 
     peerConnection.ondatachannel = function (event) {
       const dataChannel = event.channel;
@@ -351,7 +304,7 @@ class Home extends React.Component {
       machineId,
       type: currentType,
     } = this.state;
-    const peerConnection = this.createPeerConnectionObj(
+    const peerConnection = this.createPeerConnectionForChildFromMaster(
       channel,
       machine_id,
       currentType
@@ -370,63 +323,63 @@ class Home extends React.Component {
   };
 
   listenForAnswerFromChild = (channel) => {
-    const { ip, machineId: master_id } = this.state;
-    channel.on(
-      `web:answer_from_child_${ip}`,
-      async ({ master_id, answer_for_master, child_id }) => {
-        const { lanPeersWebRtcConnections } = this.state;
-        let updatedArr = lanPeersWebRtcConnections.map(async (connObj) => {
-          if (connObj.machineId === child_id) {
-            if (!connObj.peerConnection.remoteDescription) {
-              await connObj.peerConnection.setRemoteDescription(
-                new RTCSessionDescription(answer_for_master)
-              );
-              console.log("master offer setRemote");
-            }
-          }
-          return connObj;
-        });
-        updatedArr = await Promise.all(updatedArr);
-        this.setState({
-          lanPeersWebRtcConnections: updatedArr,
-        });
-      }
-    );
+    // const { ip, machineId: master_id } = this.state;
+    // channel.on(
+    //   `web:answer_from_child_${ip}`,
+    //   async ({ master_id, answer_for_master, child_id }) => {
+    //     const { lanPeersWebRtcConnections } = this.state;
+    //     let updatedArr = lanPeersWebRtcConnections.map(async (connObj) => {
+    //       if (connObj.machineId === child_id) {
+    //         if (!connObj.peerConnection.remoteDescription) {
+    //           await connObj.peerConnection.setRemoteDescription(
+    //             new RTCSessionDescription(answer_for_master)
+    //           );
+    //           console.log("master offer setRemote");
+    //         }
+    //       }
+    //       return connObj;
+    //     });
+    //     updatedArr = await Promise.all(updatedArr);
+    //     this.setState({
+    //       lanPeersWebRtcConnections: updatedArr,
+    //     });
+    //   }
+    // );
   };
 
   listenForOfferFromChild = (channel) => {
-    const { ip, machineId: master_id } = this.state;
-    channel.on(
-      `web:offer_from_child_${ip}`,
-      async ({ machineId, offer_for_master, ip }) => {
-        const { lanPeersWebRtcConnections } = this.state;
-        let updatedArr = lanPeersWebRtcConnections.map(async (connObj) => {
-          if (connObj.machineId === machineId) {
-            if (!connObj.peerConnection.localDescription) {
-              await connObj.peerConnection.setRemoteDescription(
-                new RTCSessionDescription(offer_for_master)
-              );
-              console.log("master offer setRemote");
-              const answerForChild = await connObj.peerConnection.createAnswer();
-              console.log("master answer created");
-              await connObj.peerConnection.setLocalDescription(answerForChild);
-              console.log("master answer setLocal");
-              channel.push(`web:send_answer_to_child`, {
-                answer_for_child: answerForChild,
-                master_id,
-                child_id: connObj.machineId,
-              });
-            }
-          }
-          return connObj;
-        });
-        updatedArr = await Promise.all(updatedArr);
-        console.log("listenForOfferFromChild: ", updatedArr);
-        this.setState({
-          lanPeersWebRtcConnections: updatedArr,
-        });
-      }
-    );
+    // const { ip, machineId: master_id } = this.state;
+    // channel.on(
+    //   `web:offer_from_child_${ip}`,
+    //   async ({ machineId, offer_for_master, ip }) => {
+    //     const { lanPeersWebRtcConnections } = this.state;
+    //     let updatedArr = lanPeersWebRtcConnections.map(async (connObj) => {
+    //       if (connObj.machineId === machineId) {
+    //         if (!connObj.peerConnection.localDescription) {
+    //           await connObj.peerConnection.setRemoteDescription(
+    //             new RTCSessionDescription(offer_for_master)
+    //           );
+    //           console.log("master offer setRemote");
+    //           const answerForChild = await connObj.peerConnection.createAnswer();
+    //           console.log("master answer created");
+    //           await connObj.peerConnection.setLocalDescription(answerForChild);
+    //           console.log("master answer setLocal");
+    //           channel.push(`web:send_answer_to_child`, {
+    //             answer_for_child: answerForChild,
+    //             master_id,
+    //             child_id: connObj.machineId,
+    //           });
+    //         }
+    //       }
+    //       return connObj;
+    //     });
+    //     updatedArr = await Promise.all(updatedArr);
+    //     console.log("listenForOfferFromChild: ", updatedArr);
+    //     this.setState({
+    //       lanPeersWebRtcConnections: updatedArr,
+    //     });
+    //   }
+    // );
   };
 
   removeNodeListener = (channel) => {
