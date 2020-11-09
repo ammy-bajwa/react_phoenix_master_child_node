@@ -158,10 +158,34 @@ class Home extends React.Component {
     channel.on(`web:new_${ip}`, (data) => {
       const { machineId } = this.state;
       if (machineId !== data.machine_id) {
-        const { lanPeers } = this.state;
+        const { lanPeers, lanPeersWebRtcConnections } = this.state;
         const updatedPeers = [...lanPeers, data];
         componentThis.setState({ lanPeers: updatedPeers });
+        componentThis.handleNewChildPeerConnectionCreation(data);
       }
+    });
+  };
+
+  handleNewChildPeerConnectionCreation = async ({ ip, machine_id, type }) => {
+    const { lanPeersWebRtcConnections } = this.state;
+    const peerConnection = this.createPeerConnectionObj();
+    const peerDataChannel = this.createPeerDataChannel(peerConnection);
+    const offerFromChild = await this.createOffer(peerConnection);
+    peerConnection.setLocalDescription(offerFromChild);
+    // Send offer to master
+    console.log("peerConnection ", peerConnection);
+    console.log("peerDataChannel ", peerDataChannel);
+    console.log("offerFromChild ", offerFromChild);
+    const connObj = {
+      ip,
+      machineId: machine_id,
+      type,
+      peerConnection,
+      peerDataChannel,
+    };
+    const updatedPeers = [...lanPeersWebRtcConnections, connObj];
+    this.setState({
+      lanPeersWebRtcConnections: updatedPeers,
     });
   };
 
