@@ -51,6 +51,16 @@ defmodule AlivaWeb.NodeChannel do
     {:noreply, socket}
   end
 
+
+  def handle_in(
+        "web:send_answer_to_child",
+        %{"answer_for_child" => answer_for_child, "master_id" => master_id, "child_id" => child_id},
+        socket
+      ) do
+    broadcast(socket, "web:answer_from_master_#{child_id}", %{answer_for_child: answer_for_child, master_id: master_id, child_id: child_id})
+    {:noreply, socket}
+  end
+
   def terminate(_reason, socket) do
     machine_id_to_remove = Map.get(socket, :id)
     %{ip: ip} = Map.get(socket, :assigns)
