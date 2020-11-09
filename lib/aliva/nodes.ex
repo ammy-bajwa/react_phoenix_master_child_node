@@ -138,7 +138,7 @@ defmodule Aliva.Nodes do
     Agent.get(__MODULE__, fn nodes_list -> nodes_list end)
   end
 
-  def get_all_peers_list_exclude_master(ip)  do
+  def get_all_peers_list_exclude_master(ip) do
     ips_map = get_ips_map()
 
     Map.get(ips_map, ip)

@@ -44,6 +44,7 @@ class Home extends React.Component {
           if (type === "MASTER") {
             componentThis.newNodeListener(channel);
             componentThis.removeNodeListener(channel);
+            componentThis.listenForOfferFromChild(channel);
           } else {
             componentThis.setupLanPeerConnectionChild(channel);
           }
@@ -62,15 +63,17 @@ class Home extends React.Component {
   }
 
   setupLanPeerConnectionChild = async (channel) => {
+    const { ip, machineId, lanPeers } = this.state;
     // Here we will create the connection for child to connect to master
     const peerConnection = this.createPeerConnectionObj();
     const peerDataChannel = this.createPeerDataChannel(peerConnection);
-    const offerFromChild = await this.createOffer(peerConnection);
-    peerConnection.setLocalDescription(offerFromChild);
+    const offerForMaster = await this.createOffer(peerConnection);
+    peerConnection.setLocalDescription(offerForMaster);
+    channel.push("web:send_offer_to_master", {offer_for_master :offerForMaster, ip, machine_id: machineId});
     // Send offer to master
     console.log("peerConnection ", peerConnection);
     console.log("peerDataChannel ", peerDataChannel);
-    console.log("offerFromChild ", offerFromChild);
+    console.log("offerForMaster ", offerForMaster);
   };
 
   createOffer = async (peerConnection) => {
@@ -149,6 +152,7 @@ class Home extends React.Component {
       await setNodeType("MASTER");
       this.newNodeListener(channel);
       this.removeNodeListener(channel);
+      this.listenForOfferFromChild(channel);
     });
   };
   // This will be called when new node added in already existed node
@@ -180,6 +184,13 @@ class Home extends React.Component {
     const updatedPeers = [...lanPeersWebRtcConnections, connObj];
     this.setState({
       lanPeersWebRtcConnections: updatedPeers,
+    });
+  };
+
+  listenForOfferFromChild = (channel) => {
+    const { ip } = this.state;
+    channel.on(`web:offer_from_child_${ip}`, ({ machineId, offer_for_master, ip }) => {
+      console.log("Offer received to master :", offer_for_master);
     });
   };
 
