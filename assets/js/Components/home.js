@@ -36,6 +36,7 @@ class Home extends React.Component {
         // Receiving null here if request is from same browser
         if (!lan_peers) {
           channel.leave();
+          alert("Already a connection is established in other tab");
           return;
         }
         await setNodeType(type);
@@ -43,6 +44,8 @@ class Home extends React.Component {
           if (type === "MASTER") {
             componentThis.newNodeListener(channel);
             componentThis.removeNodeListener(channel);
+          } else {
+            componentThis.setupLanPeerConnectionChild(channel);
           }
           componentThis.updateMasterInChild(channel);
           componentThis.addSelfToIpNodeList(channel);
@@ -57,6 +60,68 @@ class Home extends React.Component {
         alert("Networking issue. Still waiting....");
       });
   }
+
+  setupLanPeerConnectionChild = async (channel) => {
+    // Here we will create the connection for child to connect to master
+    const peerConnection = this.createPeerConnectionObj();
+    const peerDataChannel = this.createPeerDataChannel(peerConnection);
+    const offerFromChild = await this.createOffer(peerConnection);
+    peerConnection.setLocalDescription(offerFromChild);
+    // Send offer to master
+    console.log("peerConnection ", peerConnection);
+    console.log("peerDataChannel ", peerDataChannel);
+    console.log("offerFromChild ", offerFromChild);
+  };
+
+  createOffer = async (peerConnection) => {
+    return await peerConnection.createOffer();
+  };
+
+  createPeerDataChannel = (peerConnection) => {
+    const dataChannelOptions = {
+      reliable: true,
+    };
+
+    const peerDataChannel = peerConnection.createDataChannel(
+      "myDataChannel",
+      dataChannelOptions
+    );
+    peerDataChannel.onopen = function (event) {
+      console.log("myDataChannel is open", peerDataChannel);
+      console.log("Ready........");
+    };
+    peerDataChannel.onerror = function (error) {
+      console.log("Error:", error);
+    };
+
+    peerDataChannel.onmessage = function (event) {
+      console.log("Got message:", event.data);
+    };
+    return peerDataChannel;
+  };
+
+  createPeerConnectionObj = () => {
+    const configuration = {
+      iceServers: [{ url: "stun:stun.12connect.com:3478" }],
+    };
+
+    const peerConnection = new webkitRTCPeerConnection(configuration);
+    peerConnection.onicecandidate = function (event) {
+      console.log("onicecandidate");
+      // if (event.candidate) {
+      //   send({
+      //     type: "candidate",
+      //     candidate: event.candidate,
+      //   });
+      // }
+    };
+    peerConnection.ondatachannel = function (event) {
+      const dataChannel = event.channel;
+      console.log("Channel Successfull ondatachannel.......");
+    };
+
+    return peerConnection;
+  };
 
   updateMasterInChild = (channel) => {
     const { ip } = this.state;
@@ -124,10 +189,7 @@ class Home extends React.Component {
       machine_id: machineId,
       type,
     });
-    console.log("addSelfToIpNodeList");
   };
-
-  setupChild = async () => {};
 
   setupIp = async () => {
     const ip = await getMyIp();
