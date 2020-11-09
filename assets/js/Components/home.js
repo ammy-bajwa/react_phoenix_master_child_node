@@ -163,6 +163,7 @@ class Home extends React.Component {
     const masterNode = lanPeers[lanPeers.length - 1];
     // Here we will create the connection for child to connect to master
     const peerConnection = this.createPeerConnectionForMasterFromChild();
+    const offerForMaster = await this.createOffer(peerConnection);
   };
 
   createOffer = async (peerConnection) => {
@@ -177,9 +178,16 @@ class Home extends React.Component {
 
     const peerConnection = new webkitRTCPeerConnection(configuration);
 
-    peerConnection.onnegotiationneeded = async () => {};
+    peerConnection.onnegotiationneeded = async () => {
+      console.log("onnegotiationneeded createPeerConnectionForChildFromMaster");
+    };
 
-    peerConnection.onicecandidate = function (event) {};
+    peerConnection.onicecandidate = function (event) {
+      console.log(
+        "onicecandidate createPeerConnectionForChildFromMaster",
+        event.candidate
+      );
+    };
 
     peerConnection.ondatachannel = function (event) {
       const dataChannel = event.channel;
@@ -215,9 +223,16 @@ class Home extends React.Component {
 
     const peerConnection = new webkitRTCPeerConnection(configuration);
 
-    peerConnection.onnegotiationneeded = async () => {};
+    peerConnection.onnegotiationneeded = async () => {
+      console.log("onnegotiationneeded createPeerConnectionForMasterFromChild");
+    };
 
-    peerConnection.onicecandidate = function (event) {};
+    peerConnection.onicecandidate = function (event) {
+      console.log(
+        "onicecandidate createPeerConnectionForMasterFromChild",
+        event.candidate
+      );
+    };
 
     peerConnection.ondatachannel = function (event) {
       const dataChannel = event.channel;
