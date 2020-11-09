@@ -170,12 +170,6 @@ class Home extends React.Component {
     const { lanPeersWebRtcConnections } = this.state;
     const peerConnection = this.createPeerConnectionObj();
     const peerDataChannel = this.createPeerDataChannel(peerConnection);
-    const offerFromChild = await this.createOffer(peerConnection);
-    peerConnection.setLocalDescription(offerFromChild);
-    // Send offer to master
-    console.log("peerConnection ", peerConnection);
-    console.log("peerDataChannel ", peerDataChannel);
-    console.log("offerFromChild ", offerFromChild);
     const connObj = {
       ip,
       machineId: machine_id,
