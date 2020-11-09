@@ -72,7 +72,7 @@ class Home extends React.Component {
     channel.on(`web:add_ice_candidate${machineId}`, async (data) => {
       const { lanPeersWebRtcConnections } = this.state;
       let updatedArr = lanPeersWebRtcConnections.map(async (connObj) => {
-        if (connObj.machine_id === data.sender) {
+        if (connObj.machineId === data.sender) {
           console.log("Ice agent added");
           connObj.peerConnection.ondatachannel = function (event) {
             dataChannel = event.channel;
@@ -116,8 +116,10 @@ class Home extends React.Component {
               ip: ip,
             });
           }
+          return peerObj;
         });
         updatedArr = await Promise.all(updatedArr);
+        console.log("listenOfferFromMaster: ", updatedArr);
         this.setState({
           lanPeersWebRtcConnections: updatedArr,
         });
@@ -131,14 +133,18 @@ class Home extends React.Component {
       `web:answer_from_master_${machineId}`,
       async ({ answer_for_child, master_id, child_id }) => {
         const { lanPeersWebRtcConnections } = this.state;
+        console.log(
+          "answer_from_master_ lanPeersWebRtcConnections: ",
+          lanPeersWebRtcConnections
+        );
         let updatedArr = lanPeersWebRtcConnections.map(async (peerObj) => {
-          console.log(peerObj);
-          if (peerObj.machine_id === master_id) {
+          if (peerObj.machineId === master_id) {
             await peerObj.peerConnection.setRemoteDescription(answer_for_child);
           }
           return peerObj;
         });
         updatedArr = await Promise.all(updatedArr);
+        console.log("listenAnswerFromMaster: ", updatedArr);
         this.setState({
           lanPeersWebRtcConnections: updatedArr,
         });
@@ -193,11 +199,17 @@ class Home extends React.Component {
             lanPeersWebRtcConnections: [connObj],
           },
           () => {
+            const { lanPeersWebRtcConnections } = this.state;
             channel.push("web:send_offer_to_master", {
               offer_for_master: offerForMaster,
               ip,
               machine_id: machineId,
             });
+
+            console.log(
+              "onnegotion lanPeersWebRtcConnections: ",
+              lanPeersWebRtcConnections
+            );
           }
         );
       } else {
@@ -314,7 +326,7 @@ class Home extends React.Component {
         const { lanPeers } = this.state;
         const updatedPeers = [...lanPeers, data];
         componentThis.setState({ lanPeers: updatedPeers });
-        // componentThis.handleNewChildPeerConnectionCreation(data, channel);
+        componentThis.handleNewChildPeerConnectionCreation(data, channel);
       }
     });
   };
@@ -340,6 +352,7 @@ class Home extends React.Component {
       peerConnection,
     };
     const updatedPeers = [...lanPeersWebRtcConnections, connObj];
+    console.log("handleNewChildPeerConnectionCreation: ", updatedPeers);
     this.setState({
       lanPeersWebRtcConnections: updatedPeers,
     });
@@ -393,6 +406,7 @@ class Home extends React.Component {
           return connObj;
         });
         updatedArr = await Promise.all(updatedArr);
+        console.log("listenForOfferFromChild: ", updatedArr);
         this.setState({
           lanPeersWebRtcConnections: updatedArr,
         });
