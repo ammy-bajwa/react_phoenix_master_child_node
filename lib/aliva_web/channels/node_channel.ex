@@ -7,6 +7,7 @@ defmodule AlivaWeb.NodeChannel do
     is_same = is_from_same_machine(ip, machine_id)
     peers_list = get_all_peers_list(ip)
     peers_count = Enum.count(peers_list)
+
     if is_same do
       {:ok, %{lan_peers: nil}, socket}
     else
@@ -25,10 +26,12 @@ defmodule AlivaWeb.NodeChannel do
         socket
       ) do
     is_same = is_from_same_machine(ip, machine_id)
+
     if is_same do
       {:noreply, socket}
     else
       socket = assign(socket, :type, type)
+
       if type == "MASTER" do
         handle_master_creation(ip, machine_id, type, socket)
       else
@@ -36,28 +39,94 @@ defmodule AlivaWeb.NodeChannel do
         handle_child_creation(peers_list, ip, machine_id, type, socket)
         broadcast(socket, "web:new_#{ip}", %{type: type, machine_id: machine_id, ip: ip})
       end
+
       socket = Map.update(socket, :id, machine_id, fn _value -> machine_id end)
       {:noreply, socket}
     end
   end
-
 
   def handle_in(
         "web:send_offer_to_master",
         %{"ip" => ip, "machine_id" => machine_id, "offer_for_master" => offer_for_master},
         socket
       ) do
-    broadcast(socket, "web:offer_from_child_#{ip}", %{offer_for_master: offer_for_master, machineId: machine_id, ip: ip})
+    broadcast(socket, "web:offer_from_child_#{ip}", %{
+      offer_for_master: offer_for_master,
+      machineId: machine_id,
+      ip: ip
+    })
+
     {:noreply, socket}
   end
 
+  def handle_in(
+        "web:send_offer_to_child",
+        %{
+          "ip" => ip,
+          "child_id" => child_id,
+          "master_id" => master_id,
+          "offer_for_child" => offer_for_child
+        },
+        socket
+      ) do
+    broadcast(socket, "web:offer_from_master_#{child_id}", %{
+      offer_for_child: offer_for_child,
+      child_id: child_id,
+      master_id: master_id,
+      ip: ip
+    })
+
+    {:noreply, socket}
+  end
+
+  def handle_in(
+        "web:send_answer_to_master",
+        %{
+          "answer_for_master" => answer_for_master,
+          "child_id" => child_id,
+          "master_id" => master_id,
+          "ip" => ip
+        },
+        socket
+      ) do
+    broadcast(socket, "web:answer_from_child_#{ip}", %{
+      answer_for_master: answer_for_master,
+      master_id: master_id,
+      child_id: child_id
+    })
+
+    {:noreply, socket}
+  end
 
   def handle_in(
         "web:send_answer_to_child",
-        %{"answer_for_child" => answer_for_child, "master_id" => master_id, "child_id" => child_id},
+        %{
+          "answer_for_child" => answer_for_child,
+          "master_id" => master_id,
+          "child_id" => child_id
+        },
         socket
       ) do
-    broadcast(socket, "web:answer_from_master_#{child_id}", %{answer_for_child: answer_for_child, master_id: master_id, child_id: child_id})
+    broadcast(socket, "web:answer_from_master_#{child_id}", %{
+      answer_for_child: answer_for_child,
+      master_id: master_id,
+      child_id: child_id
+    })
+
+    {:noreply, socket}
+  end
+
+  def handle_in(
+        "web:add_ice",
+        %{"sender" => sender, "receiver" => receiver, "candidate" => candidate},
+        socket
+      ) do
+    broadcast(socket, "web:add_ice_candidate#{receiver}", %{
+      sender: sender,
+      candidate: candidate,
+      receiver: receiver
+    })
+
     {:noreply, socket}
   end
 
@@ -69,11 +138,13 @@ defmodule AlivaWeb.NodeChannel do
     broadcast(socket, "web:remove_#{ip}", %{machine_id: machine_id_to_remove, ip: ip})
     [master_node | _tail] = get_master_node(ip)
     master_node_id = Map.get(master_node, :machine_id)
+
     if type == "MASTER" do
       peers_list = get_all_peers_list_exclude_master(ip)
       broadcast(socket, "web:update_master_in_child#{ip}", %{machine_id: master_node_id, ip: ip})
       broadcast(socket, "web:make_me_master_#{master_node_id}", %{ip: ip, lan_peers: peers_list})
     end
+
     {:ok, %{}, socket}
   end
 end
