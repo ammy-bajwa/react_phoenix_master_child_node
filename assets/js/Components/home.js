@@ -234,43 +234,43 @@ class Home extends React.Component {
     }
   };
 
+  onDataChannelCreated = (event) => {
+    const dataChannel = event.channel;
+    console.log("Channel Successfull ondatachannel.......", dataChannel);
+  };
+
+  onNegotiationNeededHandler = async (channel, peerConnection, childId) => {
+    await this.createAndSendOfferForChildFromMaster(
+      channel,
+      peerConnection,
+      childId
+    );
+    // Get answer from child
+    // set answer to remote
+    console.log("onnegotiationneeded MASTER");
+  };
+  onIceCandidateHandlerMaster = (event, channel, childId) => {
+    if (event.candidate) {
+      channel.push(`web:add_ice_candidate_from_master`, {
+        candidate: event.candidate,
+        child_id: childId,
+      });
+    }
+  };
   createPeerConnectionForChildFromMaster = async (channel, childId) => {
-    const componentThis = this;
     const configuration = {
       iceServers: [{ url: "stun:stun.12connect.com:3478" }],
     };
 
     const peerConnection = new webkitRTCPeerConnection(configuration);
 
-    peerConnection.onicecandidate = function (event) {
-      console.log(
-        "onicecandidate MASTER",
-        event.candidate,
-        peerConnection.iceConnectionState
-      );
-      if (event.candidate) {
-        channel.push(`web:add_ice_candidate_from_master`, {
-          candidate: event.candidate,
-          child_id: childId,
-        });
-      }
-    };
+    peerConnection.onicecandidate = (event) =>
+      this.onIceCandidateHandlerMaster(event, channel, childId);
 
-    peerConnection.onnegotiationneeded = async () => {
-      await componentThis.createAndSendOfferForChildFromMaster(
-        channel,
-        peerConnection,
-        childId
-      );
-      // Get answer from child
-      // set answer to remote
-      console.log("onnegotiationneeded MASTER");
-    };
+    peerConnection.onnegotiationneeded = () =>
+      this.onNegotiationNeededHandler(channel, peerConnection, childId);
 
-    peerConnection.ondatachannel = function (event) {
-      const dataChannel = event.channel;
-      console.log("Channel Successfull ondatachannel.......", dataChannel);
-    };
+    peerConnection.ondatachannel = this.onDataChannelCreated;
     const dataChannelOptions = {
       reliable: true,
       RtpDataChannels: true,
@@ -279,18 +279,14 @@ class Home extends React.Component {
       "myDataChannel",
       dataChannelOptions
     );
-    peerDataChannel.onopen = function (event) {
-      console.log("myDataChannel is open", peerDataChannel);
-      console.log("Ready........");
-    };
-    peerDataChannel.onerror = function (error) {
-      console.log("Error:", error);
-    };
-    peerDataChannel.onmessage = function (event) {
-      console.log("Got message:", event.data);
-    };
+    peerDataChannel.onopen = this.dataChannelOpenHandler;
+    peerDataChannel.onerror = this.dataChannelErrorHandler;
+    peerDataChannel.onmessage = this.dataChannelMessageHandler;
 
-    return { peerConnection, peerDataChannel };
+    return {
+      peerConnection,
+      peerDataChannel,
+    };
   };
 
   sendOfferToMaster = (channel, offerForMaster) => {
@@ -299,6 +295,29 @@ class Home extends React.Component {
       child_id: machineId,
       offer_for_master: offerForMaster,
     });
+  };
+  dataChannelMessageHandler = (event) => {
+    console.log("Got message:", event.data);
+  };
+
+  dataChannelErrorHandler = (error) => {
+    console.log("Error:", error);
+  };
+
+  dataChannelOpenHandler = (event) => {
+    console.log("myDataChannel is open", peerDataChannel);
+    console.log("Ready........");
+  };
+
+  onIceCandidateHandlerChild = (event) => {
+    if (event.candidate) {
+      const { machineId, ip } = componentThis.state;
+      channel.push(`web:add_ice_candidate_from_child`, {
+        candidate: event.candidate,
+        child_id: machineId,
+        ip,
+      });
+    }
   };
 
   createPeerConnectionForMasterFromChild = async (channel) => {
@@ -318,22 +337,10 @@ class Home extends React.Component {
       console.log("onnegotiationneeded CHILD");
     };
 
-    peerConnection.onicecandidate = function (event) {
-      console.log("onicecandidate CHILD");
-      if (event.candidate) {
-        const { machineId, ip } = componentThis.state;
-        channel.push(`web:add_ice_candidate_from_child`, {
-          candidate: event.candidate,
-          child_id: machineId,
-          ip,
-        });
-      }
-    };
+    peerConnection.onicecandidate = (event) =>
+      this.onIceCandidateHandlerChild(event);
 
-    peerConnection.ondatachannel = function (event) {
-      const dataChannel = event.channel;
-      console.log("Channel Successfull ondatachannel.......", dataChannel);
-    };
+    peerConnection.ondatachannel = this.onDataChannelCreated;
     const dataChannelOptions = {
       reliable: true,
       RtpDataChannels: true,
@@ -342,16 +349,9 @@ class Home extends React.Component {
       "myDataChannel",
       dataChannelOptions
     );
-    peerDataChannel.onopen = function (event) {
-      console.log("myDataChannel is open", peerDataChannel);
-      console.log("Ready........");
-    };
-    peerDataChannel.onerror = function (error) {
-      console.log("Error:", error);
-    };
-    peerDataChannel.onmessage = function (event) {
-      console.log("Got message:", event.data);
-    };
+    peerDataChannel.onopen = this.dataChannelOpenHandler;
+    peerDataChannel.onerror = this.dataChannelErrorHandler;
+    peerDataChannel.onmessage = this.dataChannelMessageHandler;
 
     return { peerConnection, peerDataChannel };
   };
