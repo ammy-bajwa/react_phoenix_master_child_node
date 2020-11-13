@@ -1,14 +1,5 @@
 import React from "react";
 
-import { getMyIp } from "../utils/index";
-import {
-  setIdIfRequired,
-  getMachineId,
-  setNodeType,
-  getNodeType,
-} from "../utils/indexedDbUtils";
-import { configureChannel } from "../socket";
-
 class Home extends React.Component {
   state = {};
   constructor(props) {
@@ -16,10 +7,40 @@ class Home extends React.Component {
   }
 
   componentDidMount() {}
+
+  createNewButton = () => {
+    const newButton = document.createElement("button");
+    const componentThis = this;
+    newButton.innerText = "new button";
+    newButton.onclick = (event) => {
+      console.log("newButton.onclick");
+      componentThis.testFun();
+    };
+    return newButton;
+  };
+
+  handleCreateButton = () => {
+    const newButton = this.createNewButton();
+    // document.querySelector("#newButtonDiv").append(newButton);
+    this.setState({
+      newButton,
+    });
+  };
+
+  handleExecutionEventInState = () => {
+    const { newButton } = this.state;
+    newButton.click();
+  };
   render() {
-    <div>
-      <h1>Home</h1>
-    </div>;
+    return (
+      <div>
+        <button onClick={this.handleCreateButton}>add button</button>
+        <button onClick={this.handleExecutionEventInState}>
+          execute click button
+        </button>
+        <div id="newButtonDiv"></div>
+      </div>
+    );
   }
 }
 
