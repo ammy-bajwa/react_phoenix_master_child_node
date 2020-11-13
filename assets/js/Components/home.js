@@ -251,6 +251,7 @@ class Home extends React.Component {
   };
   onIceCandidateHandlerMaster = (event, channel, childId) => {
     if (event.candidate) {
+      console.log("add_ice_candidate_from_master--------");
       channel.push(`web:add_ice_candidate_from_master`, {
         candidate: event.candidate,
         child_id: childId,
@@ -309,9 +310,9 @@ class Home extends React.Component {
     console.log("Ready........");
   };
 
-  onIceCandidateHandlerChild = (event) => {
+  onIceCandidateHandlerChild = (event, channel) => {
     if (event.candidate) {
-      const { machineId, ip } = componentThis.state;
+      const { machineId, ip } = this.state;
       channel.push(`web:add_ice_candidate_from_child`, {
         candidate: event.candidate,
         child_id: machineId,
@@ -338,7 +339,7 @@ class Home extends React.Component {
     };
 
     peerConnection.onicecandidate = (event) =>
-      this.onIceCandidateHandlerChild(event);
+      this.onIceCandidateHandlerChild(event, channel);
 
     peerConnection.ondatachannel = this.onDataChannelCreated;
     const dataChannelOptions = {
