@@ -26,11 +26,7 @@ class Home extends React.Component {
     channel
       .join()
       .receive("ok", async () => {
-        document
-          .querySelector("#createPeer")
-          .addEventListener("click", (event) => {
-            this.handleCreatePeer(channel);
-          });
+        this.handlePeer(channel);
       })
       .receive("error", ({ reason }) => {
         alert("Something wrong with socket");
@@ -41,46 +37,89 @@ class Home extends React.Component {
       });
   }
 
-  handleCreatePeer = (channel) => {
-    var configuration = {
-      iceServers: [{ urls: ["stun:stun.l.google.com:19302"] }],
+  createDataChannel = (peerConnection) => {
+    const dataChannel = peerConnection.createDataChannel("MyDataChannel");
+    console.log(dataChannel);
+    dataChannel.onopen = function () {
+      console.log("Data Channel is open");
+      dataChannel.send("Hello from amir");
+    };
+    dataChannel.onerror = function (error) {
+      console.log("Error:", error);
     };
 
-    const type = localStorage.getItem("type");
-    const myConnection = new webkitRTCPeerConnection(configuration, {
-      optional: [{ RtpDataChannels: true }],
+    dataChannel.onmessage = function (event) {
+      console.log("Got message:", event.data);
+    };
+  };
+
+  createAndSendOffer = async (peerConnection, channel) => {
+    const offer = await peerConnection.createOffer();
+    await peerConnection.setLocalDescription(offer);
+    console.log("offer sended", offer);
+    channel.push("web:send_offer_to_child", {
+      offer: JSON.stringify(offer),
     });
-    // myConnection = new webkitRTCPeerConnection();
+  };
 
-    myConnection.onicegatheringstatechange = function (event) {
-      console.log("ICE State Change: ", event);
-    };
+  handlePeer = (channel) => {
+    const type = localStorage.getItem("type");
+
+    let peerConnection = new RTCPeerConnection({
+      iceServers: [{ urls: "stun:stun.l.test.com:19000" }],
+    });
+
+    channel.on("web:receive_candidate", async ({ candidate }) => {
+      await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+      console.log("ICE candidate Added", candidate);
+    });
 
     if (type === "CHILD") {
-      myConnection.ondatachannel = function (event) {
-        const dataChannel = event.channel;
-        console.log("Channel Successfull.......", dataChannel);
-
-        dataChannel.onopen = function (event) {
-          console.log("myDataChannel is open", dataChannel);
-          console.log("Ready........");
-        };
-        dataChannel.onerror = function (error) {
-          console.log("Error:", error);
-        };
-
-        dataChannel.onmessage = function (event) {
-          console.log("Got message:", event.data);
-        };
-      };
+      channel.on("web:offer_from_master", async ({ offer }) => {
+        if (type === "CHILD") {
+          const receivedOffer = JSON.parse(offer);
+          await peerConnection.setRemoteDescription(
+            new RTCSessionDescription(receivedOffer)
+          );
+          console.log("Offer Received", typeof receivedOffer);
+          await peerConnection.createAnswer(
+            async (answer) => {
+              await peerConnection.setLocalDescription(answer);
+              channel.push("web:send_answer_to_master", {
+                answer: JSON.stringify(answer),
+              });
+              console.log("Answer sended", answer);
+            },
+            function (error) {
+              alert("oops...error");
+            }
+          );
+        }
+      });
     } else {
-      const dataChannel = myConnection.createDataChannel(
-        "myDataChannel",
-        dataChannelOptions
-      );
+      channel.on("web:answer_from_child", async ({ answer }) => {
+        if (type === "MASTER") {
+          const receivedAnswer = JSON.parse(answer);
+          await peerConnection.setRemoteDescription(
+            new RTCSessionDescription(receivedAnswer)
+          );
+          console.log("Answer Received", receivedAnswer);
+        }
+      });
+    }
+
+    peerConnection.onnegotiationneeded = async () => {
+      console.log("onnegotiationneeded", type);
+      if (type === "MASTER") {
+        await this.createAndSendOffer(peerConnection, channel);
+      }
+    };
+
+    peerConnection.ondatachannel = function (event) {
+      const dataChannel = event.channel;
+      console.log("ondatachannel: ", dataChannel);
       dataChannel.onopen = function (event) {
-        console.log("myDataChannel is open", dataChannel);
-        console.log("Ready........");
+        dataChannel.send("Hello from amir again");
       };
       dataChannel.onerror = function (error) {
         console.log("Error:", error);
@@ -89,98 +128,33 @@ class Home extends React.Component {
       dataChannel.onmessage = function (event) {
         console.log("Got message:", event.data);
       };
+    };
 
-      document
-        .querySelector("#sendData")
-        .addEventListener("click", async () => {
-          console.log("dataChannel: ", dataChannel);
-        });
-    }
-
-    channel.on("web:receive_candidate", async ({ candidate }) => {
-      await myConnection.addIceCandidate(new RTCIceCandidate(candidate));
-      console.log("ICE candidate Added", candidate);
-    });
-
-    channel.on("web:offer_from_master", async ({ offer }) => {
-      if (type === "CHILD") {
-        await myConnection.setRemoteDescription(
-          new RTCSessionDescription(offer)
-        );
-        console.log("Offer Received", offer);
-      }
-    });
-
-    channel.on("web:answer_from_child", async ({ answer }) => {
-      if (type === "MASTER") {
-        await myConnection.setRemoteDescription(
-          new RTCSessionDescription(answer)
-        );
-        console.log("Answer Received", answer);
-      }
-    });
-
-    //setup ice handling
-    //when the browser finds an ice candidate we send it to another peer
-    myConnection.onicecandidate = function (event) {
+    peerConnection.onicecandidate = (event) => {
+      console.log("iceEvent fired: ", event.candidate);
       if (event.candidate) {
         console.log("candidate request", event.candidate, type);
         channel.push("web:add_ice_candidate", { candidate: event.candidate });
       }
     };
-
-    myConnection.onnegotiationneeded = () => {
-      console.log("Negotiation needed ", type);
-    };
-
     document.querySelector("#sendOffer").addEventListener("click", async () => {
-      await myConnection.createOffer(
-        async function (offer) {
-          channel.push("web:send_offer_to_child", { offer });
-          await myConnection.setLocalDescription(offer);
-          console.log("Offer sended", offer);
-        },
-        function (error) {
-          alert("An error has occurred.");
-        }
-      );
+      await this.createAndSendOffer(peerConnection, channel);
     });
 
-    document
-      .querySelector("#sendAnswer")
-      .addEventListener("click", async () => {
-        await myConnection.createAnswer(
-          async (answer) => {
-            await myConnection.setLocalDescription(answer);
-            channel.push("web:send_answer_to_master", { answer });
-            console.log("Answer sended", answer);
-          },
-          function (error) {
-            alert("oops...error");
-          }
-        );
-      });
-
-    console.log("RTCPeerConnection object was created");
-    console.log(myConnection);
-
-    myConnection.onconnectionstatechange = (event) => {
-      console.log("State Change: ", event);
-    };
-
-    console.log("Ready for offer.......");
-    const dataChannelOptions = {
-      reliable: true,
-    };
+    document.querySelector("#sendData").addEventListener("click", async () => {
+      this.createDataChannel(peerConnection);
+    });
+    document.querySelector("#getState").addEventListener("click", async () => {
+      console.log("PeerConn", peerConnection);
+    });
   };
 
   render() {
     return (
       <div>
-        <button id="createPeer">Create Peer Connection</button>
         <button id="sendOffer">Send Offer</button>
-        <button id="sendAnswer">Send Answer</button>
         <button id="sendData">Send Data</button>
+        <button id="getState">Get Status</button>
       </div>
     );
   }
