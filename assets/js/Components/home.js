@@ -70,8 +70,8 @@ class Home extends React.Component {
     });
 
     channel.on("web:receive_candidate", async ({ candidate }) => {
+      console.log("ICE candidate Added", type + " ", candidate);
       await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-      console.log("ICE candidate Added", candidate);
     });
 
     if (type === "CHILD") {
