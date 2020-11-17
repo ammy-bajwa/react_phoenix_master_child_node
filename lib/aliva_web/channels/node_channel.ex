@@ -131,6 +131,19 @@ defmodule AlivaWeb.NodeChannel do
 
 
   def handle_in(
+        "web:add_ice_candidate",
+        %{"ip" => ip, "child_id" => child_id, "candidate" => candidate},
+        socket
+      ) do
+    broadcast(socket, "web:ice_event#{ip}", %{
+      child_id: child_id,
+      candidate: candidate
+    })
+
+    {:noreply, socket}
+  end
+
+  def handle_in(
         "web:add_ice_candidate_from_master",
         %{"child_id" => child_id, "candidate" => candidate},
         socket
