@@ -94,7 +94,7 @@ defmodule AlivaWeb.NodeChannel do
       master_id: master_id,
       child_id: child_id
     })
-
+    IO.inspect("---------------send_answer_to_master---------------")
     {:noreply, socket}
   end
 
@@ -131,15 +131,16 @@ defmodule AlivaWeb.NodeChannel do
 
 
   def handle_in(
-        "web:add_ice_candidate",
+        "web:send_ice_candidate",
         %{"ip" => ip, "child_id" => child_id, "candidate" => candidate},
         socket
       ) do
-    broadcast(socket, "web:ice_event#{ip}", %{
+    broadcast(socket, "web:add_ice_candidate_#{child_id}", %{
       child_id: child_id,
-      candidate: candidate
+      candidate: candidate,
+      ip: ip
     })
-
+    IO.inspect("---------------ICE Candidate---------------")
     {:noreply, socket}
   end
 

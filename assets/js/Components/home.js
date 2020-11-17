@@ -1,6 +1,8 @@
 import React from "react";
 
 import { getMyIp } from "../utils/index";
+import { masterCreateWebRtcConObj } from "../utils/master/masterWebRtcUtils";
+import { childCreateWebRtcConObj } from "../utils/child/childWebrtcUtils";
 import {
   setIdIfRequired,
   getMachineId,
@@ -64,282 +66,22 @@ class Home extends React.Component {
 
   setupLanPeerConnectionChild = async (channel) => {
     const { ip, machineId, lanPeers, type } = this.state;
-    const masterNode = lanPeers[lanPeers.length - 1];
-    // Here we will create the connection for child to connect to master
-    const {
-      peerConnection,
-    } = await this.createPeerConnectionForMasterFromChild(channel);
-    console.log("masterNode: ", masterNode);
-    const masterConnObj = {
-      peerConnection,
-      machineId: masterNode.machine_id,
-      type: "MASTER",
-    };
-    this.setState({
-      lanPeersWebRtcConnections: [masterConnObj],
-    });
-  };
-
-  createOffer = async (peerConnection) => {
-    return await peerConnection.createOffer();
-  };
-
-  createPeerConnectionForChildFromMaster = async (channel, childId) => {
-    const { ip, machineId } = this.state;
-    let offer, answer;
-    const configuration = {
-      iceServers: [{ urls: "stun:stun.l.test.com:19000" }],
-    };
-
-    const peerConnection = new RTCPeerConnection(configuration);
-
-    // channel.on(
-    //   `web:offer_from_child_${ip}`,
-    //   async ({ child_id, offer_for_master, ip }) => {
-    //     const parsedChildOffer = JSON.parse(offer_for_master);
-
-    //     await peerConnection.setRemoteDescription(
-    //       new RTCSessionDescription(parsedChildOffer)
-    //     );
-    //     console.log("child offer setRemote");
-    //     const answerForChild = await peerConnection.createAnswer();
-    //     console.log("answerForChild created");
-    //     await peerConnection.setLocalDescription(answerForChild);
-    //     console.log("answerForChild setLocal");
-    //     channel.push(`web:send_answer_to_child`, {
-    //       answer_for_child: JSON.stringify(answerForChild),
-    //       master_id: machineId,
-    //       child_id: child_id,
-    //     });
-    //   }
-    // );
-
-    channel.on(
-      `web:add_ice_candidate_to_master${ip}`,
-      async ({ child_id, candidate }) => {
-        await peerConnection.addIceCandidate(
-          new RTCIceCandidate(JSON.parse(candidate))
-        );
-        console.log("MASTER Ice Candidate Added From Child");
-      }
-    );
-
-    channel.on(
-      `web:answer_from_child_${ip}`,
-      async ({ master_id, answer_for_master, child_id }) => {
-        const answerFromChild = JSON.parse(answer_for_master);
-        await peerConnection.setRemoteDescription(
-          new RTCSessionDescription(answerFromChild)
-        );
-        console.log("MASTER setRemoteDescription Answer: ");
-      }
-    );
-
-    peerConnection.onicecandidate = (event) => {
-      console.log("MASTER IceEvent");
-      if (event.candidate) {
-        console.log("MASTER Ice Candidate Send To Child");
-        channel.push(`web:add_ice_candidate_from_master`, {
-          candidate: JSON.stringify(event.candidate),
-          child_id: childId,
-        });
-      }
-    };
-
-    peerConnection.onnegotiationneeded = async () => {
-      console.log("NEGOTIATION MASTER");
-      const offerForChild = await peerConnection.createOffer();
-      console.log("MASTER createOffer: ");
-      await peerConnection.setLocalDescription(offerForChild);
-      console.log("MASTER setLocalDescription Offer");
-      channel.push(`web:send_offer_to_child`, {
-        child_id: childId,
-        offer_for_child: JSON.stringify(offerForChild),
-        master_id: machineId,
-        ip,
-      });
-      console.log("MASTER Send Offer");
-    };
-
-    peerConnection.ondatachannel = function (event) {
-      const dataChannel = event.channel;
-      console.log("ondatachannel: ", dataChannel);
-      dataChannel.onopen = function (event) {
-        dataChannel.send("Hello from amir again");
-      };
-      dataChannel.onerror = function (error) {
-        console.log("Error:", error);
-      };
-
-      dataChannel.onmessage = function (event) {
-        console.log("Got message:", event.data);
-      };
-    };
-    document
-      .querySelector("#dataChannelMaster")
-      .addEventListener("click", () => {
-        const dataChannel = this.createDataChannel(peerConnection);
-        console.log("MASTER DataChannel Created", dataChannel);
-      });
-    document
-      .querySelector("#sendOfferMaster")
-      .addEventListener("click", async () => {
-        const offerForChild = await peerConnection.createOffer();
-        console.log("MASTER createOffer: ");
-        await peerConnection.setLocalDescription(offerForChild);
-        console.log("MASTER setLocalDescription Offer");
-        channel.push(`web:send_offer_to_child`, {
-          child_id: childId,
-          offer_for_child: JSON.stringify(offerForChild),
-          master_id: machineId,
-          ip,
-        });
-      });
-
-    const offerForChild = await peerConnection.createOffer();
-    console.log("MASTER createOffer: ");
-    await peerConnection.setLocalDescription(offerForChild);
-    console.log("MASTER setLocalDescription Offer");
-    channel.push(`web:send_offer_to_child`, {
-      child_id: childId,
-      offer_for_child: JSON.stringify(offerForChild),
-      master_id: machineId,
-      ip,
-    });
-    console.log("MASTER Send Offer");
-
-    document.querySelector("#stateMaster").addEventListener("click", () => {
-      console.log("MASTER peerconnection", peerConnection);
-    });
-
-    return {
-      peerConnection,
-      // peerDataChannel,
-    };
-  };
-
-  createDataChannel = (peerConnection) => {
-    const dataChannel = peerConnection.createDataChannel("MyDataChannel");
-    dataChannel.onopen = function () {
-      console.log("Data Channel is open");
-      dataChannel.send("Hello from amir");
-    };
-    dataChannel.onerror = function (error) {
-      console.log("Error:", error);
-    };
-
-    dataChannel.onmessage = function (event) {
-      console.log("Got message:", event.data);
-    };
-    return dataChannel;
-  };
-
-  createPeerConnectionForMasterFromChild = async (channel) => {
-    const { machineId, ip } = this.state;
-    const configuration = {
-      iceServers: [{ urls: "stun:stun.l.test.com:19000" }],
-    };
-
-    const peerConnection = new RTCPeerConnection(configuration);
-
-    channel.on(
-      `web:add_ice_candidate_to_child${machineId}`,
-      async ({ child_id, candidate }) => {
-        await peerConnection.addIceCandidate(
-          new RTCIceCandidate(JSON.parse(candidate))
-        );
-        console.log("CHILD Added Ice Candidate From Master");
-      }
-    );
-
-    // channel.on(
-    //   `web:answer_from_master_${machineId}`,
-    //   async ({ master_id, answer_for_child, child_id }) => {
-    //     const answerFromMaster = JSON.parse(answer_for_child);
-    //     await peerConnection.setRemoteDescription(
-    //       new RTCSessionDescription(answerFromMaster)
-    //     );
-    //     console.log("After Answer Set Remote CHILD: ", peerConnection);
-    //   }
-    // );
-
-    channel.on(
-      `web:offer_from_master_${machineId}`,
-      async ({ offer_from_master, master_id, child_id }) => {
-        const parsedMasterOffer = JSON.parse(offer_from_master);
-
-        await peerConnection.setRemoteDescription(
-          new RTCSessionDescription(parsedMasterOffer)
-        );
-        console.log("CHILD setRemoteDescription offer");
-        const answerForMaster = await peerConnection.createAnswer();
-        console.log("CHILD createAnswer");
-        await peerConnection.setLocalDescription(answerForMaster);
-        console.log("CHILD setLocalDescription Answer");
-        channel.push(`web:send_answer_to_master`, {
-          answer_for_master: JSON.stringify(answerForMaster),
-          master_id,
-          child_id,
-          ip: ip,
-        });
-        console.log("CHILD Send Answer");
-      }
-    );
-
-    peerConnection.onnegotiationneeded = async () => {
-      console.log("onnegotiationneeded CHILD");
-      // const offerForMaster = await peerConnection.createOffer();
-      // await peerConnection.setLocalDescription(offerForMaster);
-      // channel.push(`web:send_offer_to_master`, {
-      //   child_id: childId,
-      //   offer_for_child: JSON.stringify(offerForMaster),
-      //   ip,
-      // });
-    };
-
-    peerConnection.onicecandidate = (event) => {
-      console.log("CHILD IceEvent");
-      if (event.candidate) {
-        console.log("CHILD Send Candidate To Master");
-        channel.push(`web:add_ice_candidate_from_child`, {
-          candidate: JSON.stringify(event.candidate),
-          child_id: machineId,
-          ip,
-        });
-      }
-    };
-
-    peerConnection.ondatachannel = function (event) {
-      const dataChannel = event.channel;
-      console.log("ondatachannel: ", dataChannel);
-      dataChannel.onopen = function (event) {
-        dataChannel.send("Hello from amir again");
-      };
-      dataChannel.onerror = function (error) {
-        console.log("Error:", error);
-      };
-
-      dataChannel.onmessage = function (event) {
-        console.log("Got message:", event.data);
-      };
-
-      dataChannel.onerror = function (event) {
-        console.log("Got message:", event.data);
-      };
-    };
-
-    document
-      .querySelector("#dataChannelChild")
-      .addEventListener("click", () => {
-        const dataChannel = this.createDataChannel(peerConnection);
-        console.log("CHILD Datachannel Created", dataChannel);
-      });
-
-    document.querySelector("#stateChild").addEventListener("click", () => {
-      console.log("CHILD peerconnection", peerConnection);
-    });
-
-    return { peerConnection };
+    // const masterNode = lanPeers[lanPeers.length - 1];
+    // // Here we will create the connection for child to connect to master
+    // const {
+    //   peerConnection,
+    // } =
+    // await this.createPeerConnectionForMasterFromChild(channel);
+    childCreateWebRtcConObj(channel, ip, machineId);
+    // console.log("masterNode: ", masterNode);
+    // const masterConnObj = {
+    //   peerConnection,
+    //   machineId: masterNode.machine_id,
+    //   type: "MASTER",
+    // };
+    // this.setState({
+    //   lanPeersWebRtcConnections: [masterConnObj],
+    // });
   };
 
   updateMasterInChild = (channel) => {
@@ -387,16 +129,17 @@ class Home extends React.Component {
     { ip, machine_id: childId, type },
     channel
   ) => {
-    // const {
-    //   lanPeersWebRtcConnections,
-    //   machineId,
-    //   type: currentType,
-    // } = this.state;
+    const {
+      lanPeersWebRtcConnections,
+      machineId,
+      type: currentType,
+    } = this.state;
     // const {
     //   peerConnection,
     // peerDataChannel,
     // } =
-    await this.createPeerConnectionForChildFromMaster(channel, childId);
+    // await this.createPeerConnectionForChildFromMaster(channel, childId);
+    masterCreateWebRtcConObj(channel, ip, machineId, childId);
     // const connObj = {
     //   ip,
     //   machineId: childId,
