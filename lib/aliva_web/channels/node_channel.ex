@@ -42,7 +42,7 @@ defmodule AlivaWeb.NodeChannel do
     broadcast(socket, "web:receive_candidate", %{
       candidate: candidate
     })
-
+    IO.inspect("-----------ICE Event------------")
     {:noreply, socket}
   end
 
