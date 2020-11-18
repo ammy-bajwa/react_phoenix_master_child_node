@@ -248,8 +248,6 @@ class Home extends React.Component {
       peerConnection,
       dataChannel: peerDataChannel,
     } = this.masterCreateWebRtcConObj(channel, ip, machineId, childId);
-    console.log("peerConnection master: ", peerConnection);
-    console.log("peerDataChannel master: ", peerDataChannel);
     const connObj = {
       ip,
       machineId: childId,
@@ -301,9 +299,13 @@ class Home extends React.Component {
       `web:add_ice_candidate_to_master${ip}`,
       async ({ child_id, candidate }) => {
         const parsedCandidate = JSON.parse(candidate);
-        await peerConnection.addIceCandidate(
-          new RTCIceCandidate(parsedCandidate)
-        );
+        try {
+          await peerConnection.addIceCandidate(
+            new RTCIceCandidate(parsedCandidate)
+          );
+        } catch (error) {
+          console.log("Error In Adding Ice Candidate From Child");
+        }
         console.log("MASTER Added Ice Candidate From Child: ", parsedCandidate);
       }
     );
@@ -312,9 +314,13 @@ class Home extends React.Component {
       `web:answer_from_child_${ip}`,
       async ({ master_id, answer_for_master, child_id }) => {
         const answerFromChild = JSON.parse(answer_for_master);
-        await peerConnection.setRemoteDescription(
-          new RTCSessionDescription(answerFromChild)
-        );
+        try {
+          await peerConnection.setRemoteDescription(
+            new RTCSessionDescription(answerFromChild)
+          );
+        } catch (error) {
+          console.log("Error In MASTER setRemoteDescription Answer");
+        }
         console.log("MASTER setRemoteDescription Answer: ", answerFromChild);
       }
     );
@@ -457,9 +463,7 @@ class Home extends React.Component {
 
   handleMessageToChilds = () => {
     const { lanPeersWebRtcConnections, messageForChild } = this.state;
-    lanPeersWebRtcConnections.map(({ peerConnection, peerDataChannel }) => {
-      console.log("peerConnection: ", peerConnection);
-      console.log("peerDataChannel: ", peerDataChannel);
+    lanPeersWebRtcConnections.map(({ peerDataChannel }) => {
       peerDataChannel.send(messageForChild);
     });
   };
