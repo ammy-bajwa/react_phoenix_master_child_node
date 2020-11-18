@@ -4,7 +4,7 @@ export const masterCreateWebRtcConObj = (channel, ip, masterId, childId) => {
       {
         urls: ["stun:avm4962.com:3478", "stun:avm4962.com:5349"],
       },
-      // { urls: ["stun:ss-turn1.xirsys.com"] },
+      { urls: ["stun:ss-turn1.xirsys.com"] },
       {
         username: "TuR9Us3r",
         credential:
@@ -14,19 +14,19 @@ export const masterCreateWebRtcConObj = (channel, ip, masterId, childId) => {
           "turn:avm4962.com:5349?transport=tcp",
         ],
       },
-      // {
-      //   username:
-      //     "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
-      //   credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
-      //   urls: [
-      // "turn:ss-turn1.xirsys.com:80?transport=udp",
-      //     "turn:ss-turn1.xirsys.com:3478?transport=udp",
-      // "turn:ss-turn1.xirsys.com:80?transport=tcp",
-      // "turn:ss-turn1.xirsys.com:3478?transport=tcp",
-      // "turns:ss-turn1.xirsys.com:443?transport=tcp",
-      // "turns:ss-turn1.xirsys.com:5349?transport=tcp",
-      //   ],
-      // },
+      {
+        username:
+          "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
+        credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
+        urls: [
+      "turn:ss-turn1.xirsys.com:80?transport=udp",
+          "turn:ss-turn1.xirsys.com:3478?transport=udp",
+      "turn:ss-turn1.xirsys.com:80?transport=tcp",
+      "turn:ss-turn1.xirsys.com:3478?transport=tcp",
+      "turns:ss-turn1.xirsys.com:443?transport=tcp",
+      "turns:ss-turn1.xirsys.com:5349?transport=tcp",
+        ],
+      },
     ],
   });
   // const peerConnection = new RTCPeerConnection({ iceServers: [] });
@@ -94,8 +94,8 @@ export const masterCreateWebRtcConObj = (channel, ip, masterId, childId) => {
     console.log("MASTER Send Offer");
   };
 
+  const dataChannel = createDataChannel(peerConnection);
   document.querySelector("#dataChannelMaster").addEventListener("click", () => {
-    const dataChannel = createDataChannel(peerConnection);
     console.log("MASTER DataChannel Created", dataChannel);
   });
 
@@ -120,7 +120,10 @@ export const masterCreateWebRtcConObj = (channel, ip, masterId, childId) => {
 };
 
 const createDataChannel = (peerConnection) => {
-  const dataChannel = peerConnection.createDataChannel("MyDataChannel");
+  const dataChannel = peerConnection.createDataChannel("MyDataChannel", {
+    ordered: false,
+    maxRetransmits: 0,
+  });
   dataChannel.onopen = function () {
     console.log("Data Channel is open");
     dataChannel.send("Hello from amir");

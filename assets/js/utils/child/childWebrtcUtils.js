@@ -4,7 +4,7 @@ export const childCreateWebRtcConObj = (channel, ip, childId) => {
       {
         urls: ["stun:avm4962.com:3478", "stun:avm4962.com:5349"],
       },
-      // { urls: ["stun:ss-turn1.xirsys.com"] },
+      { urls: ["stun:ss-turn1.xirsys.com"] },
       {
         username: "TuR9Us3r",
         credential:
@@ -14,19 +14,19 @@ export const childCreateWebRtcConObj = (channel, ip, childId) => {
           "turn:avm4962.com:5349?transport=tcp",
         ],
       },
-      // {
-      //   username:
-      //     "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
-      //   credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
-      //   urls: [
-      // "turn:ss-turn1.xirsys.com:80?transport=udp",
-      //     "turn:ss-turn1.xirsys.com:3478?transport=udp",
-      // "turn:ss-turn1.xirsys.com:80?transport=tcp",
-      // "turn:ss-turn1.xirsys.com:3478?transport=tcp",
-      // "turns:ss-turn1.xirsys.com:443?transport=tcp",
-      // "turns:ss-turn1.xirsys.com:5349?transport=tcp",
-      //   ],
-      // },
+      {
+        username:
+          "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
+        credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
+        urls: [
+          "turn:ss-turn1.xirsys.com:80?transport=udp",
+          "turn:ss-turn1.xirsys.com:3478?transport=udp",
+          "turn:ss-turn1.xirsys.com:80?transport=tcp",
+          "turn:ss-turn1.xirsys.com:3478?transport=tcp",
+          "turns:ss-turn1.xirsys.com:443?transport=tcp",
+          "turns:ss-turn1.xirsys.com:5349?transport=tcp",
+        ],
+      },
     ],
   });
 
