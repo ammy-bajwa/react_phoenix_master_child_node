@@ -197,13 +197,21 @@ class Home extends React.Component {
   updateMasterInChild = (channel) => {
     const { ip } = this.state;
     channel.on(`web:update_master_in_child${ip}`, (data) => {
+      const { machineId } = this.state;
+
       const updatedPeers = [
         { machine_id: data.machine_id, ip: data.ip, type: "MASTER" },
       ];
-      const updatedPeersWebRtcConnections = [];
+      // Here we will create the connection for child to connect to master
+      const { peerConnection } = this.childCreateWebRtcConObj(
+        channel,
+        ip,
+        data.machine_id,
+        machineId
+      );
+
       this.setState({
         lanPeers: updatedPeers,
-        lanPeersWebRtcConnections: updatedPeersWebRtcConnections,
       });
     });
   };
@@ -215,9 +223,22 @@ class Home extends React.Component {
         lanPeers: lan_peers,
         type: "MASTER",
       });
+      console.log("makeThisNodeMaster");
       await setNodeType("MASTER");
       this.newNodeListener(channel);
       this.removeNodeListener(channel);
+      this.updateChildWebRtcArr(channel);
+    });
+  };
+
+  updateChildWebRtcArr = (channel) => {
+    const { lanPeers } = this.state;
+    this.setState({
+      lanPeersWebRtcConnections: [],
+    });
+    lanPeers.map((peerObj) => {
+      console.log("updateChildWebRtcArr", peerObj);
+      this.handleNewChildPeerConnectionCreation(peerObj, channel);
     });
   };
   // This will be called when new node added in already existed node
