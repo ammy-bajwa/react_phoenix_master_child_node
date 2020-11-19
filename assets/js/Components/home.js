@@ -58,7 +58,7 @@ class Home extends React.Component {
         // {
         //   urls: ["stun:avm4962.com:3478", "stun:avm4962.com:5349"],
         // },
-        { urls: ["stun:ss-turn1.xirsys.com"] },
+        // { urls: ["stun:ss-turn1.xirsys.com"] },
         // {
         //   username: "TuR9Us3r",
         //   credential:
