@@ -8,6 +8,7 @@ import {
   getNodeType,
 } from "../utils/indexedDbUtils";
 import { configureChannel } from "../socket";
+import { formatCountdown } from "antd/lib/statistic/utils";
 
 class Home extends React.Component {
   state = {
@@ -50,12 +51,12 @@ class Home extends React.Component {
         //   urls: ["stun:avm4962.com:3478", "stun:avm4962.com:5349"],
         // },
         // { urls: ["stun:ss-turn1.xirsys.com"] },
-        {
-          username: "TuR9Us3r",
-          credential:
-            "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
-          urls: ["turn:avm4962.com:3478?transport=tcp", "turn:avm4962.com:5349?transport=tcp"],
-        },
+        // {
+        //   username: "TuR9Us3r",
+        //   credential:
+        //     "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
+        //   urls: ["turn:avm4962.com:3478?transport=tcp", "turn:avm4962.com:5349?transport=tcp"],
+        // },
         // {
         //   username:
         //     "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
@@ -115,6 +116,13 @@ class Home extends React.Component {
         dataChannel.onclose = function () {
           console.log("data channel closed");
         };
+
+        document
+          .getElementById("sendMessageToChildBtn")
+          .addEventListener("click", () => {
+            const masterText = document.querySelector("#masterText").value;
+            dataChannel.send(masterText);
+          });
       }, 1000);
       document.getElementById("getState").addEventListener("click", () => {
         console.log("Master Peerconnection: ", peerConnection);
@@ -168,12 +176,35 @@ class Home extends React.Component {
     dataChannel.onclose = function () {
       console.log("data channel closed");
     };
+    
+    document
+    .getElementById("sendMessageToMasterBtn")
+    .addEventListener("click", () => {
+      const childText = document.querySelector("#childText").value;
+      dataChannel.send(childText);
+    });
   };
 
   render() {
+    const { type } = this.state;
     return (
       <div>
+        <h1>
+          This is <i>{type}</i>
+        </h1>
         <button id="getState">Get Status</button>
+        {type === "MASTER" && (
+          <div>
+            <input type="text" id="masterText" />
+            <button id="sendMessageToChildBtn">Send Message To Child</button>
+          </div>
+        )}
+         {type === "CHILD" && (
+          <div>
+            <input type="text" id="childText" />
+            <button id="sendMessageToMasterBtn">Send Message To Master</button>
+          </div>
+        )}
       </div>
     );
   }
