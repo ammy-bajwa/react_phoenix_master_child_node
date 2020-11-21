@@ -73,8 +73,8 @@ class Home extends React.Component {
       ],
     };
     if (type === "MASTER") {
-      // const peerConnection = new RTCPeerConnection();
-      const peerConnection = new RTCPeerConnection(peerConnectionConfig);
+      const peerConnection = new RTCPeerConnection();
+      // const peerConnection = new RTCPeerConnection(peerConnectionConfig);
       channel.on("web:receive_ice_from_child", async ({ candidate }) => {
         const parsedCandidate = JSON.parse(candidate);
         console.log("Master Ice is added from child: ", candidate);
@@ -94,6 +94,7 @@ class Home extends React.Component {
         const offer = await peerConnection.createOffer();
         await peerConnection.setLocalDescription(offer);
         channel.push("web:send_offer", { offer: JSON.stringify(offer) });
+        console.log("Master Send Offer: ", offer);
       };
       peerConnection.onicecandidate = (event) => {
         console.log("Master Ice event: ", event.candidate);
@@ -103,33 +104,33 @@ class Home extends React.Component {
           });
         }
       };
-      setTimeout(() => {
-        const dataChannel = peerConnection.createDataChannel("dataChannel");
-        dataChannel.onopen = function (event) {
-          console.log("data channel is open", event);
-        };
+      // setTimeout(() => {
+      const dataChannel = peerConnection.createDataChannel("dataChannel");
+      dataChannel.onopen = function (event) {
+        console.log("data channel is open", event);
+      };
 
-        dataChannel.onmessage = function (event) {
-          console.log("new message:", event.data);
-        };
+      dataChannel.onmessage = function (event) {
+        console.log("new message:", event.data);
+      };
 
-        dataChannel.onclose = function () {
-          console.log("data channel closed");
-        };
+      dataChannel.onclose = function () {
+        console.log("data channel closed");
+      };
 
-        document
-          .getElementById("sendMessageToChildBtn")
-          .addEventListener("click", () => {
-            const masterText = document.querySelector("#masterText").value;
-            dataChannel.send(masterText);
-          });
-      }, 1000);
+      document
+        .getElementById("sendMessageToChildBtn")
+        .addEventListener("click", () => {
+          const masterText = document.querySelector("#masterText").value;
+          dataChannel.send(masterText);
+        });
+      // }, 1000);
       document.getElementById("getState").addEventListener("click", () => {
         console.log("Master Peerconnection: ", peerConnection);
       });
     } else {
-      // const peerConnection = new RTCPeerConnection();
-      const peerConnection = new RTCPeerConnection(peerConnectionConfig);
+      const peerConnection = new RTCPeerConnection();
+      // const peerConnection = new RTCPeerConnection(peerConnectionConfig);
       channel.on("web:receive_ice_from_master", async ({ candidate }) => {
         const parsedCandidate = JSON.parse(candidate);
         console.log("Child Ice is added from master: ", candidate);
@@ -176,13 +177,13 @@ class Home extends React.Component {
     dataChannel.onclose = function () {
       console.log("data channel closed");
     };
-    
+
     document
-    .getElementById("sendMessageToMasterBtn")
-    .addEventListener("click", () => {
-      const childText = document.querySelector("#childText").value;
-      dataChannel.send(childText);
-    });
+      .getElementById("sendMessageToMasterBtn")
+      .addEventListener("click", () => {
+        const childText = document.querySelector("#childText").value;
+        dataChannel.send(childText);
+      });
   };
 
   render() {
@@ -199,7 +200,7 @@ class Home extends React.Component {
             <button id="sendMessageToChildBtn">Send Message To Child</button>
           </div>
         )}
-         {type === "CHILD" && (
+        {type === "CHILD" && (
           <div>
             <input type="text" id="childText" />
             <button id="sendMessageToMasterBtn">Send Message To Master</button>
