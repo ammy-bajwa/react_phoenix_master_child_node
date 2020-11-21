@@ -164,6 +164,9 @@ defmodule Aliva.Nodes do
       nil ->
         []
 
+      [] ->
+        []
+
       peers ->
         if Enum.count(peers) > 0 do
           Enum.map(peers, fn node ->
@@ -191,7 +194,7 @@ defmodule Aliva.Nodes do
   def filter_masters(all_ips_map, current_master_ap) do
     all_ips_map
     |> get_all_masters(current_master_ap)
-    |> Enum.filter(& !is_nil(&1))
+    |> Enum.filter(&(!is_nil(&1)))
     |> map_only_masters()
   end
 
@@ -214,6 +217,6 @@ defmodule Aliva.Nodes do
       assign_map = Map.get(node_connection, :assigns)
       ip = Map.get(assign_map, :ip)
       %{machine_id: Map.get(node_map, :machine_id), type: Map.get(node_map, :type), ip: ip}
-  end)
+    end)
   end
 end
