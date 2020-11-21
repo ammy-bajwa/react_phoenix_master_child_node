@@ -15,7 +15,8 @@ defmodule AlivaWeb.NodeChannel do
         [master_node | _tail] = get_master_node(ip)
         {:ok, %{lan_peers: [master_node], type: "CHILD"}, socket}
       else
-        {:ok, %{lan_peers: peers_list, type: "MASTER"}, socket}
+        remote_masters_peers = get_remote_masters_peers(ip)
+        {:ok, %{remote_masters_peers: remote_masters_peers, lan_peers: peers_list, type: "MASTER"}, socket}
       end
     end
   end

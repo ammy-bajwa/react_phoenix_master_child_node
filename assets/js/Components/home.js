@@ -35,13 +35,14 @@ class Home extends React.Component {
     await this.manageMachineId();
     channel
       .join()
-      .receive("ok", async ({ lan_peers, type }) => {
+      .receive("ok", async ({ remote_masters_peers, lan_peers, type }) => {
         // Receiving null here if request is from same browser
         if (!lan_peers) {
           channel.leave();
           alert("Already a connection is established in other tab");
           return;
         }
+        console.log("remote_masters_peers: ", remote_masters_peers);
         await setNodeType(type);
         this.setState({ lanPeers: lan_peers, type }, () => {
           if (type === "MASTER") {

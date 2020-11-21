@@ -90,7 +90,7 @@ defmodule Aliva.Nodes do
 
   def set_tuple_in_agent(my_tuple) do
     Agent.update(__MODULE__, fn _ -> my_tuple end)
-    IO.inspect(get_all_node_tuple(), label: "All Nodes -----------------")
+    # IO.inspect(get_all_node_tuple(), label: "All Nodes -----------------")
   end
 
   def handle_master_creation(ip, machine_id, type, socket) do
@@ -165,9 +165,13 @@ defmodule Aliva.Nodes do
         []
 
       peers ->
-        Enum.map(peers, fn node ->
-          %{machine_id: Map.get(node, :machine_id), type: Map.get(node, :type)}
-        end)
+        if Enum.count(peers) > 0 do
+          Enum.map(peers, fn node ->
+            %{machine_id: Map.get(node, :machine_id), type: Map.get(node, :type)}
+          end)
+        else
+          peers
+        end
     end
   end
 
@@ -177,5 +181,39 @@ defmodule Aliva.Nodes do
       current_node_type = Map.get(client_node, :type)
       current_node_type == "MASTER"
     end)
+  end
+
+  def get_remote_masters_peers(ip) do
+    get_ips_map()
+    |> filter_masters(ip)
+  end
+
+  def filter_masters(all_ips_map, current_master_ap) do
+    all_ips_map
+    |> get_all_masters(current_master_ap)
+    |> Enum.filter(& !is_nil(&1))
+    |> map_only_masters()
+  end
+
+  def get_all_masters(all_ips_map, current_master_ap) do
+    Enum.map(all_ips_map, fn {ip, nodes_list} ->
+      if ip != current_master_ap do
+        nodes_list
+        |> Enum.filter(fn client_node ->
+          current_node_type = Map.get(client_node, :type)
+          current_node_type == "MASTER"
+        end)
+      end
+    end)
+  end
+
+  def map_only_masters(masters_list) do
+    Enum.map(masters_list, fn node_list ->
+      node_map = List.first(node_list)
+      node_connection = Map.get(node_map, :connection)
+      assign_map = Map.get(node_connection, :assigns)
+      ip = Map.get(assign_map, :ip)
+      %{machine_id: Map.get(node_map, :machine_id), type: Map.get(node_map, :type), ip: ip}
+  end)
   end
 end
