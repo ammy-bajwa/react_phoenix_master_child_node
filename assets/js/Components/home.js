@@ -20,7 +20,7 @@ class Home extends React.Component {
     lanPeersWebRtcConnections: [],
     remoteMasterPeers: [],
     remoteMasterPeersWebRtcConnections: [],
-    messageForChild: "",
+    message: "",
   };
   constructor(props) {
     super(props);
@@ -147,6 +147,20 @@ class Home extends React.Component {
       const dataChannel = event.channel;
       console.log("ondatachannel: ", dataChannel);
       dataChannel.onopen = (event) => {
+        const { remoteMasterPeersWebRtcConnections } = this.state;
+        const updatedPeersArr = remoteMasterPeersWebRtcConnections.map(
+          (node) => {
+            if (node.ip === remoteNodeIp) {
+              node.peerDataChannel = dataChannel;
+              node.peerConnection = peerConnection;
+            }
+            return node;
+          }
+        );
+
+        this.setState({
+          remoteMasterPeersWebRtcConnections: updatedPeersArr,
+        });
         dataChannel.send("Hello from amir again");
       };
       dataChannel.onerror = function (error) {
@@ -286,13 +300,13 @@ class Home extends React.Component {
         } = this.state;
         if (machineId !== machine_id) {
           const newMaster = { type, ip, machine_id };
-          const { peerConnection } = this.createConnectionForNewMaster(
-            channel,
-            ip,
-            machine_id
-          );
+          const {
+            peerConnection,
+            dataChannel,
+          } = this.createConnectionForNewMaster(channel, ip, machine_id);
           const newMasterWebRtc = {
             peerConnection,
+            peerDataChannel: dataChannel,
             ...newMaster,
           };
           const updatedPeersArr = [...remoteMasterPeers, newMaster];
@@ -748,16 +762,23 @@ class Home extends React.Component {
     });
   };
 
-  handleMessageForChild = (event) => {
+  handleMessage = (event) => {
     this.setState({
-      messageForChild: event.target.value,
+      message: event.target.value,
     });
   };
 
   handleMessageToChilds = () => {
-    const { lanPeersWebRtcConnections, messageForChild } = this.state;
+    const { lanPeersWebRtcConnections, message } = this.state;
     lanPeersWebRtcConnections.map(({ peerDataChannel }) => {
-      peerDataChannel.send(messageForChild);
+      peerDataChannel.send(message);
+    });
+  };
+
+  handleMessageToMasters = () => {
+    const { remoteMasterPeersWebRtcConnections, message } = this.state;
+    remoteMasterPeersWebRtcConnections.map(({ peerDataChannel }) => {
+      peerDataChannel.send(message);
     });
   };
   render() {
@@ -778,10 +799,13 @@ class Home extends React.Component {
           <div>
             <input
               type="text"
-              onChange={this.handleMessageForChild}
+              onChange={this.handleMessage}
               placeholder="Send message to child"
             />
-            <button onClick={this.handleMessageToChilds}>Send</button>
+            <button onClick={this.handleMessageToChilds}>Send To Child</button>
+            <button onClick={this.handleMessageToMasters}>
+              Send To Masters
+            </button>
           </div>
         )}
         <hr />
