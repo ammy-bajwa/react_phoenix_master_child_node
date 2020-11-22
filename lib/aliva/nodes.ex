@@ -212,11 +212,14 @@ defmodule Aliva.Nodes do
 
   def map_only_masters(masters_list) do
     Enum.map(masters_list, fn node_list ->
+      IO.inspect(masters_list, label: "---------Error-----------------")
       node_map = List.first(node_list)
-      node_connection = Map.get(node_map, :connection)
-      assign_map = Map.get(node_connection, :assigns)
-      ip = Map.get(assign_map, :ip)
-      %{machine_id: Map.get(node_map, :machine_id), type: Map.get(node_map, :type), ip: ip}
+      if !is_nil(node_map) do
+        node_connection = Map.get(node_map, :connection)
+        assign_map = Map.get(node_connection, :assigns)
+        ip = Map.get(assign_map, :ip)
+        %{machine_id: Map.get(node_map, :machine_id), type: Map.get(node_map, :type), ip: ip}
+      end
     end)
   end
 end

@@ -16,7 +16,12 @@ defmodule AlivaWeb.NodeChannel do
         {:ok, %{lan_peers: [master_node], type: "CHILD"}, socket}
       else
         remote_masters_peers = get_remote_masters_peers(ip)
-        {:ok, %{remote_masters_peers: remote_masters_peers, lan_peers: peers_list, type: "MASTER"}, socket}
+        nil_check = List.first(remote_masters_peers)
+        case nil_check do
+          nil -> {:ok, %{remote_masters_peers: [], lan_peers: peers_list, type: "MASTER"}, socket}
+          _ -> {:ok, %{remote_masters_peers: remote_masters_peers, lan_peers: peers_list, type: "MASTER"}, socket}
+        end
+
       end
     end
   end
@@ -171,6 +176,8 @@ defmodule AlivaWeb.NodeChannel do
       peers_list = get_all_peers_list_exclude_master(ip)
       broadcast(socket, "web:update_master_in_child#{ip}", %{machine_id: master_node_id, ip: ip})
       broadcast(socket, "web:make_me_master_#{master_node_id}", %{ip: ip, lan_peers: peers_list})
+      broadcast(socket, "web:master_is_removed", %{ip: ip, machine_id: machine_id_to_remove})
+      broadcast(socket, "web:add_new_master", %{ip: ip, machine_id: master_node_id, })
     end
 
     {:ok, %{}, socket}

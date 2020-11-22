@@ -42,12 +42,14 @@ class Home extends React.Component {
           alert("Already a connection is established in other tab");
           return;
         }
+        if(remote_masters_peers)
         console.log("remote_masters_peers: ", remote_masters_peers);
         await setNodeType(type);
         this.setState({ lanPeers: lan_peers, type }, () => {
           if (type === "MASTER") {
             componentThis.newNodeListener(channel);
             componentThis.removeNodeListener(channel);
+            componentThis.removeMasterNodeListener(channel);
           } else {
             componentThis.setupLanPeerConnectionChild(channel);
           }
@@ -64,6 +66,12 @@ class Home extends React.Component {
         alert("Networking issue. Still waiting....");
       });
   }
+
+  removeMasterNodeListener = (channel) => {
+    channel.on(`web:master_is_removed`, async ({ ip, machine_id }) => {
+      console.log("Master Node Is Removed:", ip, machine_id);
+    });
+  };
   childCreateWebRtcConObj = (channel, ip, masterId, childId) => {
     const peerConnection = new RTCPeerConnection({
       iceServers: [
