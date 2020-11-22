@@ -45,6 +45,11 @@ defmodule AlivaWeb.NodeChannel do
 
       if type == "MASTER" do
         handle_master_creation(ip, machine_id, type, socket)
+        broadcast(socket, "web:new_master_node_added", %{
+          ip: ip,
+          machine_id: machine_id,
+          type: type
+        })
       else
         peers_list = get_peers(ip)
         handle_child_creation(peers_list, ip, machine_id, type, socket)

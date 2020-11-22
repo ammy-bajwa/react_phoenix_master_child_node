@@ -53,6 +53,7 @@ class Home extends React.Component {
         this.setState({ lanPeers: lan_peers, type }, () => {
           if (type === "MASTER") {
             componentThis.newNodeListener(channel);
+            componentThis.newMasterNodeListener(channel);
             componentThis.removeNodeListener(channel);
             componentThis.removeMasterNodeListener(channel);
           } else {
@@ -71,6 +72,21 @@ class Home extends React.Component {
         alert("Networking issue. Still waiting....");
       });
   }
+
+  newMasterNodeListener = (channel) => {
+    channel.on(`web:new_master_node_added`, async ({ type, ip, machine_id }) => {
+      const { remoteMasterPeers, machineId } = this.state;
+      if (machineId !== machine_id) {
+        const newMaster = { type, ip, machine_id };
+        const updatedPeersArr = [...remoteMasterPeers, newMaster];
+
+        this.setState({
+          remoteMasterPeers: updatedPeersArr,
+        });
+        console.log(updatedPeersArr, "New Masetr updatedPeersArr......");
+      }
+    });
+  };
 
   removeMasterNodeListener = (channel) => {
     channel.on(`web:master_is_removed`, async ({ ip, machine_id }) => {
