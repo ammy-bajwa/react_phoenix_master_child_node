@@ -19,6 +19,7 @@ class Home extends React.Component {
     lanPeers: [],
     lanPeersWebRtcConnections: [],
     remoteMasterPeers: [],
+    remoteMasterPeersWebRtcConnections: [],
     messageForChild: "",
   };
   constructor(props) {
@@ -47,7 +48,6 @@ class Home extends React.Component {
           this.setState({
             remoteMasterPeers: remote_masters_peers,
           });
-          console.log("remote_masters_peers: ", remote_masters_peers);
         }
         await setNodeType(type);
         this.setState({ lanPeers: lan_peers, type }, () => {
@@ -56,6 +56,7 @@ class Home extends React.Component {
             componentThis.newMasterNodeListener(channel);
             componentThis.removeNodeListener(channel);
             componentThis.removeMasterNodeListener(channel);
+            componentThis.setupRemotePeerConnections(channel);
           } else {
             componentThis.setupLanPeerConnectionChild(channel);
           }
@@ -73,30 +74,260 @@ class Home extends React.Component {
       });
   }
 
-  newMasterNodeListener = (channel) => {
-    channel.on(`web:new_master_node_added`, async ({ type, ip, machine_id }) => {
-      const { remoteMasterPeers, machineId } = this.state;
-      if (machineId !== machine_id) {
-        const newMaster = { type, ip, machine_id };
-        const updatedPeersArr = [...remoteMasterPeers, newMaster];
-
-        this.setState({
-          remoteMasterPeers: updatedPeersArr,
-        });
-        console.log(updatedPeersArr, "New Masetr updatedPeersArr......");
-      }
+  setupRemotePeerConnections = async (channel) => {
+    const { remoteMasterPeers } = this.state;
+    let webRtcConArr = [];
+    remoteMasterPeers.forEach(({ ip, machine_id, type }) => {
+      const { peerConnection } = this.createConnectionForMaster(
+        channel,
+        ip,
+        machine_id
+      );
+      webRtcConArr.push({ peerConnection, ip, machine_id, type });
+      console.log(ip, peerConnection);
     });
+    this.setState({
+      remoteMasterPeersWebRtcConnections: webRtcConArr,
+    });
+  };
+
+  createConnectionForMaster = (channel, remoteNodeIp, remoteNodeId) => {
+    const { ip } = this.state;
+    const peerConnection = new RTCPeerConnection();
+    channel.on(
+      `web:receive_ice_from_master_peer_${ip}_${remoteNodeIp}`,
+      async ({ candidate }) => {
+        const parsedCandidate = JSON.parse(candidate);
+        await peerConnection.addIceCandidate(
+          new RTCIceCandidate(parsedCandidate)
+        );
+        console.log(ip, " : Added Ice Candidate", parsedCandidate);
+      }
+    );
+
+    channel.on(
+      `web:receive_offer_${ip}_${remoteNodeIp}`,
+      async ({ offer_for_peer_master, ip: peer_master_id }) => {
+        const parsedMasterOffer = JSON.parse(offer_for_peer_master);
+
+        await peerConnection.setRemoteDescription(
+          new RTCSessionDescription(parsedMasterOffer)
+        );
+        console.log(ip, ": receive offer", parsedMasterOffer);
+        await peerConnection.createAnswer(
+          async (answer) => {
+            await peerConnection.setLocalDescription(answer);
+            channel.push("web:send_answer_to_master_peer", {
+              answer_for_master_peer: JSON.stringify(answer),
+              ip: ip,
+              remote_master_ip: peer_master_id,
+            });
+            console.log(ip, " : Send Answer: ", answer);
+          },
+          function (error) {
+            alert("oops...error");
+          }
+        );
+      }
+    );
+
+    peerConnection.onicecandidate = (event) => {
+      console.log(ip, " : IceEvent ", event.candidate);
+      if (event.candidate) {
+        console.log(ip, " : Send Candidate To Master");
+        channel.push(`web:add_ice_candidate_from_master_peer`, {
+          candidate: JSON.stringify(event.candidate),
+          remote_master_ip: remoteNodeIp,
+          ip,
+        });
+      }
+    };
+
+    peerConnection.ondatachannel = (event) => {
+      const dataChannel = event.channel;
+      console.log("ondatachannel: ", dataChannel);
+      dataChannel.onopen = (event) => {
+        dataChannel.send("Hello from amir again");
+      };
+      dataChannel.onerror = function (error) {
+        console.log("Error:", error);
+      };
+
+      dataChannel.onmessage = function (event) {
+        console.log("Got message:", event.data);
+      };
+
+      dataChannel.onerror = function (event) {
+        console.log("Got message:", event.data);
+      };
+    };
+
+    document.querySelector("#stateChild").addEventListener("click", () => {
+      console.log("CHILD peerconnection", peerConnection);
+    });
+
+    return { peerConnection };
+  };
+
+  createConnectionForNewMaster = (channel, remoteNodeIp, remoteNodeId) => {
+    const { ip } = this.state;
+    const peerConnection = new RTCPeerConnection();
+
+    channel.on(
+      `web:receive_ice_from_master_peer_${ip}_${remoteNodeId}`,
+      async ({ candidate }) => {
+        const parsedCandidate = JSON.parse(candidate);
+        try {
+          await peerConnection.addIceCandidate(
+            new RTCIceCandidate(parsedCandidate)
+          );
+        } catch (error) {}
+        console.log("Error In Adding Ice Candidate From Child");
+        console.log(ip, " Added Ice Candidate From Child: ", parsedCandidate);
+      }
+    );
+
+    channel.on(
+      `web:receive_answer_${ip}_${remoteNodeIp}`,
+      async ({ answer_for_master_peer, ip: remote_master_ip }) => {
+        const answerFromChild = JSON.parse(answer_for_master_peer);
+        try {
+          await peerConnection.setRemoteDescription(
+            new RTCSessionDescription(answerFromChild)
+          );
+        } catch (error) {
+          console.log("Error In MASTER setRemoteDescription Answer");
+        }
+        console.log(ip, " setRemoteDescription Answer: ", answerFromChild);
+      }
+    );
+
+    peerConnection.onicecandidate = (event) => {
+      console.log(ip, " IceEvent: ", event.candidate);
+      if (event.candidate) {
+        console.log(ip, " Ice Candidate Send To Child");
+        channel.push(`web:add_ice_candidate_from_master_peer`, {
+          candidate: JSON.stringify(event.candidate),
+          ip: ip,
+          remote_master_ip: remoteNodeIp,
+        });
+      }
+    };
+
+    peerConnection.ondatachannel = function (event) {
+      const dataChannel = event.channel;
+      console.log("ondatachannel: ", dataChannel);
+      dataChannel.onopen = function (event) {
+        dataChannel.send("Hello from amir again");
+      };
+      dataChannel.onerror = function (error) {
+        console.log("Error:", error);
+      };
+
+      dataChannel.onmessage = function (event) {
+        console.log("Got message:", event.data);
+      };
+    };
+
+    peerConnection.onnegotiationneeded = async () => {
+      console.log(ip, "NEGOTIATION Needed");
+      const offerForPeerMaster = await peerConnection.createOffer();
+      console.log(ip, " MASTER createOffer: ", offerForPeerMaster);
+      await peerConnection.setLocalDescription(offerForPeerMaster);
+      console.log(ip, " MASTER setLocalDescription Offer");
+      channel.push(`web:send_offer_to_peer_master`, {
+        offer_for_peer_master: JSON.stringify(offerForPeerMaster),
+        ip,
+        remote_master_ip: remoteNodeIp,
+      });
+      console.log(ip, " MASTER Send Offer");
+    };
+
+    const dataChannel = this.createDataChannel(peerConnection);
+    document
+      .querySelector("#dataChannelMaster")
+      .addEventListener("click", () => {
+        console.log("MASTER DataChannel Created", dataChannel);
+      });
+
+    document.querySelector("#stateMaster").addEventListener("click", () => {
+      console.log("MASTER Peer Coonection", peerConnection);
+    });
+
+    document
+      .querySelector("#sendOfferMaster")
+      .addEventListener("click", async () => {
+        const offerForChild = await peerConnection.createOffer();
+        console.log("MASTER createOffer: ", offerForChild);
+        await peerConnection.setLocalDescription(offerForChild);
+        console.log("MASTER setLocalDescription Offer: ", offerForChild);
+        channel.push(`web:send_offer_to_child`, {
+          child_id: childId,
+          offer_for_child: JSON.stringify(offerForChild),
+          master_id: masterId,
+          ip,
+        });
+      });
+
+    return {
+      peerConnection,
+      dataChannel,
+    };
+  };
+
+  newMasterNodeListener = (channel) => {
+    channel.on(
+      `web:new_master_node_added`,
+      async ({ type, ip, machine_id }) => {
+        const {
+          remoteMasterPeers,
+          machineId,
+          remoteMasterPeersWebRtcConnections,
+        } = this.state;
+        if (machineId !== machine_id) {
+          const newMaster = { type, ip, machine_id };
+          const { peerConnection } = this.createConnectionForNewMaster(
+            channel,
+            ip,
+            machine_id
+          );
+          const newMasterWebRtc = {
+            peerConnection,
+            ...newMaster,
+          };
+          const updatedPeersArr = [...remoteMasterPeers, newMaster];
+          const updatedPeersWebRtcArr = [
+            ...remoteMasterPeersWebRtcConnections,
+            newMasterWebRtc,
+          ];
+
+          this.setState({
+            remoteMasterPeers: updatedPeersArr,
+            remoteMasterPeersWebRtcConnections: updatedPeersWebRtcArr,
+          });
+          console.log(updatedPeersArr, "New Masetr updatedPeersArr......");
+        }
+      }
+    );
   };
 
   removeMasterNodeListener = (channel) => {
     channel.on(`web:master_is_removed`, async ({ ip, machine_id }) => {
-      const { remoteMasterPeers } = this.state;
+      const {
+        remoteMasterPeers,
+        remoteMasterPeersWebRtcConnections,
+      } = this.state;
       const updatedPeersArr = remoteMasterPeers.filter(
+        (node) => node.ip !== ip && node.machine_id !== machine_id
+      );
+
+      const updatedPeersWebRtcArr = remoteMasterPeersWebRtcConnections.filter(
         (node) => node.ip !== ip && node.machine_id !== machine_id
       );
 
       this.setState({
         remoteMasterPeers: updatedPeersArr,
+        remoteMasterPeersWebRtcConnections: updatedPeersWebRtcArr,
       });
       console.log(
         updatedPeersArr,

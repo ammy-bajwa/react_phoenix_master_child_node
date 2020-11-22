@@ -32,6 +32,27 @@ defmodule AlivaWeb.NodeChannel do
   end
 
   def handle_in(
+        "web:add_ice_candidate_from_master_peer",
+        %{
+          "candidate" => candidate,
+          "ip" => ip,
+          "remote_master_ip" => remote_master_ip,
+        },
+        socket
+      ) do
+    broadcast(
+      socket,
+      "web:receive_ice_from_master_peer_#{remote_master_ip}_#{ip}",
+      %{
+        candidate: candidate,
+        ip: ip,
+      }
+    )
+    IO.inspect("----------------------------------Working----------------")
+    {:noreply, socket}
+  end
+
+  def handle_in(
         "web:add_self_to_ip_node_list",
         %{"ip" => ip, "machine_id" => machine_id, "type" => type},
         socket
@@ -45,6 +66,7 @@ defmodule AlivaWeb.NodeChannel do
 
       if type == "MASTER" do
         handle_master_creation(ip, machine_id, type, socket)
+
         broadcast(socket, "web:new_master_node_added", %{
           ip: ip,
           machine_id: machine_id,
@@ -92,7 +114,6 @@ defmodule AlivaWeb.NodeChannel do
       ip: ip
     })
 
-    IO.inspect("---------------send_offer_to_child---------------")
     {:noreply, socket}
   end
 
@@ -112,7 +133,6 @@ defmodule AlivaWeb.NodeChannel do
       child_id: child_id
     })
 
-    IO.inspect("---------------send_answer_to_master---------------")
     {:noreply, socket}
   end
 
@@ -170,6 +190,40 @@ defmodule AlivaWeb.NodeChannel do
     broadcast(socket, "web:add_ice_candidate_to_child#{child_id}", %{
       child_id: child_id,
       candidate: candidate
+    })
+
+    {:noreply, socket}
+  end
+
+  def handle_in(
+        "web:send_offer_to_peer_master",
+        %{
+          "offer_for_peer_master" => offer_for_peer_master,
+          "ip" => ip,
+          "remote_master_ip" => remote_master_ip
+        },
+        socket
+      ) do
+    broadcast(socket, "web:receive_offer_#{remote_master_ip}_#{ip}", %{
+      offer_for_peer_master: offer_for_peer_master,
+      ip: ip
+    })
+
+    {:noreply, socket}
+  end
+
+  def handle_in(
+        "web:send_answer_to_master_peer",
+        %{
+          "answer_for_master_peer" => answer_for_master_peer,
+          "ip" => ip,
+          "remote_master_ip" => remote_master_ip
+        },
+        socket
+      ) do
+    broadcast(socket, "web:receive_answer_#{remote_master_ip}_#{ip}", %{
+      answer_for_master_peer: answer_for_master_peer,
+      ip: ip
     })
 
     {:noreply, socket}
