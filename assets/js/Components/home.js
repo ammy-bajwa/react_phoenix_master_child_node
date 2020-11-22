@@ -18,6 +18,7 @@ class Home extends React.Component {
     type: "",
     lanPeers: [],
     lanPeersWebRtcConnections: [],
+    remoteMasterPeers: [],
     messageForChild: "",
   };
   constructor(props) {
@@ -42,8 +43,12 @@ class Home extends React.Component {
           alert("Already a connection is established in other tab");
           return;
         }
-        if(remote_masters_peers)
-        console.log("remote_masters_peers: ", remote_masters_peers);
+        if (remote_masters_peers) {
+          this.setState({
+            remoteMasterPeers: remote_masters_peers,
+          });
+          console.log("remote_masters_peers: ", remote_masters_peers);
+        }
         await setNodeType(type);
         this.setState({ lanPeers: lan_peers, type }, () => {
           if (type === "MASTER") {
@@ -69,7 +74,18 @@ class Home extends React.Component {
 
   removeMasterNodeListener = (channel) => {
     channel.on(`web:master_is_removed`, async ({ ip, machine_id }) => {
-      console.log("Master Node Is Removed:", ip, machine_id);
+      const { remoteMasterPeers } = this.state;
+      const updatedPeersArr = remoteMasterPeers.filter(
+        (node) => node.ip !== ip && node.machine_id !== machine_id
+      );
+
+      this.setState({
+        remoteMasterPeers: updatedPeersArr,
+      });
+      console.log(
+        updatedPeersArr,
+        "Listening for master remove updatedPeersArr......"
+      );
     });
   };
   childCreateWebRtcConObj = (channel, ip, masterId, childId) => {

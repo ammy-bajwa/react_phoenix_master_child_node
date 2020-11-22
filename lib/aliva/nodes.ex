@@ -212,7 +212,6 @@ defmodule Aliva.Nodes do
 
   def map_only_masters(masters_list) do
     Enum.map(masters_list, fn node_list ->
-      IO.inspect(masters_list, label: "---------Error-----------------")
       node_map = List.first(node_list)
       if !is_nil(node_map) do
         node_connection = Map.get(node_map, :connection)

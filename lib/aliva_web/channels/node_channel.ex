@@ -17,11 +17,16 @@ defmodule AlivaWeb.NodeChannel do
       else
         remote_masters_peers = get_remote_masters_peers(ip)
         nil_check = List.first(remote_masters_peers)
-        case nil_check do
-          nil -> {:ok, %{remote_masters_peers: [], lan_peers: peers_list, type: "MASTER"}, socket}
-          _ -> {:ok, %{remote_masters_peers: remote_masters_peers, lan_peers: peers_list, type: "MASTER"}, socket}
-        end
 
+        case nil_check do
+          nil ->
+            {:ok, %{remote_masters_peers: [], lan_peers: peers_list, type: "MASTER"}, socket}
+
+          _ ->
+            {:ok,
+             %{remote_masters_peers: remote_masters_peers, lan_peers: peers_list, type: "MASTER"},
+             socket}
+        end
       end
     end
   end
@@ -81,6 +86,7 @@ defmodule AlivaWeb.NodeChannel do
       master_id: master_id,
       ip: ip
     })
+
     IO.inspect("---------------send_offer_to_child---------------")
     {:noreply, socket}
   end
@@ -100,6 +106,7 @@ defmodule AlivaWeb.NodeChannel do
       master_id: master_id,
       child_id: child_id
     })
+
     IO.inspect("---------------send_answer_to_master---------------")
     {:noreply, socket}
   end
@@ -135,7 +142,6 @@ defmodule AlivaWeb.NodeChannel do
     {:noreply, socket}
   end
 
-
   def handle_in(
         "web:send_ice_candidate",
         %{"ip" => ip, "child_id" => child_id, "candidate" => candidate},
@@ -146,6 +152,7 @@ defmodule AlivaWeb.NodeChannel do
       candidate: candidate,
       ip: ip
     })
+
     IO.inspect("---------------ICE Candidate---------------")
     {:noreply, socket}
   end
@@ -169,15 +176,31 @@ defmodule AlivaWeb.NodeChannel do
     %{type: type} = Map.get(socket, :assigns)
     remove_node(ip, machine_id_to_remove)
     broadcast(socket, "web:remove_#{ip}", %{machine_id: machine_id_to_remove, ip: ip})
-    [master_node | _tail] = get_master_node(ip)
-    master_node_id = Map.get(master_node, :machine_id)
 
     if type == "MASTER" do
-      peers_list = get_all_peers_list_exclude_master(ip)
-      broadcast(socket, "web:update_master_in_child#{ip}", %{machine_id: master_node_id, ip: ip})
-      broadcast(socket, "web:make_me_master_#{master_node_id}", %{ip: ip, lan_peers: peers_list})
-      broadcast(socket, "web:master_is_removed", %{ip: ip, machine_id: machine_id_to_remove})
-      broadcast(socket, "web:add_new_master", %{ip: ip, machine_id: master_node_id, })
+      get_master_node(ip)
+      |> case do
+        [] ->
+          broadcast(socket, "web:master_is_removed", %{ip: ip, machine_id: machine_id_to_remove})
+
+        _ ->
+          [master_node | _tail] = get_master_node(ip)
+          master_node_id = Map.get(master_node, :machine_id)
+          peers_list = get_all_peers_list_exclude_master(ip)
+
+          broadcast(socket, "web:update_master_in_child#{ip}", %{
+            machine_id: master_node_id,
+            ip: ip
+          })
+
+          broadcast(socket, "web:make_me_master_#{master_node_id}", %{
+            ip: ip,
+            lan_peers: peers_list
+          })
+
+          broadcast(socket, "web:master_is_removed", %{ip: ip, machine_id: machine_id_to_remove})
+          broadcast(socket, "web:add_new_master", %{ip: ip, machine_id: master_node_id})
+      end
     end
 
     {:ok, %{}, socket}
