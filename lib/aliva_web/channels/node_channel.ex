@@ -36,7 +36,7 @@ defmodule AlivaWeb.NodeChannel do
         %{
           "candidate" => candidate,
           "ip" => ip,
-          "remote_master_ip" => remote_master_ip,
+          "remote_master_ip" => remote_master_ip
         },
         socket
       ) do
@@ -45,9 +45,10 @@ defmodule AlivaWeb.NodeChannel do
       "web:receive_ice_from_master_peer_#{remote_master_ip}_#{ip}",
       %{
         candidate: candidate,
-        ip: ip,
+        ip: ip
       }
     )
+
     IO.inspect("----------------------------------Working----------------")
     {:noreply, socket}
   end
@@ -237,14 +238,17 @@ defmodule AlivaWeb.NodeChannel do
     broadcast(socket, "web:remove_#{ip}", %{machine_id: machine_id_to_remove, ip: ip})
 
     if type == "MASTER" do
+      broadcast(socket, "web:master_is_removed", %{ip: ip, machine_id: machine_id_to_remove})
+
       get_master_node(ip)
       |> case do
         [] ->
-          broadcast(socket, "web:master_is_removed", %{ip: ip, machine_id: machine_id_to_remove})
+          {:ok, %{}, socket}
 
         _ ->
           [master_node | _tail] = get_master_node(ip)
           master_node_id = Map.get(master_node, :machine_id)
+          master_node_ip = Map.get(master_node, :ip)
           peers_list = get_all_peers_list_exclude_master(ip)
 
           broadcast(socket, "web:update_master_in_child#{ip}", %{
@@ -252,13 +256,28 @@ defmodule AlivaWeb.NodeChannel do
             ip: ip
           })
 
-          broadcast(socket, "web:make_me_master_#{master_node_id}", %{
-            ip: ip,
-            lan_peers: peers_list
-          })
+          remote_masters_peers = get_remote_masters_peers(master_node_ip)
+          nil_check = List.first(remote_masters_peers)
 
-          broadcast(socket, "web:master_is_removed", %{ip: ip, machine_id: machine_id_to_remove})
-          broadcast(socket, "web:add_new_master", %{ip: ip, machine_id: master_node_id})
+          if is_nil(nil_check) do
+            broadcast(socket, "web:make_me_master_#{master_node_id}", %{
+              ip: ip,
+              lan_peers: peers_list,
+              remote_masters_peers: []
+            })
+          else
+            broadcast(socket, "web:make_me_master_#{master_node_id}", %{
+              ip: ip,
+              lan_peers: peers_list,
+              remote_masters_peers: remote_masters_peers
+            })
+
+            broadcast(socket, "web:new_master_node_added", %{
+              ip: ip,
+              machine_id: master_node_id,
+              type: "MASTER"
+            })
+          end
       end
     end
 

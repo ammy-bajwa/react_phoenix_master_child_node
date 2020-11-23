@@ -246,7 +246,12 @@ class Home extends React.Component {
     peerConnection.onnegotiationneeded = async () => {
       console.log(ip, "NEGOTIATION Needed");
       const offerForPeerMaster = await peerConnection.createOffer();
-      console.log(ip, " MASTER createOffer: ", offerForPeerMaster);
+      console.log(
+        ip,
+        " MASTER createOffer: ",
+        remoteNodeIp,
+        offerForPeerMaster
+      );
       await peerConnection.setLocalDescription(offerForPeerMaster);
       console.log(ip, " MASTER setLocalDescription Offer");
       channel.push(`web:send_offer_to_peer_master`, {
@@ -309,6 +314,7 @@ class Home extends React.Component {
             peerDataChannel: dataChannel,
             ...newMaster,
           };
+          console.log("newMasterWebRtc: ", newMasterWebRtc);
           const updatedPeersArr = [...remoteMasterPeers, newMaster];
           const updatedPeersWebRtcArr = [
             ...remoteMasterPeersWebRtcConnections,
@@ -504,17 +510,30 @@ class Home extends React.Component {
 
   makeThisNodeMaster = (channel) => {
     const { machineId } = this.state;
-    channel.on(`web:make_me_master_${machineId}`, async ({ ip, lan_peers }) => {
-      this.setState({
-        lanPeers: lan_peers,
-        type: "MASTER",
-      });
-      console.log("makeThisNodeMaster");
-      await setNodeType("MASTER");
-      this.newNodeListener(channel);
-      this.removeNodeListener(channel);
-      this.updateChildWebRtcArr(channel);
-    });
+    channel.on(
+      `web:make_me_master_${machineId}`,
+      async ({ ip, lan_peers, remote_masters_peers }) => {
+        this.setState({
+          lanPeers: lan_peers,
+          type: "MASTER",
+        });
+        const updatedRemotePeers = remote_masters_peers.filter(
+          (node) => node.ip !== ip
+        );
+        console.log(
+          "makeThisNodeMaster: remote_masters_peers",
+          updatedRemotePeers
+        );
+        this.setState({
+          remoteMasterPeers: updatedRemotePeers,
+        });
+        this.setupRemotePeerConnections(channel);
+        this.newNodeListener(channel);
+        this.removeNodeListener(channel);
+        this.updateChildWebRtcArr(channel);
+        await setNodeType("MASTER");
+      }
+    );
   };
 
   updateChildWebRtcArr = (channel) => {
