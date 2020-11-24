@@ -21,6 +21,9 @@ class Home extends React.Component {
     remoteMasterPeers: [],
     remoteMasterPeersWebRtcConnections: [],
     message: "",
+    messagesFromMastersPeers: [],
+    messagesFromLanMasterPeer: [],
+    messagesFromChildsPeers: [],
   };
   constructor(props) {
     super(props);
@@ -154,24 +157,27 @@ class Home extends React.Component {
         this.setState({
           remoteMasterPeersWebRtcConnections: updatedPeersArr,
         });
-        dataChannel.send("Hello from amir again");
       };
       dataChannel.onerror = function (error) {
         console.log("Error:", error);
       };
 
-      dataChannel.onmessage = function (event) {
+      dataChannel.onmessage = (event) => {
+        const { messagesFromMastersPeers } = this.state;
         console.log("Got message:", event.data);
+        const message = JSON.parse(event.data);
+        this.setState({
+          messagesFromMastersPeers: [
+            ...messagesFromMastersPeers,
+            { message: message.message },
+          ],
+        });
       };
 
       dataChannel.onerror = function (event) {
         console.log("Got message:", event.data);
       };
     };
-
-    document.querySelector("#stateChild").addEventListener("click", () => {
-      console.log("CHILD peerconnection", peerConnection);
-    });
 
     return { peerConnection };
   };
@@ -220,9 +226,7 @@ class Home extends React.Component {
     peerConnection.ondatachannel = function (event) {
       const dataChannel = event.channel;
       console.log("ondatachannel: ", dataChannel);
-      dataChannel.onopen = function (event) {
-        dataChannel.send("Hello from amir again");
-      };
+      dataChannel.onopen = function (event) {};
       dataChannel.onerror = function (error) {
         console.log("Error:", error);
       };
@@ -244,28 +248,6 @@ class Home extends React.Component {
     };
 
     const dataChannel = this.createDataChannel(peerConnection);
-    document
-      .querySelector("#dataChannelMaster")
-      .addEventListener("click", () => {
-        console.log("MASTER DataChannel Created", dataChannel);
-      });
-
-    document.querySelector("#stateMaster").addEventListener("click", () => {
-      console.log("MASTER Peer Coonection", peerConnection);
-    });
-
-    document
-      .querySelector("#sendOfferMaster")
-      .addEventListener("click", async () => {
-        const offerForChild = await peerConnection.createOffer();
-        await peerConnection.setLocalDescription(offerForChild);
-        channel.push(`web:send_offer_to_child`, {
-          child_id: childId,
-          offer_for_child: JSON.stringify(offerForChild),
-          master_id: masterId,
-          ip,
-        });
-      });
 
     return {
       peerConnection,
@@ -420,25 +402,28 @@ class Home extends React.Component {
         this.setState({
           lanPeersWebRtcConnections: [masterConnObj],
         });
-        dataChannel.send("Hello from amir again");
       };
       dataChannel.onerror = function (error) {
         console.log("Error:", error);
       };
 
-      dataChannel.onmessage = function (event) {
+      dataChannel.onmessage = (event) => {
+        const { messagesFromLanMasterPeer } = this.state;
         console.log("Got message:", event.data);
+        this.setState({
+          messagesFromLanMasterPeer: [
+            ...messagesFromLanMasterPeer,
+            {
+              message: event.data,
+            },
+          ],
+        });
       };
 
       dataChannel.onerror = function (event) {
         console.log("Got message:", event.data);
       };
     };
-
-    document.querySelector("#stateChild").addEventListener("click", () => {
-      console.log("CHILD peerconnection", peerConnection);
-    });
-
     return { peerConnection };
   };
 
@@ -624,14 +609,21 @@ class Home extends React.Component {
       const dataChannel = event.channel;
       console.log("ondatachannel: ", dataChannel);
       dataChannel.onopen = function (event) {
-        dataChannel.send("Hello from amir again");
+        console.log("Master Data Channel Is Open");
       };
       dataChannel.onerror = function (error) {
         console.log("Error:", error);
       };
 
-      dataChannel.onmessage = function (event) {
+      dataChannel.onmessage = (event) => {
+        const { messagesFromChildsPeers } = this.state;
         console.log("Got message:", event.data);
+        this.setState({
+          messagesFromChildsPeers: [
+            ...messagesFromChildsPeers,
+            { message: event.data },
+          ],
+        });
       };
     };
 
@@ -648,28 +640,6 @@ class Home extends React.Component {
     };
 
     const dataChannel = this.createDataChannel(peerConnection);
-    document
-      .querySelector("#dataChannelMaster")
-      .addEventListener("click", () => {
-        console.log("MASTER DataChannel Created", dataChannel);
-      });
-
-    document.querySelector("#stateMaster").addEventListener("click", () => {
-      console.log("MASTER Peer Coonection", peerConnection);
-    });
-
-    document
-      .querySelector("#sendOfferMaster")
-      .addEventListener("click", async () => {
-        const offerForChild = await peerConnection.createOffer();
-        await peerConnection.setLocalDescription(offerForChild);
-        channel.push(`web:send_offer_to_child`, {
-          child_id: childId,
-          offer_for_child: JSON.stringify(offerForChild),
-          master_id: masterId,
-          ip,
-        });
-      });
 
     return {
       peerConnection,
@@ -684,14 +654,30 @@ class Home extends React.Component {
     });
     dataChannel.onopen = function () {
       console.log("Data Channel is open");
-      dataChannel.send("Hello from amir");
     };
     dataChannel.onerror = function (error) {
       console.log("Error:", error);
     };
 
-    dataChannel.onmessage = function (event) {
+    dataChannel.onmessage = (event) => {
+      const { messagesFromChildsPeers, messagesFromMastersPeers } = this.state;
       console.log("Got message:", event.data);
+      try {
+        const message = JSON.parse(event.data);
+        this.setState({
+          messagesFromMastersPeers: [
+            ...messagesFromMastersPeers,
+            { message: message.message },
+          ],
+        });
+      } catch (error) {
+        this.setState({
+          messagesFromChildsPeers: [
+            ...messagesFromChildsPeers,
+            { message: event.data },
+          ],
+        });
+      }
     };
     return dataChannel;
   };
@@ -750,11 +736,27 @@ class Home extends React.Component {
   handleMessageToMasters = () => {
     const { remoteMasterPeersWebRtcConnections, message } = this.state;
     remoteMasterPeersWebRtcConnections.map(({ peerDataChannel }) => {
+      peerDataChannel.send(JSON.stringify({ message, type: "MASTER" }));
+    });
+  };
+
+  handleMessageToLanMaster = () => {
+    const { lanPeersWebRtcConnections, message } = this.state;
+    lanPeersWebRtcConnections.map(({ peerDataChannel }) => {
       peerDataChannel.send(message);
     });
   };
   render() {
-    const { ip, type, lanPeers, machineId } = this.state;
+    const {
+      ip,
+      type,
+      lanPeers,
+      remoteMasterPeers,
+      machineId,
+      messagesFromMastersPeers,
+      messagesFromLanMasterPeer,
+      messagesFromChildsPeers,
+    } = this.state;
     return (
       <div>
         <h1>Self</h1>
@@ -762,11 +764,6 @@ class Home extends React.Component {
         <h2>
           I am {type} - {machineId}
         </h2>
-        <button id="sendOfferMaster">Send Offer Master</button>
-        <button id="dataChannelMaster">Open Data Channel Master</button>
-        <button id="dataChannelChild">Open Data Channel Child</button>
-        <button id="stateMaster">State Master</button>
-        <button id="stateChild">State Child</button>
         {type === "MASTER" && (
           <div>
             <input
@@ -778,15 +775,48 @@ class Home extends React.Component {
             <button onClick={this.handleMessageToMasters}>
               Send To Masters
             </button>
+            <hr />
+            <h1>Masters Peers</h1>
+            {remoteMasterPeers.map(({ ip, type, machine_id }, i) => (
+              <h2 key={i}>
+                {ip} - {type} - {machine_id}
+              </h2>
+            ))}
+            <h1>Message From Other Masters Peers</h1>
+            {messagesFromMastersPeers.map(({ message }, i) => (
+              <h2 key={i}>{message}</h2>
+            ))}
+            <hr />
+            <h1>Message From Child Peers</h1>
+            {messagesFromChildsPeers.map(({ message }, i) => (
+              <h2 key={i}>{message}</h2>
+            ))}
           </div>
         )}
-        <hr />
-        <h1>Peers</h1>
+
+        <h1>Lan Peers</h1>
         {lanPeers.map(({ ip, type, machine_id }, i) => (
           <h2 key={i}>
             {ip} - {type} - {machine_id}
           </h2>
         ))}
+
+        {type === "CHILD" && (
+          <div>
+            <input
+              type="text"
+              onChange={this.handleMessage}
+              placeholder="Send message to master"
+            />
+            <button onClick={this.handleMessageToLanMaster}>
+              Send To Master
+            </button>
+            <h1>Message From Master</h1>
+            {messagesFromLanMasterPeer.map(({ message }, i) => (
+              <h2 key={i}>{message}</h2>
+            ))}
+          </div>
+        )}
       </div>
     );
   }
