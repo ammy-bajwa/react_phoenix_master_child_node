@@ -84,7 +84,6 @@ class Home extends React.Component {
         machine_id
       );
       webRtcConArr.push({ peerConnection, ip, machine_id, type });
-      console.log(ip, peerConnection);
     });
     this.setState({
       remoteMasterPeersWebRtcConnections: webRtcConArr,
@@ -101,7 +100,6 @@ class Home extends React.Component {
         await peerConnection.addIceCandidate(
           new RTCIceCandidate(parsedCandidate)
         );
-        console.log(ip, " : Added Ice Candidate", parsedCandidate);
       }
     );
 
@@ -113,7 +111,6 @@ class Home extends React.Component {
         await peerConnection.setRemoteDescription(
           new RTCSessionDescription(parsedMasterOffer)
         );
-        console.log(ip, ": receive offer", parsedMasterOffer);
         await peerConnection.createAnswer(
           async (answer) => {
             await peerConnection.setLocalDescription(answer);
@@ -122,7 +119,6 @@ class Home extends React.Component {
               ip: ip,
               remote_master_ip: peer_master_id,
             });
-            console.log(ip, " : Send Answer: ", answer);
           },
           function (error) {
             alert("oops...error");
@@ -132,9 +128,7 @@ class Home extends React.Component {
     );
 
     peerConnection.onicecandidate = (event) => {
-      console.log(ip, " : IceEvent ", event.candidate);
       if (event.candidate) {
-        console.log(ip, " : Send Candidate To Master");
         channel.push(`web:add_ice_candidate_from_master_peer`, {
           candidate: JSON.stringify(event.candidate),
           remote_master_ip: remoteNodeIp,
@@ -145,7 +139,6 @@ class Home extends React.Component {
 
     peerConnection.ondatachannel = (event) => {
       const dataChannel = event.channel;
-      console.log("ondatachannel: ", dataChannel);
       dataChannel.onopen = (event) => {
         const { remoteMasterPeersWebRtcConnections } = this.state;
         const updatedPeersArr = remoteMasterPeersWebRtcConnections.map(
@@ -197,7 +190,6 @@ class Home extends React.Component {
           );
         } catch (error) {}
         console.log("Error In Adding Ice Candidate From Child");
-        console.log(ip, " Added Ice Candidate From Child: ", parsedCandidate);
       }
     );
 
@@ -212,14 +204,11 @@ class Home extends React.Component {
         } catch (error) {
           console.log("Error In MASTER setRemoteDescription Answer");
         }
-        console.log(ip, " setRemoteDescription Answer: ", answerFromChild);
       }
     );
 
     peerConnection.onicecandidate = (event) => {
-      console.log(ip, " IceEvent: ", event.candidate);
       if (event.candidate) {
-        console.log(ip, " Ice Candidate Send To Child");
         channel.push(`web:add_ice_candidate_from_master_peer`, {
           candidate: JSON.stringify(event.candidate),
           ip: ip,
@@ -246,20 +235,12 @@ class Home extends React.Component {
     peerConnection.onnegotiationneeded = async () => {
       console.log(ip, "NEGOTIATION Needed");
       const offerForPeerMaster = await peerConnection.createOffer();
-      console.log(
-        ip,
-        " MASTER createOffer: ",
-        remoteNodeIp,
-        offerForPeerMaster
-      );
       await peerConnection.setLocalDescription(offerForPeerMaster);
-      console.log(ip, " MASTER setLocalDescription Offer");
       channel.push(`web:send_offer_to_peer_master`, {
         offer_for_peer_master: JSON.stringify(offerForPeerMaster),
         ip,
         remote_master_ip: remoteNodeIp,
       });
-      console.log(ip, " MASTER Send Offer");
     };
 
     const dataChannel = this.createDataChannel(peerConnection);
@@ -277,9 +258,7 @@ class Home extends React.Component {
       .querySelector("#sendOfferMaster")
       .addEventListener("click", async () => {
         const offerForChild = await peerConnection.createOffer();
-        console.log("MASTER createOffer: ", offerForChild);
         await peerConnection.setLocalDescription(offerForChild);
-        console.log("MASTER setLocalDescription Offer: ", offerForChild);
         channel.push(`web:send_offer_to_child`, {
           child_id: childId,
           offer_for_child: JSON.stringify(offerForChild),
@@ -314,7 +293,6 @@ class Home extends React.Component {
             peerDataChannel: dataChannel,
             ...newMaster,
           };
-          console.log("newMasterWebRtc: ", newMasterWebRtc);
           const updatedPeersArr = [...remoteMasterPeers, newMaster];
           const updatedPeersWebRtcArr = [
             ...remoteMasterPeersWebRtcConnections,
@@ -325,7 +303,6 @@ class Home extends React.Component {
             remoteMasterPeers: updatedPeersArr,
             remoteMasterPeersWebRtcConnections: updatedPeersWebRtcArr,
           });
-          console.log(updatedPeersArr, "New Masetr updatedPeersArr......");
         }
       }
     );
@@ -349,10 +326,6 @@ class Home extends React.Component {
         remoteMasterPeers: updatedPeersArr,
         remoteMasterPeersWebRtcConnections: updatedPeersWebRtcArr,
       });
-      console.log(
-        updatedPeersArr,
-        "Listening for master remove updatedPeersArr......"
-      );
     });
   };
   childCreateWebRtcConObj = (channel, ip, masterId, childId) => {
@@ -396,7 +369,6 @@ class Home extends React.Component {
         await peerConnection.addIceCandidate(
           new RTCIceCandidate(parsedCandidate)
         );
-        console.log("CHILD Added Ice Candidate From Child:", parsedCandidate);
       }
     );
 
@@ -408,7 +380,6 @@ class Home extends React.Component {
         await peerConnection.setRemoteDescription(
           new RTCSessionDescription(parsedMasterOffer)
         );
-        console.log("CHILD setRemoteDescription offer: ", parsedMasterOffer);
         await peerConnection.createAnswer(
           async (answer) => {
             await peerConnection.setLocalDescription(answer);
@@ -418,7 +389,6 @@ class Home extends React.Component {
               child_id,
               ip: ip,
             });
-            console.log("CHILD Send Answer: ", answer);
           },
           function (error) {
             alert("oops...error");
@@ -428,9 +398,7 @@ class Home extends React.Component {
     );
 
     peerConnection.onicecandidate = (event) => {
-      console.log("CHILD IceEvent ", event.candidate);
       if (event.candidate) {
-        console.log("CHILD Send Candidate To Master");
         channel.push(`web:add_ice_candidate_from_child`, {
           candidate: JSON.stringify(event.candidate),
           child_id: childId,
@@ -520,10 +488,6 @@ class Home extends React.Component {
         const updatedRemotePeers = remote_masters_peers.filter(
           (node) => node.ip !== ip
         );
-        console.log(
-          "makeThisNodeMaster: remote_masters_peers",
-          updatedRemotePeers
-        );
         this.setState({
           remoteMasterPeers: updatedRemotePeers,
         });
@@ -542,7 +506,6 @@ class Home extends React.Component {
       lanPeersWebRtcConnections: [],
     });
     lanPeers.map((peerObj) => {
-      console.log("updateChildWebRtcArr", peerObj);
       this.handleNewChildPeerConnectionCreation(peerObj, channel);
     });
   };
@@ -582,7 +545,6 @@ class Home extends React.Component {
       peerDataChannel,
     };
     const updatedPeers = [...lanPeersWebRtcConnections, connObj];
-    console.log("updatedPeers: ", updatedPeers);
     this.setState({
       lanPeersWebRtcConnections: updatedPeers,
     });
@@ -632,7 +594,6 @@ class Home extends React.Component {
         } catch (error) {
           console.log("Error In Adding Ice Candidate From Child");
         }
-        console.log("MASTER Added Ice Candidate From Child: ", parsedCandidate);
       }
     );
 
@@ -647,14 +608,11 @@ class Home extends React.Component {
         } catch (error) {
           console.log("Error In MASTER setRemoteDescription Answer");
         }
-        console.log("MASTER setRemoteDescription Answer: ", answerFromChild);
       }
     );
 
     peerConnection.onicecandidate = (event) => {
-      console.log("MASTER IceEvent: ", event.candidate);
       if (event.candidate) {
-        console.log("MASTER Ice Candidate Send To Child");
         channel.push(`web:add_ice_candidate_from_master`, {
           candidate: JSON.stringify(event.candidate),
           child_id: childId,
@@ -680,16 +638,13 @@ class Home extends React.Component {
     peerConnection.onnegotiationneeded = async () => {
       console.log("NEGOTIATION MASTER");
       const offerForChild = await peerConnection.createOffer();
-      console.log("MASTER createOffer: ", offerForChild);
       await peerConnection.setLocalDescription(offerForChild);
-      console.log("MASTER setLocalDescription Offer");
       channel.push(`web:send_offer_to_child`, {
         child_id: childId,
         offer_for_child: JSON.stringify(offerForChild),
         master_id: masterId,
         ip,
       });
-      console.log("MASTER Send Offer");
     };
 
     const dataChannel = this.createDataChannel(peerConnection);
@@ -707,9 +662,7 @@ class Home extends React.Component {
       .querySelector("#sendOfferMaster")
       .addEventListener("click", async () => {
         const offerForChild = await peerConnection.createOffer();
-        console.log("MASTER createOffer: ", offerForChild);
         await peerConnection.setLocalDescription(offerForChild);
-        console.log("MASTER setLocalDescription Offer: ", offerForChild);
         channel.push(`web:send_offer_to_child`, {
           child_id: childId,
           offer_for_child: JSON.stringify(offerForChild),
