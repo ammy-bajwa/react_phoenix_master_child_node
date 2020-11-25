@@ -75,11 +75,14 @@ class Home extends React.Component {
           alert("Already a connection is established in other tab");
           return;
         }
+        console.log(
+          "remote_masters_peers on before filter: ",
+          remote_masters_peers
+        );
         if (remote_masters_peers) {
           const updatedRemoteMasterPeers = remote_masters_peers.filter(
             (node) => node !== null
           );
-
           console.log(
             "remote_masters_peers on creation: ",
             updatedRemoteMasterPeers
