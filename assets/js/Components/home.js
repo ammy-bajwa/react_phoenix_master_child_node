@@ -143,7 +143,7 @@ class Home extends React.Component {
         await peerConnection.addIceCandidate(
           new RTCIceCandidate(parsedCandidate)
         );
-        console.log("candidate is received from: ", remoteNodeIp);
+        console.log("candidate is received from: ", remoteNodeIp, parsedCandidate);
       }
     );
 
@@ -242,7 +242,7 @@ class Home extends React.Component {
           await peerConnection.addIceCandidate(
             new RTCIceCandidate(parsedCandidate)
           );
-          console.log("candidate is received from: ", remoteNodeIp);
+          console.log("candidate is received from: ", remoteNodeIp, parsedCandidate);
         } catch (error) {
           console.log("Error In Adding Ice Candidate From Child");
         }
