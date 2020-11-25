@@ -177,6 +177,13 @@ class Home extends React.Component {
       if (peerConnection.connectionState !== "connected") {
         console.log("Fired-------------------------------");
         const dataChannel = this.createDataChannel(peerConnection);
+        const offerForPeerMaster = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offerForPeerMaster);
+        channel.push(`web:send_offer_to_peer_master`, {
+          offer_for_peer_master: JSON.stringify(offerForPeerMaster),
+          ip,
+          remote_master_ip: remoteNodeIp,
+        });
         const { remoteMasterPeersWebRtcConnections } = this.state;
         const updatedPeersArr = remoteMasterPeersWebRtcConnections.map(
           (node) => {
@@ -221,17 +228,6 @@ class Home extends React.Component {
         );
       }
     );
-
-    peerConnection.onnegotiationneeded = async () => {
-      console.log(ip, ": 2nd NEGOTIATION Needed old master");
-      const offerForPeerMaster = await peerConnection.createOffer();
-      await peerConnection.setLocalDescription(offerForPeerMaster);
-      channel.push(`web:send_offer_to_peer_master`, {
-        offer_for_peer_master: JSON.stringify(offerForPeerMaster),
-        ip,
-        remote_master_ip: remoteNodeIp,
-      });
-    };
 
     peerConnection.onicecandidate = (event) => {
       if (event.candidate) {
