@@ -16,13 +16,24 @@ const peerConfig = {
     {
       urls: ["stun:avm4962.com:3478", "stun:avm4962.com:5349"],
     },
+    { urls: ["stun:ss-turn1.xirsys.com"] },
     {
       username: "TuR9Us3r",
       credential:
         "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
+      urls: ["turn:avm4962.com:3478", "turn:avm4962.com:5349"],
+    },
+    {
+      username:
+        "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
+      credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
       urls: [
-        "turn:avm4962.com:3478?transport=tcp",
-        "turn:avm4962.com:5349?transport=tcp",
+        "turn:ss-turn1.xirsys.com:80?transport=udp",
+        "turn:ss-turn1.xirsys.com:3478?transport=udp",
+        "turn:ss-turn1.xirsys.com:80?transport=tcp",
+        "turn:ss-turn1.xirsys.com:3478?transport=tcp",
+        "turns:ss-turn1.xirsys.com:443?transport=tcp",
+        "turns:ss-turn1.xirsys.com:5349?transport=tcp",
       ],
     },
   ],
@@ -65,6 +76,10 @@ class Home extends React.Component {
           return;
         }
         if (remote_masters_peers) {
+          console.log(
+            "remote_masters_peers on creation: ",
+            remote_masters_peers
+          );
           this.setState({
             remoteMasterPeers: remote_masters_peers,
           });
@@ -72,8 +87,8 @@ class Home extends React.Component {
         await setNodeType(type);
         this.setState({ lanPeers: lan_peers, type }, () => {
           if (type === "MASTER") {
-            componentThis.newNodeListener(channel);
             componentThis.newMasterNodeListener(channel);
+            componentThis.newNodeListener(channel);
             componentThis.removeNodeListener(channel);
             componentThis.removeMasterNodeListener(channel);
             componentThis.setupRemotePeerConnections(channel);
@@ -111,7 +126,8 @@ class Home extends React.Component {
   };
 
   createConnectionForMaster = (channel, remoteNodeIp, remoteNodeId) => {
-    const { ip } = this.state;
+    const { ip, remoteMasterPeers } = this.state;
+    console.log("listening for offer received from: ", remoteNodeIp);
     const peerConnection = new RTCPeerConnection(peerConfig);
     channel.on(
       `web:receive_ice_from_master_peer_${ip}_${remoteNodeIp}`,
@@ -120,6 +136,7 @@ class Home extends React.Component {
         await peerConnection.addIceCandidate(
           new RTCIceCandidate(parsedCandidate)
         );
+        console.log("candidate is received from: ", remoteNodeIp);
       }
     );
 
@@ -127,7 +144,7 @@ class Home extends React.Component {
       `web:receive_offer_${ip}_${remoteNodeIp}`,
       async ({ offer_for_peer_master, ip: peer_master_id }) => {
         const parsedMasterOffer = JSON.parse(offer_for_peer_master);
-
+        console.log("offer received from: ", remoteNodeIp);
         await peerConnection.setRemoteDescription(
           new RTCSessionDescription(parsedMasterOffer)
         );
@@ -139,6 +156,10 @@ class Home extends React.Component {
               ip: ip,
               remote_master_ip: peer_master_id,
             });
+            console.log(
+              "Offer received from and answer send to: ",
+              remoteNodeIp
+            );
           },
           function (error) {
             alert("oops...error");
@@ -149,6 +170,7 @@ class Home extends React.Component {
 
     peerConnection.onicecandidate = (event) => {
       if (event.candidate) {
+        console.log("candidate send to: ", remoteNodeIp);
         channel.push(`web:add_ice_candidate_from_master_peer`, {
           candidate: JSON.stringify(event.candidate),
           remote_master_ip: remoteNodeIp,
@@ -202,7 +224,7 @@ class Home extends React.Component {
   createConnectionForNewMaster = (channel, remoteNodeIp, remoteNodeId) => {
     const { ip } = this.state;
     const peerConnection = new RTCPeerConnection(peerConfig);
-
+    console.log("old master :- ", new Date().getMilliseconds());
     channel.on(
       `web:receive_ice_from_master_peer_${ip}_${remoteNodeId}`,
       async ({ candidate }) => {
@@ -211,8 +233,10 @@ class Home extends React.Component {
           await peerConnection.addIceCandidate(
             new RTCIceCandidate(parsedCandidate)
           );
-        } catch (error) {}
-        console.log("Error In Adding Ice Candidate From Child");
+          console.log("candidate is received from: ", remoteNodeIp);
+        } catch (error) {
+          console.log("Error In Adding Ice Candidate From Child");
+        }
       }
     );
 
@@ -224,6 +248,7 @@ class Home extends React.Component {
           await peerConnection.setRemoteDescription(
             new RTCSessionDescription(answerFromChild)
           );
+          console.log("Answer is received from: ", remoteNodeIp);
         } catch (error) {
           console.log("Error In MASTER setRemoteDescription Answer");
         }
@@ -232,6 +257,7 @@ class Home extends React.Component {
 
     peerConnection.onicecandidate = (event) => {
       if (event.candidate) {
+        console.log("candidate send to: ", remoteNodeIp);
         channel.push(`web:add_ice_candidate_from_master_peer`, {
           candidate: JSON.stringify(event.candidate),
           ip: ip,
@@ -254,7 +280,7 @@ class Home extends React.Component {
     };
 
     peerConnection.onnegotiationneeded = async () => {
-      console.log(ip, "NEGOTIATION Needed");
+      console.log(ip, "NEGOTIATION Needed old master");
       const offerForPeerMaster = await peerConnection.createOffer();
       await peerConnection.setLocalDescription(offerForPeerMaster);
       channel.push(`web:send_offer_to_peer_master`, {
@@ -283,25 +309,27 @@ class Home extends React.Component {
         } = this.state;
         if (machineId !== machine_id) {
           const newMaster = { type, ip, machine_id };
-          const {
-            peerConnection,
-            dataChannel,
-          } = this.createConnectionForNewMaster(channel, ip, machine_id);
-          const newMasterWebRtc = {
-            peerConnection,
-            peerDataChannel: dataChannel,
-            ...newMaster,
-          };
-          const updatedPeersArr = [...remoteMasterPeers, newMaster];
-          const updatedPeersWebRtcArr = [
-            ...remoteMasterPeersWebRtcConnections,
-            newMasterWebRtc,
-          ];
+          setTimeout(() => {
+            const {
+              peerConnection,
+              dataChannel,
+            } = this.createConnectionForNewMaster(channel, ip, machine_id);
+            const newMasterWebRtc = {
+              peerConnection,
+              peerDataChannel: dataChannel,
+              ...newMaster,
+            };
+            const updatedPeersArr = [...remoteMasterPeers, newMaster];
+            const updatedPeersWebRtcArr = [
+              ...remoteMasterPeersWebRtcConnections,
+              newMasterWebRtc,
+            ];
 
-          this.setState({
-            remoteMasterPeers: updatedPeersArr,
-            remoteMasterPeersWebRtcConnections: updatedPeersWebRtcArr,
-          });
+            this.setState({
+              remoteMasterPeers: updatedPeersArr,
+              remoteMasterPeersWebRtcConnections: updatedPeersWebRtcArr,
+            });
+          }, 1000);
         }
       }
     );
@@ -462,11 +490,14 @@ class Home extends React.Component {
         this.setState({
           remoteMasterPeers: updatedRemotePeers,
         });
-        this.setupRemotePeerConnections(channel);
-        this.newNodeListener(channel);
-        this.removeNodeListener(channel);
-        this.updateChildWebRtcArr(channel);
         await setNodeType("MASTER");
+        this.newNodeListener(channel);
+        this.newMasterNodeListener(channel);
+        console.log("2nd :- ", new Date().getMilliseconds());
+        this.setupRemotePeerConnections(channel);
+        this.removeNodeListener(channel);
+        this.removeMasterNodeListener(channel);
+        this.updateChildWebRtcArr(channel);
       }
     );
   };
@@ -733,29 +764,33 @@ class Home extends React.Component {
             </button>
             <hr />
             <h1>Masters Peers</h1>
-            {remoteMasterPeers.map(({ ip, type, machine_id }, i) => (
-              <h2 key={i}>
-                {ip} - {type} - {machine_id}
-              </h2>
-            ))}
+            {remoteMasterPeers.length > 0 &&
+              remoteMasterPeers.map(({ ip, type, machine_id }, i) => (
+                <h2 key={i}>
+                  {ip} - {type} - {machine_id}
+                </h2>
+              ))}
             <h1>Message From Other Masters Peers</h1>
-            {messagesFromMastersPeers.map(({ message }, i) => (
-              <h2 key={i}>{message}</h2>
-            ))}
+            {messagesFromMastersPeers.length > 0 &&
+              messagesFromMastersPeers.map(({ message }, i) => (
+                <h2 key={i}>{message}</h2>
+              ))}
             <hr />
             <h1>Message From Child Peers</h1>
-            {messagesFromChildsPeers.map(({ message }, i) => (
-              <h2 key={i}>{message}</h2>
-            ))}
+            {messagesFromChildsPeers.length > 0 &&
+              messagesFromChildsPeers.map(({ message }, i) => (
+                <h2 key={i}>{message}</h2>
+              ))}
           </div>
         )}
 
         <h1>Lan Peers</h1>
-        {lanPeers.map(({ ip, type, machine_id }, i) => (
-          <h2 key={i}>
-            {ip} - {type} - {machine_id}
-          </h2>
-        ))}
+        {lanPeers.length > 0 &&
+          lanPeers.map(({ ip, type, machine_id }, i) => (
+            <h2 key={i}>
+              {ip} - {type} - {machine_id}
+            </h2>
+          ))}
 
         {type === "CHILD" && (
           <div>
@@ -768,9 +803,10 @@ class Home extends React.Component {
               Send To Master
             </button>
             <h1>Message From Master</h1>
-            {messagesFromLanMasterPeer.map(({ message }, i) => (
-              <h2 key={i}>{message}</h2>
-            ))}
+            {messagesFromLanMasterPeer.length > 0 &&
+              messagesFromLanMasterPeer.map(({ message }, i) => (
+                <h2 key={i}>{message}</h2>
+              ))}
           </div>
         )}
       </div>

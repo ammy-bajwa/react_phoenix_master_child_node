@@ -17,7 +17,7 @@ defmodule AlivaWeb.NodeChannel do
       else
         remote_masters_peers = get_remote_masters_peers(ip)
         nil_check = List.first(remote_masters_peers)
-
+        IO.inspect(remote_masters_peers, label: "remote_masters_peers")
         case nil_check do
           nil ->
             {:ok, %{remote_masters_peers: [], lan_peers: peers_list, type: "MASTER"}, socket}
@@ -49,7 +49,6 @@ defmodule AlivaWeb.NodeChannel do
       }
     )
 
-    IO.inspect("----------------------------------Working----------------")
     {:noreply, socket}
   end
 
@@ -179,7 +178,6 @@ defmodule AlivaWeb.NodeChannel do
       ip: ip
     })
 
-    IO.inspect("---------------ICE Candidate---------------")
     {:noreply, socket}
   end
 
