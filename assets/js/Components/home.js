@@ -178,7 +178,7 @@ class Home extends React.Component {
         channel.push(`web:add_ice_candidate_from_master_peer`, {
           candidate: JSON.stringify(event.candidate),
           remote_master_ip: remoteNodeIp,
-          ip,
+          ip: ip,
         });
       }
     };
