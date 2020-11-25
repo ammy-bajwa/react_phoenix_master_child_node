@@ -7,7 +7,7 @@ import history from "./history";
 import { configureChannel } from "./socket";
 import { Router, Switch, Route, Link, Redirect } from "react-router-dom";
 
-import Home from "./Components/Home";
+import Home from "./Components/home";
 
 class Root extends React.Component {
   constructor(props) {
