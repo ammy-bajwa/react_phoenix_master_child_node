@@ -138,12 +138,22 @@ class Home extends React.Component {
     const peerConnection = new RTCPeerConnection(peerConfig);
     channel.on(
       `web:receive_ice_from_master_peer_${ip}_${remoteNodeIp}`,
-      async ({ candidate }) => {
-        const parsedCandidate = JSON.parse(candidate);
-        await peerConnection.addIceCandidate(
-          new RTCIceCandidate(parsedCandidate)
-        );
-        console.log("candidate is received from: ", remoteNodeIp, parsedCandidate);
+      async ({
+        candidate,
+        ip: senderIp,
+        remote_master_ip: currentMachineIp,
+      }) => {
+        if (currentMachineIp === ip) {
+          const parsedCandidate = JSON.parse(candidate);
+          await peerConnection.addIceCandidate(
+            new RTCIceCandidate(parsedCandidate)
+          );
+          console.log(
+            "candidate is received from: ",
+            senderIp,
+            parsedCandidate
+          );
+        }
       }
     );
 
@@ -236,15 +246,17 @@ class Home extends React.Component {
     console.log("old master :- ", new Date().getMilliseconds());
     channel.on(
       `web:receive_ice_from_master_peer_${ip}_${remoteNodeId}`,
-      async ({ candidate }) => {
-        const parsedCandidate = JSON.parse(candidate);
-        try {
-          await peerConnection.addIceCandidate(
-            new RTCIceCandidate(parsedCandidate)
-          );
-          console.log("candidate is received from: ", remoteNodeIp, parsedCandidate);
-        } catch (error) {
-          console.log("Error In Adding Ice Candidate From Child");
+      async ({ candidate, ip, remote_master_ip: currentMachineIp }) => {
+        if (currentMachineIp === ip) {
+          const parsedCandidate = JSON.parse(candidate);
+          try {
+            await peerConnection.addIceCandidate(
+              new RTCIceCandidate(parsedCandidate)
+            );
+            console.log("candidate is received from: ", ip, parsedCandidate);
+          } catch (error) {
+            console.log("Error In Adding Ice Candidate From Child");
+          }
         }
       }
     );
