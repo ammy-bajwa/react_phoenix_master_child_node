@@ -76,12 +76,16 @@ class Home extends React.Component {
           return;
         }
         if (remote_masters_peers) {
+          const updatedRemoteMasterPeers = remote_masters_peers.filter(
+            (node) => node !== null
+          );
+
           console.log(
             "remote_masters_peers on creation: ",
-            remote_masters_peers
+            updatedRemoteMasterPeers
           );
           this.setState({
-            remoteMasterPeers: remote_masters_peers,
+            remoteMasterPeers: updatedRemoteMasterPeers,
           });
         }
         await setNodeType(type);
