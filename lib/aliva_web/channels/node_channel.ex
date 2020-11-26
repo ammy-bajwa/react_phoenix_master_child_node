@@ -18,6 +18,7 @@ defmodule AlivaWeb.NodeChannel do
         remote_masters_peers = get_remote_masters_peers(ip)
         nil_check = List.first(remote_masters_peers)
         IO.inspect(remote_masters_peers, label: "remote_masters_peers")
+
         case nil_check do
           nil ->
             {:ok, %{remote_masters_peers: [], lan_peers: peers_list, type: "MASTER"}, socket}
