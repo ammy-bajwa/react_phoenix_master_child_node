@@ -52,78 +52,78 @@ class Home extends React.Component {
     messagesFromChildsPeers: [],
     iceConfigs: [
       { iceServers: [] },
-      // {
-      //   iceServers: [
-      //     {
-      //       urls: ["stun:avm4962.com:3478", "stun:avm4962.com:5349"],
-      //     },
-      //     { urls: ["stun:ss-turn1.xirsys.com"] },
-      //   ],
-      // },
-      // {
-      //   iceServers: [
-      //     {
-      //       username: "TuR9Us3r",
-      //       credential:
-      //         "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
-      //       urls: ["turn:avm4962.com:3478", "turn:avm4962.com:5349"],
-      //     },
-      //   ],
-      // },
-      // {
-      //   iceServers: [
-      //     {
-      //       username: "TuR9Us3r",
-      //       credential:
-      //         "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
-      //       urls: [
-      //         "turn:avm4962.com:3478?transport=udp",
-      //         "turn:avm4962.com:5349?transport=udp",
-      //       ],
-      //     },
-      //   ],
-      // },
-      // {
-      //   iceServers: [
-      //     {
-      //       username: "TuR9Us3r",
-      //       credential:
-      //         "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
-      //       urls: [
-      //         "turn:avm4962.com:3478?transport=tcp",
-      //         "turn:avm4962.com:5349?transport=tcp",
-      //       ],
-      //     },
-      //   ],
-      // },
-      // {
-      //   iceServers: [
-      //     {
-      //       username:
-      //         "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
-      //       credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
-      //       urls: [
-      //         "turn:ss-turn1.xirsys.com:80?transport=udp",
-      //         "turn:ss-turn1.xirsys.com:3478?transport=udp",
-      //       ],
-      //     },
-      //   ],
-      // },
-      // {
-      //   iceServers: [
-      //     {
-      //       username:
-      //         "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
-      //       credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
-      //       urls: [
-      //         "turn:ss-turn1.xirsys.com:80?transport=tcp",
-      //         "turn:ss-turn1.xirsys.com:3478?transport=tcp",
-      //         "turns:ss-turn1.xirsys.com:443?transport=tcp",
-      //         "turns:ss-turn1.xirsys.com:5349?transport=tcp",
-      //       ],
-      //     },
-      //   ],
-      // },
+      {
+        iceServers: [
+          {
+            urls: ["stun:avm4962.com:3478", "stun:avm4962.com:5349"],
+          },
+          { urls: ["stun:ss-turn1.xirsys.com"] },
+        ],
+      },
+      {
+        iceServers: [
+          {
+            username: "TuR9Us3r",
+            credential:
+              "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
+            urls: ["turn:avm4962.com:3478", "turn:avm4962.com:5349"],
+          },
+        ],
+      },
+      {
+        iceServers: [
+          {
+            username: "TuR9Us3r",
+            credential:
+              "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
+            urls: [
+              "turn:avm4962.com:3478?transport=udp",
+              "turn:avm4962.com:5349?transport=udp",
+            ],
+          },
+        ],
+      },
+      {
+        iceServers: [
+          {
+            username: "TuR9Us3r",
+            credential:
+              "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
+            urls: [
+              "turn:avm4962.com:3478?transport=tcp",
+              "turn:avm4962.com:5349?transport=tcp",
+            ],
+          },
+        ],
+      },
+      {
+        iceServers: [
+          {
+            username:
+              "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
+            credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
+            urls: [
+              "turn:ss-turn1.xirsys.com:80?transport=udp",
+              "turn:ss-turn1.xirsys.com:3478?transport=udp",
+            ],
+          },
+        ],
+      },
+      {
+        iceServers: [
+          {
+            username:
+              "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
+            credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
+            urls: [
+              "turn:ss-turn1.xirsys.com:80?transport=tcp",
+              "turn:ss-turn1.xirsys.com:3478?transport=tcp",
+              "turns:ss-turn1.xirsys.com:443?transport=tcp",
+              "turns:ss-turn1.xirsys.com:5349?transport=tcp",
+            ],
+          },
+        ],
+      },
     ],
   };
   constructor(props) {
@@ -566,7 +566,7 @@ class Home extends React.Component {
           ordered: false,
           maxRetransmits: 0,
         });
-        dataChannel.onopen = function () {
+        dataChannel.onopen = () => {
           console.log("Data Channel is open");
           const masterConnObj = {
             peerConnection,
@@ -834,7 +834,10 @@ class Home extends React.Component {
     childId
   ) => {
     const { iceConfigs, ip } = this.state;
-    let peerConnection = new RTCPeerConnection(iceConfigs.shift());
+    let iceConfigsControlCounter = 0;
+    let peerConnection = new RTCPeerConnection(
+      iceConfigs[iceConfigsControlCounter]
+    );
 
     this.setState({
       iceConfigs: iceConfigs,
@@ -842,14 +845,17 @@ class Home extends React.Component {
     const createAndSendOffer = async () => {
       const { iceConfigs } = this.state;
       if (
-        iceConfigs.length <= 0 ||
+        iceConfigsControlCounter >= iceConfigs.length ||
         peerConnection.connectionState === "connected"
       ) {
         clearInterval(connectionRetry);
         console.log("All Have Been Tried");
         return;
       }
-      peerConnection = new RTCPeerConnection(iceConfigs.shift());
+      ++iceConfigs;
+      peerConnection = new RTCPeerConnection(
+        iceConfigs[iceConfigsControlCounter]
+      );
       this.setState(
         {
           iceConfigs: iceConfigs,
@@ -992,7 +998,93 @@ class Home extends React.Component {
       });
     };
 
-    const dataChannel = this.createDataChannel(peerConnection);
+    const dataChannel = peerConnection.createDataChannel("MyDataChannel", {
+      ordered: false,
+      maxRetransmits: 0,
+    });
+    dataChannel.onopen = () => {
+      console.log("Data Channel is open");
+      console.log("Interval is cleared");
+      clearInterval(connectionRetry);
+      const { lanPeers } = this.state;
+      const connectionType = iceConfigs[iceConfigsControlCounter];
+      const updatedArr = lanPeers.map((node) => {
+        if (node.machine_id === childId) {
+          const { iceServers } = connectionType;
+          console.log("iceServers: ", iceServers);
+          if (iceServers.length <= 0) {
+            node.connectionType = "Null Ice Servers";
+          } else if (!iceServers[0].username) {
+            node.connectionType = "All Stuns Used";
+          } else if (
+            iceServers[0].urls[0].includes("turn") &&
+            !iceServers[0].urls[0].includes("transport")
+          ) {
+            node.connectionType = "All AVM TLS Turn Used";
+          } else if (
+            iceServers[0].urls[0].includes("turn") &&
+            iceServers[0].urls[0].includes("transport") &&
+            iceServers[0].urls[0].includes("udp") &&
+            iceServers[0].urls[0].includes("avm")
+          ) {
+            node.connectionType = "All AVM UDP Turn Used";
+          } else if (
+            iceServers[0].urls[0].includes("turn") &&
+            iceServers[0].urls[0].includes("transport") &&
+            iceServers[0].urls[0].includes("tcp") &&
+            iceServers[0].urls[0].includes("avm")
+          ) {
+            node.connectionType = "All AVM TCP Turn Used";
+          } else if (
+            iceServers[0].urls[0].includes("turn") &&
+            iceServers[0].urls[0].includes("transport") &&
+            iceServers[0].urls[0].includes("udp") &&
+            iceServers[0].urls[0].includes("xirsys")
+          ) {
+            node.connectionType = "All XIRSYS UDP Turn Used";
+          } else if (
+            iceServers[0].urls[0].includes("turn") &&
+            iceServers[0].urls[0].includes("transport") &&
+            iceServers[0].urls[0].includes("tcp") &&
+            iceServers[0].urls[0].includes("xirsys")
+          ) {
+            node.connectionType = "All XIRSYS TCP Turn Used";
+          } else {
+            node.connectionType = "Unknown";
+          }
+          console.log("connectionType: ", node.connectionType);
+        }
+        return node;
+      });
+
+      this.setState({
+        lanPeers: updatedArr,
+      });
+    };
+    dataChannel.onerror = function (error) {
+      console.log("Error:", error);
+    };
+
+    dataChannel.onmessage = (event) => {
+      const { messagesFromChildsPeers, messagesFromMastersPeers } = this.state;
+      console.log("Got message:", event.data);
+      try {
+        const message = JSON.parse(event.data);
+        this.setState({
+          messagesFromMastersPeers: [
+            ...messagesFromMastersPeers,
+            { message: message.message },
+          ],
+        });
+      } catch (error) {
+        this.setState({
+          messagesFromChildsPeers: [
+            ...messagesFromChildsPeers,
+            { message: event.data },
+          ],
+        });
+      }
+    };
 
     return {
       peerConnection,
@@ -1152,9 +1244,9 @@ class Home extends React.Component {
 
         <h1>Lan Peers</h1>
         {lanPeers.length > 0 &&
-          lanPeers.map(({ ip, type, machine_id }, i) => (
+          lanPeers.map(({ ip, type, machine_id, connectionType }, i) => (
             <h2 key={i}>
-              {ip} - {type} - {machine_id}
+              {ip} - {type} - {machine_id} - {connectionType}
             </h2>
           ))}
 
