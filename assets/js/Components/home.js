@@ -53,15 +53,14 @@ class Home extends React.Component {
     messagesFromLanMasterPeer: [],
     messagesFromChildsPeers: [],
     lanPeersNullIceServers: {},
-    onlyStunIceServers: {
+    iceConfigs: [{iceServers: []}, {
       iceServers: [
         {
           urls: ["stun:avm4962.com:3478", "stun:avm4962.com:5349"],
         },
         { urls: ["stun:ss-turn1.xirsys.com"] },
       ],
-    },
-    onlyAvmUdpTurnIceServers: {
+    },{
       iceServers: [
         {
           username: "TuR9Us3r",
@@ -70,8 +69,7 @@ class Home extends React.Component {
           urls: ["turn:avm4962.com:3478", "turn:avm4962.com:5349"],
         },
       ],
-    },
-    onlyAvmUdpTurnIceServers: {
+    },{
       iceServers: [
         {
           username: "TuR9Us3r",
@@ -83,8 +81,7 @@ class Home extends React.Component {
           ],
         },
       ],
-    },
-    onlyAvmTcpTurnIceServers: {
+    },{
       iceServers: [
         {
           username: "TuR9Us3r",
@@ -96,8 +93,7 @@ class Home extends React.Component {
           ],
         },
       ],
-    },
-    onlyXirsysUdpTurnIceServers: {
+    }, {
       iceServers: [
         {
           username:
@@ -109,8 +105,7 @@ class Home extends React.Component {
           ],
         },
       ],
-    },
-    onlyXirsysTcpTurnIceServers: {
+    },{
       iceServers: [
         {
           username:
@@ -124,7 +119,7 @@ class Home extends React.Component {
           ],
         },
       ],
-    },
+    }]
   };
   constructor(props) {
     super(props);
