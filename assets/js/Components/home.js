@@ -51,7 +51,7 @@ class Home extends React.Component {
     messagesFromLanMasterPeer: [],
     messagesFromChildsPeers: [],
     iceConfigs: [
-      { iceServers: [] },
+      // { iceServers: [] },
       // {
       //   iceServers: [
       //     {
