@@ -87,7 +87,12 @@ defmodule AlivaWeb.NodeChannel do
 
   def handle_in(
         "web:send_offer_to_master",
-        %{"ip" => ip, "child_id" => child_id, "master_id" => master_id, "offer_for_master" => offer_for_master},
+        %{
+          "ip" => ip,
+          "child_id" => child_id,
+          "master_id" => master_id,
+          "offer_for_master" => offer_for_master
+        },
         socket
       ) do
     broadcast(socket, "web:offer_from_child_#{ip}", %{
@@ -239,6 +244,17 @@ defmodule AlivaWeb.NodeChannel do
         socket
       ) do
     broadcast(socket, "web:try_to_connect_#{child_id}", %{})
+    {:noreply, socket}
+  end
+
+  def handle_in(
+        "web:try_to_connect_again_remote_master",
+        %{
+          "ip" => ip
+        },
+        socket
+      ) do
+    broadcast(socket, "web:try_to_connect_to_master_#{ip}", %{ip: ip})
     {:noreply, socket}
   end
 

@@ -1,0 +1,7 @@
+Remote Peers
+	offer sender createConnectionForNewMaster
+	offer receiver remotePeerConnectionForMaster
+	
+Lan Peers
+	offer sender lanPeerConnectionForChildFromMaster
+	offer receiver lanPeerCreateConnectionForMasterFromChild
