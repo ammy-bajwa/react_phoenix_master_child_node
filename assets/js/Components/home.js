@@ -329,7 +329,7 @@ class Home extends React.Component {
           await peerConnection.setRemoteDescription(
             new RTCSessionDescription(answerFromChild)
           );
-          console.log("Answer is received from: ", remoteNodeIp);
+          console.log("OLD MASTER Receives and set Answer from: ", remoteNodeIp);
         } catch (error) {
           console.log("Error In MASTER setRemoteDescription Answer");
         }
@@ -482,8 +482,8 @@ class Home extends React.Component {
           });
           isOther = false;
         } else {
-          createAndSendOffer();
           isOther = true;
+          createAndSendOffer();
         }
       } else {
         console.log("Interval is cleared");
@@ -585,7 +585,7 @@ class Home extends React.Component {
     };
 
     peerConnection.onnegotiationneeded = async () => {
-      console.log(ip, "NEGOTIATION Needed old master");
+      console.log("NEGOTIATION Needed OLD MASTER");
       const offerForPeerMaster = await peerConnection.createOffer();
       await peerConnection.setLocalDescription(offerForPeerMaster);
       channel.push(`web:send_offer_to_peer_master`, {
@@ -593,6 +593,7 @@ class Home extends React.Component {
         ip,
         remote_master_ip: remoteNodeIp,
       });
+      console.log("OLD MASTER Set And Send Offer To: ", remoteNodeIp);
     };
 
     const dataChannel = peerConnection.createDataChannel("MyDataChannel", {
