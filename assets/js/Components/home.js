@@ -255,6 +255,17 @@ class Home extends React.Component {
       peerConnection = new RTCPeerConnection(
         iceConfigs[iceConfigsControlCounter]
       );
+
+      peerConnection.onicecandidate = (event) => {
+        if (event.candidate) {
+          console.log("candidate send to: ", remoteNodeIp);
+          channel.push(`web:add_ice_candidate_from_master_peer`, {
+            candidate: JSON.stringify(event.candidate),
+            remote_master_ip: remoteNodeIp,
+            ip: ip,
+          });
+        }
+      };
       const dataChannel = peerConnection.createDataChannel("MyDataChannel", {
         ordered: false,
         maxRetransmits: 0,
@@ -366,7 +377,7 @@ class Home extends React.Component {
             new RTCSessionDescription(answerFromChild)
           );
           console.log(
-            "OLD MASTER Receives and set Answer from: ",
+            "New MASTER Receives and set Answer from: ",
             remoteNodeIp
           );
         } catch (error) {
@@ -403,13 +414,11 @@ class Home extends React.Component {
     peerConnection.onicecandidate = (event) => {
       if (event.candidate) {
         console.log("candidate send to: ", remoteNodeIp);
-        setTimeout(() => {
-          channel.push(`web:add_ice_candidate_from_master_peer`, {
-            candidate: JSON.stringify(event.candidate),
-            remote_master_ip: remoteNodeIp,
-            ip: ip,
-          });
-        }, 500);
+        channel.push(`web:add_ice_candidate_from_master_peer`, {
+          candidate: JSON.stringify(event.candidate),
+          remote_master_ip: remoteNodeIp,
+          ip: ip,
+        });
       }
     };
 
@@ -474,6 +483,17 @@ class Home extends React.Component {
       peerConnection = new RTCPeerConnection(
         iceConfigs[iceConfigsControlCounter]
       );
+
+      peerConnection.onicecandidate = (event) => {
+        if (event.candidate) {
+          channel.push(`web:add_ice_candidate_from_master_peer`, {
+            candidate: JSON.stringify(event.candidate),
+            ip: ip,
+            remote_master_ip: remoteNodeIp,
+          });
+          console.log("NEW MASTER send candidate to: ", remoteNodeIp);
+        }
+      };
 
       console.log("Peer connection: ", peerConnection);
       console.log("iceConfigs: ", iceConfigs);
