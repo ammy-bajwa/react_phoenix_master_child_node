@@ -1507,6 +1507,7 @@ class Home extends React.Component {
     } = this.state;
     return (
       <div>
+        <h1>Version 1</h1>
         <h1>{type}</h1>
         <h2>{ip}</h2>
         <h2>
