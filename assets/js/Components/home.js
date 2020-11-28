@@ -527,7 +527,7 @@ class Home extends React.Component {
 
     channel.on(
       `web:receive_ice_from_master_peer_${ip}_${remoteNodeId}`,
-      async ({ candidate, ip, remote_master_ip: currentMachineIp }) => {
+      async ({ candidate, ip:externalIp, remote_master_ip: currentMachineIp }) => {
         if (currentMachineIp === ip) {
           const parsedCandidate = JSON.parse(candidate);
           try {
