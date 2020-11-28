@@ -259,6 +259,18 @@ defmodule AlivaWeb.NodeChannel do
     {:noreply, socket}
   end
 
+  def handle_in(
+        "web:updated_peer_connection_master_peer",
+        %{
+          "iceConfigsControlCounter" => iceConfigsControlCounter,
+          "remote_master_ip" => remote_master_ip
+        },
+        socket
+      ) do
+    broadcast(socket, "web:update_my_peer_connection_#{remote_master_ip}", %{iceConfigsControlCounter: iceConfigsControlCounter})
+    {:noreply, socket}
+  end
+
   def terminate(_reason, socket) do
     machine_id_to_remove = Map.get(socket, :id)
     %{ip: ip} = Map.get(socket, :assigns)

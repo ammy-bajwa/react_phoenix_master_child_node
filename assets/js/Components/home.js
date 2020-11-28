@@ -242,6 +242,16 @@ class Home extends React.Component {
     let peerConnection = new RTCPeerConnection(
       iceConfigs[iceConfigsControlCounter]
     );
+
+    channel.on(
+      `web:update_my_peer_connection_${ip}`,
+      ({ iceConfigsControlCounter }) => {
+        peerConnection = new RTCPeerConnection(
+          iceConfigs[iceConfigsControlCounter]
+        );
+      }
+    );
+
     let isFirst = true;
 
     const createAndSendOffer = async () => {
@@ -483,6 +493,11 @@ class Home extends React.Component {
       peerConnection = new RTCPeerConnection(
         iceConfigs[iceConfigsControlCounter]
       );
+
+      channel.push(`web:updated_peer_connection_master_peer`, {
+        iceConfigsControlCounter,
+        remote_master_ip: remoteNodeIp,
+      });
 
       peerConnection.onicecandidate = (event) => {
         if (event.candidate) {
