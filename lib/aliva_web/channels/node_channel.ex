@@ -50,7 +50,7 @@ defmodule AlivaWeb.NodeChannel do
         remote_master_ip: ip
       }
     )
-
+      IO.inspect("candidate send from #{remote_master_ip} to #{ip}-------------------------")
     {:noreply, socket}
   end
 

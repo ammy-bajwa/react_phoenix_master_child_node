@@ -331,35 +331,6 @@ class Home extends React.Component {
       }
     );
 
-    setTimeout(async () => {
-      // This will execute to create webRtc connection incase it failed
-      if (peerConnection.connectionState !== "connected") {
-        console.log("Fired-------------------------------");
-        const dataChannel = this.createDataChannel(peerConnection);
-        const offerForPeerMaster = await peerConnection.createOffer();
-        await peerConnection.setLocalDescription(offerForPeerMaster);
-        channel.push(`web:send_offer_to_peer_master`, {
-          offer_for_peer_master: JSON.stringify(offerForPeerMaster),
-          ip,
-          remote_master_ip: remoteNodeIp,
-        });
-        const { remoteMasterPeersWebRtcConnections } = this.state;
-        const updatedPeersArr = remoteMasterPeersWebRtcConnections.map(
-          (node) => {
-            if (node.ip === remoteNodeIp) {
-              node.peerDataChannel = dataChannel;
-              node.peerConnection = peerConnection;
-            }
-            return node;
-          }
-        );
-
-        this.setState({
-          remoteMasterPeersWebRtcConnections: updatedPeersArr,
-        });
-      }
-    }, 6000);
-
     channel.on(
       `web:receive_offer_${ip}_${remoteNodeIp}`,
       async ({ offer_for_peer_master, ip: peer_master_id }) => {
