@@ -221,7 +221,7 @@ class Home extends React.Component {
         console.log("All Have Been Tried");
         return;
       }
-      ++iceConfigs;
+      ++iceConfigsControlCounter;
       peerConnection = new RTCPeerConnection(
         iceConfigs[iceConfigsControlCounter]
       );
@@ -458,7 +458,7 @@ class Home extends React.Component {
         console.log("All Have Been Tried");
         return;
       }
-      ++iceConfigs;
+      ++iceConfigsControlCounter;
       peerConnection = new RTCPeerConnection(
         iceConfigs[iceConfigsControlCounter]
       );
@@ -726,7 +726,7 @@ class Home extends React.Component {
         console.log("All Have Been Tried");
         return;
       }
-      ++iceConfigs;
+      ++iceConfigsControlCounter;
       peerConnection = new RTCPeerConnection(
         iceConfigs[iceConfigsControlCounter]
       );
@@ -1107,7 +1107,7 @@ class Home extends React.Component {
         console.log("All Have Been Tried");
         return;
       }
-      ++iceConfigs;
+      ++iceConfigsControlCounter;
       peerConnection = new RTCPeerConnection(
         iceConfigs[iceConfigsControlCounter]
       );
