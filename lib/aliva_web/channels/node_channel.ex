@@ -250,11 +250,12 @@ defmodule AlivaWeb.NodeChannel do
   def handle_in(
         "web:try_to_connect_again_remote_master",
         %{
-          "ip" => ip
+          "ip" => ip,
+          "remote_node_ip" => remote_node_ip
         },
         socket
       ) do
-    broadcast(socket, "web:try_to_connect_to_master_#{ip}", %{ip: ip})
+    broadcast(socket, "web:try_to_connect_to_master_#{remote_node_ip}", %{remote_node_ip: ip})
     {:noreply, socket}
   end
 
