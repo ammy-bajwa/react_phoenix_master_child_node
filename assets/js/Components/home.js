@@ -530,21 +530,24 @@ class Home extends React.Component {
     childId
   ) => {
     const { iceConfigs } = this.state;
+    let iceConfigsControlCounter = 0;
     let connection = false;
-    let peerConnection = new RTCPeerConnection(iceConfigs.shift());
+    let peerConnection = new RTCPeerConnection(
+      iceConfigs[iceConfigsControlCounter]
+    );
     this.setState({
       iceConfigs: iceConfigs,
     });
     const createAndSendOffer = async () => {
       const { iceConfigs } = this.state;
-      if (iceConfigs.length <= 0) {
+      if (iceConfigsControlCounter >= iceConfigs.length) {
         console.log("All Have Been Tried");
         return;
       }
-      peerConnection = new RTCPeerConnection(iceConfigs.shift());
-      this.setState({
-        iceConfigs: iceConfigs,
-      });
+      ++iceConfigs;
+      peerConnection = new RTCPeerConnection(
+        iceConfigs[iceConfigsControlCounter]
+      );
       const offerForMaster = await peerConnection.createOffer();
       await peerConnection.setLocalDescription(offerForMaster);
       channel.push(`web:send_offer_to_master`, {
@@ -559,6 +562,73 @@ class Home extends React.Component {
 
     let isOther = true;
     let isFirst = true;
+
+    const checkConnection = () => {
+      setTimeout(() => {
+        if (!connection) {
+          console.log("No connection yet");
+          checkConnection();
+        } else {
+          console.log("Child Is Connected");
+          const { lanPeers } = this.state;
+          const connectionType = iceConfigs[iceConfigsControlCounter];
+          const updatedArr = lanPeers.map((node) => {
+            if (node.machine_id === masterId) {
+              const { iceServers } = connectionType;
+              console.log("iceServers: ", iceServers);
+              if (iceServers.length <= 0) {
+                node.connectionType = "Null Ice Servers";
+              } else if (!iceServers[0].username) {
+                node.connectionType = "All Stuns Used";
+              } else if (
+                iceServers[0].urls[0].includes("turn") &&
+                !iceServers[0].urls[0].includes("transport")
+              ) {
+                node.connectionType = "All AVM TLS Turn Used";
+              } else if (
+                iceServers[0].urls[0].includes("turn") &&
+                iceServers[0].urls[0].includes("transport") &&
+                iceServers[0].urls[0].includes("udp") &&
+                iceServers[0].urls[0].includes("avm")
+              ) {
+                node.connectionType = "All AVM UDP Turn Used";
+              } else if (
+                iceServers[0].urls[0].includes("turn") &&
+                iceServers[0].urls[0].includes("transport") &&
+                iceServers[0].urls[0].includes("tcp") &&
+                iceServers[0].urls[0].includes("avm")
+              ) {
+                node.connectionType = "All AVM TCP Turn Used";
+              } else if (
+                iceServers[0].urls[0].includes("turn") &&
+                iceServers[0].urls[0].includes("transport") &&
+                iceServers[0].urls[0].includes("udp") &&
+                iceServers[0].urls[0].includes("xirsys")
+              ) {
+                node.connectionType = "All XIRSYS UDP Turn Used";
+              } else if (
+                iceServers[0].urls[0].includes("turn") &&
+                iceServers[0].urls[0].includes("transport") &&
+                iceServers[0].urls[0].includes("tcp") &&
+                iceServers[0].urls[0].includes("xirsys")
+              ) {
+                node.connectionType = "All XIRSYS TCP Turn Used";
+              } else {
+                node.connectionType = "Unknown";
+              }
+              console.log("connectionType: ", node.connectionType);
+            }
+            return node;
+          });
+
+          this.setState({
+            lanPeers: updatedArr,
+          });
+        }
+      }, 6000);
+    };
+
+    checkConnection();
 
     channel.on(`web:try_to_connect_${childId}`, async () => {
       console.log("----------------Request receive for offer");
@@ -582,6 +652,7 @@ class Home extends React.Component {
         };
         dataChannel.onerror = function (error) {
           console.log("Error:", error);
+          connection = false;
         };
 
         dataChannel.onmessage = (event) => {
@@ -680,6 +751,7 @@ class Home extends React.Component {
       const dataChannel = event.channel;
       console.log("ondatachannel: ", dataChannel);
       dataChannel.onopen = (event) => {
+        connection = true;
         const masterConnObj = {
           peerConnection,
           machineId: masterId,
@@ -692,6 +764,7 @@ class Home extends React.Component {
       };
       dataChannel.onerror = function (error) {
         console.log("Error:", error);
+        connection = true;
       };
 
       dataChannel.onmessage = (event) => {
@@ -842,10 +915,6 @@ class Home extends React.Component {
     let peerConnection = new RTCPeerConnection(
       iceConfigs[iceConfigsControlCounter]
     );
-
-    this.setState({
-      iceConfigs: iceConfigs,
-    });
     const createAndSendOffer = async () => {
       const { iceConfigs } = this.state;
       if (
@@ -860,12 +929,7 @@ class Home extends React.Component {
       peerConnection = new RTCPeerConnection(
         iceConfigs[iceConfigsControlCounter]
       );
-      this.setState(
-        {
-          iceConfigs: iceConfigs,
-        },
-        () => console.log("Ice Masters: ", this.state.iceConfigs)
-      );
+
       const offerForChild = await peerConnection.createOffer();
       await peerConnection.setLocalDescription(offerForChild);
       channel.push(`web:send_offer_to_child`, {
