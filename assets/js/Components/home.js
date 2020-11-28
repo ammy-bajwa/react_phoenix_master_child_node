@@ -530,6 +530,7 @@ class Home extends React.Component {
     childId
   ) => {
     const { iceConfigs } = this.state;
+    let connection = false;
     let peerConnection = new RTCPeerConnection(iceConfigs.shift());
     this.setState({
       iceConfigs: iceConfigs,
@@ -568,6 +569,7 @@ class Home extends React.Component {
         });
         dataChannel.onopen = () => {
           console.log("Data Channel is open");
+          connection = true;
           const masterConnObj = {
             peerConnection,
             machineId: masterId,
@@ -601,6 +603,7 @@ class Home extends React.Component {
           ip,
         });
         dataChannel.onopen = () => {
+          connection = true;
           console.log("Data channel is open child");
         };
         console.log("OFFER IS SENDED TO MASTER");
@@ -835,6 +838,7 @@ class Home extends React.Component {
   ) => {
     const { iceConfigs, ip } = this.state;
     let iceConfigsControlCounter = 0;
+    let connection = false;
     let peerConnection = new RTCPeerConnection(
       iceConfigs[iceConfigsControlCounter]
     );
@@ -873,7 +877,7 @@ class Home extends React.Component {
     };
     let isOther = true;
     const connectionRetry = setInterval(async () => {
-      if (peerConnection.connectionState !== "connected") {
+      if (!connection) {
         console.log("Not connected: ", peerConnection.connectionState);
         if (isOther) {
           channel.push(`web:try_to_connect_again`, {
@@ -959,6 +963,7 @@ class Home extends React.Component {
       console.log("ondatachannel: ", dataChannel);
       dataChannel.onopen = (event) => {
         console.log("Master Data Channel Is Open");
+        connection = true;
         const { lanPeersWebRtcConnections } = this.state;
         const updatedPeers = lanPeersWebRtcConnections.map((node) => {
           if (node.machineId === childId) {
@@ -972,6 +977,7 @@ class Home extends React.Component {
       };
       dataChannel.onerror = function (error) {
         console.log("Error:", error);
+        connection = false;
       };
 
       dataChannel.onmessage = (event) => {
@@ -1006,6 +1012,7 @@ class Home extends React.Component {
       console.log("Data Channel is open");
       console.log("Interval is cleared");
       clearInterval(connectionRetry);
+      connection = true;
       const { lanPeers } = this.state;
       const connectionType = iceConfigs[iceConfigsControlCounter];
       const updatedArr = lanPeers.map((node) => {
@@ -1063,6 +1070,7 @@ class Home extends React.Component {
     };
     dataChannel.onerror = function (error) {
       console.log("Error:", error);
+      connection = false;
     };
 
     dataChannel.onmessage = (event) => {
