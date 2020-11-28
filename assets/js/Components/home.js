@@ -550,7 +550,7 @@ class Home extends React.Component {
         console.log("Interval is cleared");
         clearInterval(connectionRetry);
       }
-    }, 16000);
+    }, 6000);
 
     channel.on(
       `web:receive_ice_from_master_peer_${ip}_${remoteNodeId}`,
