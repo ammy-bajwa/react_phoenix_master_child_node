@@ -347,6 +347,12 @@ class Home extends React.Component {
             remote_master_ip,
             parsedCandidate
           );
+        } else {
+          console.log(
+            "NEW MASTER UNKNOWN Candidate remote current: ",
+            currentMachineIp,
+            remote_master_ip
+          );
         }
       }
     );
@@ -469,6 +475,7 @@ class Home extends React.Component {
         iceConfigs[iceConfigsControlCounter]
       );
 
+      console.log("Peer connection: ", peerConnection);
       console.log("iceConfigs: ", iceConfigs);
       console.log("iceConfigsControlCounter: ", iceConfigsControlCounter);
 
@@ -502,6 +509,7 @@ class Home extends React.Component {
         ip,
         remote_master_ip: remoteNodeIp,
       });
+      console.log("Old MASTER Send Offer");
     };
 
     let isOther = true;
@@ -541,6 +549,12 @@ class Home extends React.Component {
           } catch (error) {
             console.log("Error In Adding Ice Candidate From Child");
           }
+        } else {
+          console.log(
+            "OLD MASTER UNKNOWN Candidate remote current: ",
+            currentMachineIp,
+            remoteNodeIp
+          );
         }
       }
     );
