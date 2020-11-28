@@ -221,7 +221,7 @@ class Home extends React.Component {
         console.log("All Have Been Tried");
         return;
       }
-      ++iceConfigsControlCounter;
+      iceConfigsControlCounter++;
       peerConnection = new RTCPeerConnection(
         iceConfigs[iceConfigsControlCounter]
       );
@@ -458,7 +458,7 @@ class Home extends React.Component {
         console.log("All Have Been Tried");
         return;
       }
-      ++iceConfigsControlCounter;
+      iceConfigsControlCounter++;
       peerConnection = new RTCPeerConnection(
         iceConfigs[iceConfigsControlCounter]
       );
@@ -504,7 +504,10 @@ class Home extends React.Component {
             ip: ip,
           });
           isOther = false;
-          console.log("-------------Requesting offer 2nd remote peer");
+          console.log(
+            "OLD Master Ask for offer : ",
+            iceConfigs[iceConfigsControlCounter]
+          );
         } else {
           createAndSendOffer();
           isOther = true;
@@ -726,7 +729,7 @@ class Home extends React.Component {
         console.log("All Have Been Tried");
         return;
       }
-      ++iceConfigsControlCounter;
+      iceConfigsControlCounter++;
       peerConnection = new RTCPeerConnection(
         iceConfigs[iceConfigsControlCounter]
       );
@@ -1107,7 +1110,7 @@ class Home extends React.Component {
         console.log("All Have Been Tried");
         return;
       }
-      ++iceConfigsControlCounter;
+      iceConfigsControlCounter++;
       peerConnection = new RTCPeerConnection(
         iceConfigs[iceConfigsControlCounter]
       );
