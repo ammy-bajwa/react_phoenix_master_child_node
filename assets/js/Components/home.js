@@ -299,8 +299,8 @@ class Home extends React.Component {
       `web:receive_ice_from_master_peer_${ip}_${remoteNodeIp}`,
       async ({
         candidate,
-        ip: senderIp,
-        remote_master_ip: currentMachineIp,
+        ip: currentMachineIp,
+        remote_master_ip,
       }) => {
         if (currentMachineIp === ip) {
           const parsedCandidate = JSON.parse(candidate);
@@ -309,7 +309,7 @@ class Home extends React.Component {
           );
           console.log(
             "candidate is received from: ",
-            senderIp,
+            remote_master_ip,
             parsedCandidate
           );
         }
@@ -527,14 +527,14 @@ class Home extends React.Component {
 
     channel.on(
       `web:receive_ice_from_master_peer_${ip}_${remoteNodeId}`,
-      async ({ candidate, ip:externalIp, remote_master_ip: currentMachineIp }) => {
+      async ({ candidate, ip: currentMachineIp, remote_master_ip }) => {
         if (currentMachineIp === ip) {
           const parsedCandidate = JSON.parse(candidate);
           try {
             await peerConnection.addIceCandidate(
               new RTCIceCandidate(parsedCandidate)
             );
-            console.log("candidate is received from: ", ip, parsedCandidate);
+            console.log("candidate is received from: ", remote_master_ip, parsedCandidate);
           } catch (error) {
             console.log("Error In Adding Ice Candidate From Child");
           }

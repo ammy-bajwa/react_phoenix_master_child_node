@@ -46,8 +46,8 @@ defmodule AlivaWeb.NodeChannel do
       "web:receive_ice_from_master_peer_#{remote_master_ip}_#{ip}",
       %{
         candidate: candidate,
-        ip: ip,
-        remote_master_ip: remote_master_ip
+        ip: remote_master_ip,
+        remote_master_ip: ip
       }
     )
 
