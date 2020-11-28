@@ -462,6 +462,10 @@ class Home extends React.Component {
       peerConnection = new RTCPeerConnection(
         iceConfigs[iceConfigsControlCounter]
       );
+
+      console.log("iceConfigs: ", iceConfigs);
+      console.log("iceConfigsControlCounter: ", iceConfigsControlCounter);
+
       const dataChannel = peerConnection.createDataChannel("MyDataChannel", {
         ordered: false,
         maxRetransmits: 0,
@@ -486,7 +490,10 @@ class Home extends React.Component {
         });
       };
 
+      debugger;
+
       const offerForPeerMaster = await peerConnection.createOffer();
+      debugger;
       await peerConnection.setLocalDescription(offerForPeerMaster);
       channel.push(`web:send_offer_to_peer_master`, {
         offer_for_peer_master: JSON.stringify(offerForPeerMaster),
@@ -499,15 +506,15 @@ class Home extends React.Component {
     const connectionRetry = setInterval(async () => {
       if (!connection) {
         console.log("Not connected: ", peerConnection.connectionState);
+        console.log(
+          "OLD Master Ask for offer : ",
+          iceConfigs[iceConfigsControlCounter]
+        );
         if (isOther) {
           channel.push(`web:try_to_connect_again_remote_master`, {
             ip: ip,
           });
           isOther = false;
-          console.log(
-            "OLD Master Ask for offer : ",
-            iceConfigs[iceConfigsControlCounter]
-          );
         } else {
           createAndSendOffer();
           isOther = true;
