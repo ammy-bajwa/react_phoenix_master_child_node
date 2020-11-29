@@ -1580,8 +1580,11 @@ class Home extends React.Component {
 
   handleMessageToMasters = () => {
     const { remoteMasterPeersWebRtcConnections, message } = this.state;
-    remoteMasterPeersWebRtcConnections.map(({ peerDataChannel }) => {
-      peerDataChannel.send(JSON.stringify({ message, type: "MASTER" }));
+    remoteMasterPeersWebRtcConnections.map((masterNode) => {
+      masterNode.peerDataChannel.send(
+        JSON.stringify({ message, type: "MASTER" })
+      );
+      console.log("masterNode: ", masterNode);
     });
   };
 
