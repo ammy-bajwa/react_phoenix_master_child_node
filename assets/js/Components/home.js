@@ -550,6 +550,16 @@ class Home extends React.Component {
       dataChannel.onopen = () => {
         console.log("Data Channel is open");
         connection = true;
+        const { remoteMasterPeersWebRtcConnections } = this.state;
+        const updatedArr = remoteMasterPeersWebRtcConnections.map((node) => {
+          if (node.machine_id === remoteNodeId) {
+            node.peerDataChannel = dataChannel;
+          }
+          return node;
+        });
+        this.setState({
+          remoteMasterPeersWebRtcConnections: updatedArr,
+        });
       };
       dataChannel.onerror = function (error) {
         console.log("Error:", error);
@@ -685,6 +695,16 @@ class Home extends React.Component {
       dataChannel.onopen = (event) => {
         console.log("Datachannel is open");
         connection = true;
+        const { remoteMasterPeersWebRtcConnections } = this.state;
+        const updatedArr = remoteMasterPeersWebRtcConnections.map((node) => {
+          if (node.machine_id === remoteNodeId) {
+            node.peerDataChannel = dataChannel;
+          }
+          return node;
+        });
+        this.setState({
+          remoteMasterPeersWebRtcConnections: updatedArr,
+        });
       };
       dataChannel.onerror = (error) => {
         console.log("Error:", error);
@@ -714,6 +734,16 @@ class Home extends React.Component {
     dataChannel.onopen = function () {
       connection = true;
       console.log("Data Channel is open");
+      const { remoteMasterPeersWebRtcConnections } = this.state;
+      const updatedArr = remoteMasterPeersWebRtcConnections.map((node) => {
+        if (node.machine_id === remoteNodeId) {
+          node.peerDataChannel = dataChannel;
+        }
+        return node;
+      });
+      this.setState({
+        remoteMasterPeersWebRtcConnections: updatedArr,
+      });
     };
     dataChannel.onerror = function (error) {
       console.log("Error:", error);
