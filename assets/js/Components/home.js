@@ -270,7 +270,7 @@ class Home extends React.Component {
 
     const createAndSendOffer = async () => {
       const { iceConfigs } = this.state;
-      if (iceConfigsControlCounter >= iceConfigs.length || connection) {
+      if (iceConfigsControlCounter > iceConfigs.length || connection) {
         console.log("All Have Been Tried");
         return;
       }
@@ -497,7 +497,7 @@ class Home extends React.Component {
 
     const createAndSendOffer = async () => {
       const { iceConfigs } = this.state;
-      if (iceConfigsControlCounter >= iceConfigs.length || connection) {
+      if (iceConfigsControlCounter > iceConfigs.length || connection) {
         clearInterval(connectionRetry);
         console.log("All Have Been Tried");
         return;
@@ -1535,7 +1535,7 @@ class Home extends React.Component {
     } = this.state;
     return (
       <div>
-        <h1>Version 4</h1>
+        <h1>Version 5</h1>
         <h1>{type}</h1>
         <h2>{ip}</h2>
         <h2>
