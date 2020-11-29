@@ -535,6 +535,7 @@ class Home extends React.Component {
     const { iceConfigs, ip } = this.state;
     let iceConfigsControlCounter = 0;
     let connection = false;
+    let dataChannel = null;
     let peerConnection = new RTCPeerConnection(
       iceConfigs[iceConfigsControlCounter]
     );
@@ -571,7 +572,7 @@ class Home extends React.Component {
       console.log("iceConfigs: ", iceConfigs);
       console.log("iceConfigsControlCounter: ", iceConfigsControlCounter);
 
-      const dataChannel = peerConnection.createDataChannel("MyDataChannel", {
+      dataChannel = peerConnection.createDataChannel("MyDataChannel", {
         ordered: false,
         maxRetransmits: 0,
       });
@@ -720,7 +721,7 @@ class Home extends React.Component {
     };
 
     peerConnection.ondatachannel = (event) => {
-      const dataChannel = event.channel;
+      dataChannel = event.channel;
       dataChannel.onopen = (event) => {
         console.log("Datachannel is open on 718");
         connection = true;
@@ -756,7 +757,7 @@ class Home extends React.Component {
       console.log("OLD MASTER Set And Send Offer To: ", remoteNodeIp);
     };
 
-    const dataChannel = peerConnection.createDataChannel("MyDataChannel", {
+    dataChannel = peerConnection.createDataChannel("MyDataChannel", {
       ordered: false,
       maxRetransmits: 0,
     });
@@ -795,6 +796,11 @@ class Home extends React.Component {
         console.log("Error in parsing message");
       }
     };
+
+    document.getElementById("#sendToMaster").addEventListener("click", () => {
+      const { message } = this.state;
+      dataChannel.send(message);
+    });
 
     return {
       peerConnection,
@@ -1628,7 +1634,7 @@ class Home extends React.Component {
               placeholder="Send message to child"
             />
             <button onClick={this.handleMessageToChilds}>Send To Child</button>
-            <button onClick={this.handleMessageToMasters}>
+            <button onClick={this.handleMessageToMasters} id="sendToMaster">
               Send To Masters
             </button>
             <hr />
