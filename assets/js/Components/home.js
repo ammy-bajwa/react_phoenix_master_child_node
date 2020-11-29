@@ -327,7 +327,7 @@ class Home extends React.Component {
         });
       };
       dataChannel.onerror = function (error) {
-        console.log("Error:", error);
+        console.log("Error:", error," 330");
         connection = false;
       };
 
@@ -383,7 +383,7 @@ class Home extends React.Component {
             });
           };
           dataChannel.onerror = function (error) {
-            console.log("Error:", error);
+            console.log("Error:", error," 386");
             connection = false;
           };
 
@@ -510,7 +510,7 @@ class Home extends React.Component {
         });
       };
       dataChannel.onerror = function (error) {
-        console.log("Error:", error);
+        console.log("Error:", error," 513");
       };
 
       dataChannel.onmessage = (event) => {
@@ -523,10 +523,6 @@ class Home extends React.Component {
             { message: message.message },
           ],
         });
-      };
-
-      dataChannel.onerror = function (event) {
-        console.log("Got message:", event.data);
       };
     };
 
@@ -594,7 +590,7 @@ class Home extends React.Component {
         });
       };
       dataChannel.onerror = function (error) {
-        console.log("Error:", error);
+        console.log("Error: ", error," 597");
         connection = false;
       };
 
@@ -739,7 +735,7 @@ class Home extends React.Component {
         });
       };
       dataChannel.onerror = (error) => {
-        console.log("Error:", error);
+        console.log("Error:", error," 742");
       };
 
       dataChannel.onmessage = (event) => {
@@ -780,7 +776,7 @@ class Home extends React.Component {
       });
     };
     dataChannel.onerror = function (error) {
-      console.log("Error:", error);
+      console.log("Error:", error," 783");
     };
 
     dataChannel.onmessage = (event) => {
