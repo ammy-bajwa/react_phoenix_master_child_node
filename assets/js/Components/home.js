@@ -268,6 +268,7 @@ class Home extends React.Component {
     const { ip, iceConfigs } = this.state;
     let iceConfigsControlCounter = 0;
     let connection = false;
+    let dataChannel = null;
     let peerConnection = new RTCPeerConnection(
       iceConfigs[iceConfigsControlCounter]
     );
@@ -305,7 +306,7 @@ class Home extends React.Component {
           });
         }
       };
-      const dataChannel = peerConnection.createDataChannel("MyDataChannel", {
+      dataChannel = peerConnection.createDataChannel("MyDataChannel", {
         ordered: false,
         maxRetransmits: 0,
       });
@@ -317,6 +318,7 @@ class Home extends React.Component {
         const updatedArr = remoteMasterPeersWebRtcConnections.map((node) => {
           if (node.machine_id === remoteNodeId) {
             node.peerDataChannel = dataChannel;
+            node.peerConnection = peerConnection;
           }
           return node;
         });
@@ -355,7 +357,7 @@ class Home extends React.Component {
         console.log("NEW MASTER request to connect");
         if (isFirst) {
           isFirst = false;
-          const dataChannel = peerConnection.createDataChannel(
+          dataChannel = peerConnection.createDataChannel(
             "MyDataChannel",
             {
               ordered: false,
@@ -487,7 +489,7 @@ class Home extends React.Component {
     };
 
     peerConnection.ondatachannel = (event) => {
-      const dataChannel = event.channel;
+      dataChannel = event.channel;
       dataChannel.onopen = (event) => {
         console.log("Data channel is open at  on 489");
         dataChannel.send("Hello FROM NEW MASTER");
