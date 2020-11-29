@@ -317,6 +317,7 @@ class Home extends React.Component {
         const { remoteMasterPeersWebRtcConnections } = this.state;
         const updatedArr = remoteMasterPeersWebRtcConnections.map((node) => {
           if (node.machine_id === remoteNodeId) {
+            console.log("Updating datachannel on 320");
             node.peerDataChannel = dataChannel;
             node.peerConnection = peerConnection;
           }
@@ -327,7 +328,7 @@ class Home extends React.Component {
         });
       };
       dataChannel.onerror = function (error) {
-        console.log("Error:", error," 330");
+        console.log("Error:", error, " 330");
         connection = false;
       };
 
@@ -357,15 +358,9 @@ class Home extends React.Component {
         console.log("NEW MASTER request to connect");
         if (isFirst) {
           isFirst = false;
-          dataChannel = peerConnection.createDataChannel(
-            "MyDataChannel",
-            {
-              ordered: false,
-              maxRetransmits: 0,
-            }
-          );
+          dataChannel = peerConnection.createDataChannel("MyDataChannel");
           dataChannel.onopen = () => {
-            console.log("Data Channel is open on 365");
+            console.log("Data Channel is open on 362");
             connection = true;
             dataChannel.send("Hello FROM NEW MASTER");
 
@@ -373,6 +368,7 @@ class Home extends React.Component {
             const updatedArr = remoteMasterPeersWebRtcConnections.map(
               (node) => {
                 if (node.machine_id === remoteNodeId) {
+                  console.log("Updating datachannel on 370");
                   node.peerDataChannel = dataChannel;
                 }
                 return node;
@@ -383,7 +379,7 @@ class Home extends React.Component {
             });
           };
           dataChannel.onerror = function (error) {
-            console.log("Error:", error," 386");
+            console.log("Error:", error, " 386");
             connection = false;
           };
 
@@ -493,11 +489,11 @@ class Home extends React.Component {
       dataChannel.onopen = (event) => {
         console.log("Data channel is open at  on 489");
         dataChannel.send("Hello FROM NEW MASTER");
-
         const { remoteMasterPeersWebRtcConnections } = this.state;
         const updatedPeersArr = remoteMasterPeersWebRtcConnections.map(
           (node) => {
             if (node.ip === remoteNodeIp) {
+              console.log("Updating datachannel on 497");
               node.peerDataChannel = dataChannel;
               node.peerConnection = peerConnection;
             }
@@ -510,7 +506,7 @@ class Home extends React.Component {
         });
       };
       dataChannel.onerror = function (error) {
-        console.log("Error:", error," 513");
+        console.log("Error:", error, " 513");
       };
 
       dataChannel.onmessage = (event) => {
@@ -570,17 +566,15 @@ class Home extends React.Component {
       console.log("iceConfigs: ", iceConfigs);
       console.log("iceConfigsControlCounter: ", iceConfigsControlCounter);
 
-      dataChannel = peerConnection.createDataChannel("MyDataChannel", {
-        ordered: false,
-        maxRetransmits: 0,
-      });
+      dataChannel = peerConnection.createDataChannel("MyDataChannel");
       dataChannel.onopen = () => {
-        console.log("Data Channel is open on 573");
-        connection = true;
+        console.log("Data Channel is open on 575");
         dataChannel.send("Hello FROM OLD MASTER");
+        connection = true;
         const { remoteMasterPeersWebRtcConnections } = this.state;
         const updatedArr = remoteMasterPeersWebRtcConnections.map((node) => {
           if (node.machine_id === remoteNodeId) {
+            console.log("OLD MASTER Updating datachannel on 577");
             node.peerDataChannel = dataChannel;
           }
           return node;
@@ -590,7 +584,7 @@ class Home extends React.Component {
         });
       };
       dataChannel.onerror = function (error) {
-        console.log("Error: ", error," 597");
+        console.log("Error: ", error, " 597");
         connection = false;
       };
 
@@ -726,6 +720,8 @@ class Home extends React.Component {
         const { remoteMasterPeersWebRtcConnections } = this.state;
         const updatedArr = remoteMasterPeersWebRtcConnections.map((node) => {
           if (node.machine_id === remoteNodeId) {
+            console.log("OLD MASTER Updating datachannel on 577");
+            node.peerConnection = peerConnection;
             node.peerDataChannel = dataChannel;
           }
           return node;
@@ -735,7 +731,7 @@ class Home extends React.Component {
         });
       };
       dataChannel.onerror = (error) => {
-        console.log("Error:", error," 742");
+        console.log("Error:", error, " 742");
       };
 
       dataChannel.onmessage = (event) => {
@@ -767,6 +763,8 @@ class Home extends React.Component {
       const { remoteMasterPeersWebRtcConnections } = this.state;
       const updatedArr = remoteMasterPeersWebRtcConnections.map((node) => {
         if (node.machine_id === remoteNodeId) {
+          console.log("OLD MASTER Updating datachannel on 577");
+          node.peerConnection = peerConnection;
           node.peerDataChannel = dataChannel;
         }
         return node;
@@ -776,7 +774,7 @@ class Home extends React.Component {
       });
     };
     dataChannel.onerror = function (error) {
-      console.log("Error:", error," 783");
+      console.log("Error:", error, " 783");
     };
 
     dataChannel.onmessage = (event) => {
