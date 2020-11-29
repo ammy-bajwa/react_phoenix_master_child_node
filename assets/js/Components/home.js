@@ -291,10 +291,6 @@ class Home extends React.Component {
         console.log("All Have Been Tried");
         return;
       }
-      // iceConfigsControlCounter++;
-      // peerConnection = new RTCPeerConnection(
-      //   iceConfigs[iceConfigsControlCounter]
-      // );
 
       peerConnection.onicecandidate = (event) => {
         if (event.candidate) {
@@ -306,13 +302,14 @@ class Home extends React.Component {
           });
         }
       };
-      dataChannel = peerConnection.createDataChannel("MyDataChannel", {
-        ordered: false,
-        maxRetransmits: 0,
-      });
-      dataChannel.onopen = () => {
-        console.log("Data Channel is open on 313");
-        dataChannel.send("Hello FROM NEW MASTER");
+      dataChannel = peerConnection.createDataChannel("MyDataChannel");
+      dataChannel.onopen = async () => {
+        console.log("Data Channel is open on 307");
+        try {
+          await dataChannel.send("Hello FROM NEW MASTER");
+        } catch (error) {
+          console.log("Error in sending message 311: ", error);
+        }
         connection = true;
         const { remoteMasterPeersWebRtcConnections } = this.state;
         console.log(
@@ -365,10 +362,14 @@ class Home extends React.Component {
         if (isFirst) {
           isFirst = false;
           dataChannel = peerConnection.createDataChannel("MyDataChannel");
-          dataChannel.onopen = () => {
+          dataChannel.onopen = async () => {
             console.log("Data Channel is open on 362");
             connection = true;
-            dataChannel.send("Hello FROM NEW MASTER");
+            try {
+              await dataChannel.send("Hello FROM NEW MASTER");
+            } catch (error) {
+              console.log("Error in sending message 371: ", error);
+            }
 
             const { remoteMasterPeersWebRtcConnections } = this.state;
             const updatedArr = remoteMasterPeersWebRtcConnections.map(
@@ -492,9 +493,14 @@ class Home extends React.Component {
 
     peerConnection.ondatachannel = (event) => {
       dataChannel = event.channel;
-      dataChannel.onopen = (event) => {
+      dataChannel.onopen = async (event) => {
         console.log("Data channel is open at  on 489");
-        dataChannel.send("Hello FROM NEW MASTER");
+        try {
+          await dataChannel.send("Hello FROM NEW MASTER");
+        } catch (error) {
+          console.log("Error in sending message 501: ", error);
+        }
+
         const { remoteMasterPeersWebRtcConnections } = this.state;
         const updatedPeersArr = remoteMasterPeersWebRtcConnections.map(
           (node) => {
@@ -573,9 +579,13 @@ class Home extends React.Component {
       console.log("iceConfigsControlCounter: ", iceConfigsControlCounter);
 
       dataChannel = peerConnection.createDataChannel("MyDataChannel");
-      dataChannel.onopen = () => {
+      dataChannel.onopen = async () => {
         console.log("Data Channel is open on 575");
-        dataChannel.send("Hello FROM OLD MASTER");
+        try {
+          await dataChannel.send("Hello FROM OLD MASTER");
+        } catch (error) {
+          console.log("Error in sending message 587: ", error);
+        }
         connection = true;
         const { remoteMasterPeersWebRtcConnections } = this.state;
         const updatedArr = remoteMasterPeersWebRtcConnections.map((node) => {
@@ -720,8 +730,13 @@ class Home extends React.Component {
 
     peerConnection.ondatachannel = (event) => {
       dataChannel = event.channel;
-      dataChannel.onopen = (event) => {
+      dataChannel.onopen = async (event) => {
         console.log("Datachannel is open on 718");
+        try {
+          await dataChannel.send("Hello FROM OLD MASTER");
+        } catch (error) {
+          console.log("Error in sending message 738: ", error);
+        }
         connection = true;
         const { remoteMasterPeersWebRtcConnections } = this.state;
         const updatedArr = remoteMasterPeersWebRtcConnections.map((node) => {
@@ -761,10 +776,14 @@ class Home extends React.Component {
       ordered: false,
       maxRetransmits: 0,
     });
-    dataChannel.onopen = function () {
+    dataChannel.onopen = async () => {
       connection = true;
       console.log("Data Channel is open on 758");
-      dataChannel.send("Hello FROM OLD MASTER");
+      try {
+        await dataChannel.send("Hello FROM OLD MASTER");
+      } catch (error) {
+        console.log("Error in sending message 785: ", error);
+      }
 
       const { remoteMasterPeersWebRtcConnections } = this.state;
       const updatedArr = remoteMasterPeersWebRtcConnections.map((node) => {
