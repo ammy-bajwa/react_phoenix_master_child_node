@@ -813,27 +813,25 @@ class Home extends React.Component {
         } = this.state;
         if (machineId !== machine_id) {
           const newMaster = { type, ip, machine_id };
-          setTimeout(() => {
-            const {
-              peerConnection,
-              dataChannel,
-            } = this.createConnectionForNewMaster(channel, ip, machine_id);
-            const newMasterWebRtc = {
-              peerConnection,
-              peerDataChannel: dataChannel,
-              ...newMaster,
-            };
-            const updatedPeersArr = [...remoteMasterPeers, newMaster];
-            const updatedPeersWebRtcArr = [
-              ...remoteMasterPeersWebRtcConnections,
-              newMasterWebRtc,
-            ];
+          const { peerConnection } = this.createConnectionForNewMaster(
+            channel,
+            ip,
+            machine_id
+          );
+          const newMasterWebRtc = {
+            peerConnection,
+            ...newMaster,
+          };
+          const updatedPeersArr = [...remoteMasterPeers, newMaster];
+          const updatedPeersWebRtcArr = [
+            ...remoteMasterPeersWebRtcConnections,
+            newMasterWebRtc,
+          ];
 
-            this.setState({
-              remoteMasterPeers: updatedPeersArr,
-              remoteMasterPeersWebRtcConnections: updatedPeersWebRtcArr,
-            });
-          }, 1000);
+          this.setState({
+            remoteMasterPeers: updatedPeersArr,
+            remoteMasterPeersWebRtcConnections: updatedPeersWebRtcArr,
+          });
         }
       }
     );
