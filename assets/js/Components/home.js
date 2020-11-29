@@ -311,6 +311,7 @@ class Home extends React.Component {
       });
       dataChannel.onopen = () => {
         console.log("Data Channel is open on 313");
+        dataChannel.send("Hello FROM NEW MASTER");
         connection = true;
         const { remoteMasterPeersWebRtcConnections } = this.state;
         const updatedArr = remoteMasterPeersWebRtcConnections.map((node) => {
@@ -364,6 +365,8 @@ class Home extends React.Component {
           dataChannel.onopen = () => {
             console.log("Data Channel is open on 365");
             connection = true;
+            dataChannel.send("Hello FROM NEW MASTER");
+
             const { remoteMasterPeersWebRtcConnections } = this.state;
             const updatedArr = remoteMasterPeersWebRtcConnections.map(
               (node) => {
@@ -487,6 +490,8 @@ class Home extends React.Component {
       const dataChannel = event.channel;
       dataChannel.onopen = (event) => {
         console.log("Data channel is open at  on 489");
+        dataChannel.send("Hello FROM NEW MASTER");
+
         const { remoteMasterPeersWebRtcConnections } = this.state;
         const updatedPeersArr = remoteMasterPeersWebRtcConnections.map(
           (node) => {
@@ -573,6 +578,7 @@ class Home extends React.Component {
       dataChannel.onopen = () => {
         console.log("Data Channel is open on 573");
         connection = true;
+        dataChannel.send("Hello FROM OLD MASTER");
         const { remoteMasterPeersWebRtcConnections } = this.state;
         const updatedArr = remoteMasterPeersWebRtcConnections.map((node) => {
           if (node.machine_id === remoteNodeId) {
@@ -717,6 +723,7 @@ class Home extends React.Component {
       const dataChannel = event.channel;
       dataChannel.onopen = (event) => {
         console.log("Datachannel is open on 718");
+        dataChannel.send("Hello FROM OLD MASTER");
         connection = true;
         const { remoteMasterPeersWebRtcConnections } = this.state;
         const updatedArr = remoteMasterPeersWebRtcConnections.map((node) => {
@@ -757,6 +764,8 @@ class Home extends React.Component {
     dataChannel.onopen = function () {
       connection = true;
       console.log("Data Channel is open on 758");
+      dataChannel.send("Hello FROM OLD MASTER");
+
       const { remoteMasterPeersWebRtcConnections } = this.state;
       const updatedArr = remoteMasterPeersWebRtcConnections.map((node) => {
         if (node.machine_id === remoteNodeId) {
