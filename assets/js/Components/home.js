@@ -315,7 +315,13 @@ class Home extends React.Component {
         dataChannel.send("Hello FROM NEW MASTER");
         connection = true;
         const { remoteMasterPeersWebRtcConnections } = this.state;
+        console.log(
+          "remoteMasterPeersWebRtcConnections: ",
+          remoteMasterPeersWebRtcConnections
+        );
         const updatedArr = remoteMasterPeersWebRtcConnections.map((node) => {
+          console.log("node.machine_id: ", node.machine_id);
+          console.log("remoteNodeId: ", remoteNodeId);
           if (node.machine_id === remoteNodeId) {
             console.log("Updating datachannel on 320");
             node.peerDataChannel = dataChannel;
