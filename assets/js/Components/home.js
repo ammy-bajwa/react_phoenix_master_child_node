@@ -797,9 +797,10 @@ class Home extends React.Component {
       }
     };
 
-    document.getElementById("#sendToMaster").addEventListener("click", () => {
+    document.getElementById("sendToMaster").addEventListener("click", () => {
       const { message } = this.state;
       dataChannel.send(message);
+      console.log("Datachannel ", dataChannel);
     });
 
     return {
