@@ -486,7 +486,7 @@ class Home extends React.Component {
     peerConnection.ondatachannel = (event) => {
       const dataChannel = event.channel;
       dataChannel.onopen = (event) => {
-        console.log("Data channel is open at  on 489")
+        console.log("Data channel is open at  on 489");
         const { remoteMasterPeersWebRtcConnections } = this.state;
         const updatedPeersArr = remoteMasterPeersWebRtcConnections.map(
           (node) => {
@@ -1587,8 +1587,9 @@ class Home extends React.Component {
 
   handleMessageToLanMaster = () => {
     const { lanPeersWebRtcConnections, message } = this.state;
-    lanPeersWebRtcConnections.map(({ peerDataChannel }) => {
-      peerDataChannel.send(message);
+    lanPeersWebRtcConnections.map((masterNode) => {
+      masterNode.peerDataChannel.send(message);
+      console.log("masterNode: ", masterNode);
     });
   };
   render() {
