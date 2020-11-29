@@ -258,10 +258,11 @@ class Home extends React.Component {
 
     channel.on(
       `web:update_my_peer_connection_${ip}`,
-      ({ iceConfigsControlCounter }) => {
+      ({ iceConfigsControlCounter: otherMasterPeerIceCounter }) => {
         peerConnection = new RTCPeerConnection(
-          iceConfigs[iceConfigsControlCounter]
+          iceConfigs[otherMasterPeerIceCounter]
         );
+        iceConfigsControlCounter = otherMasterPeerIceCounter;
       }
     );
 
@@ -270,14 +271,13 @@ class Home extends React.Component {
     const createAndSendOffer = async () => {
       const { iceConfigs } = this.state;
       if (iceConfigsControlCounter >= iceConfigs.length || connection) {
-        clearInterval(connectionRetry);
         console.log("All Have Been Tried");
         return;
       }
-      iceConfigsControlCounter++;
-      peerConnection = new RTCPeerConnection(
-        iceConfigs[iceConfigsControlCounter]
-      );
+      // iceConfigsControlCounter++;
+      // peerConnection = new RTCPeerConnection(
+      //   iceConfigs[iceConfigsControlCounter]
+      // );
 
       peerConnection.onicecandidate = (event) => {
         if (event.candidate) {
