@@ -50,7 +50,8 @@ defmodule AlivaWeb.NodeChannel do
         remote_master_ip: ip
       }
     )
-      IO.inspect("candidate send from #{remote_master_ip} to #{ip}-------------------------")
+
+    IO.inspect("candidate send from #{remote_master_ip} to #{ip}-------------------------")
     {:noreply, socket}
   end
 
@@ -267,7 +268,42 @@ defmodule AlivaWeb.NodeChannel do
         },
         socket
       ) do
-    broadcast(socket, "web:update_my_peer_connection_#{remote_master_ip}", %{iceConfigsControlCounter: iceConfigsControlCounter})
+    broadcast(socket, "web:update_my_peer_connection_#{remote_master_ip}", %{
+      iceConfigsControlCounter: iceConfigsControlCounter
+    })
+
+    {:noreply, socket}
+  end
+
+  def handle_in(
+        "web:verify_message",
+        %{
+          "ip" => ip,
+          "remote_master_ip" => remote_master_ip
+        },
+        socket
+      ) do
+    broadcast(socket, "web:verify_message_#{remote_master_ip}", %{
+      ip: remote_master_ip,
+      remote_master_ip: ip
+    })
+
+    {:noreply, socket}
+  end
+
+  def handle_in(
+        "web:verification_received",
+        %{
+          "ip" => ip,
+          "remote_master_ip" => remote_master_ip
+        },
+        socket
+      ) do
+    broadcast(socket, "web:verification_received_from_other_master_peer_#{remote_master_ip}", %{
+      ip: remote_master_ip,
+      remote_master_ip: ip
+    })
+
     {:noreply, socket}
   end
 

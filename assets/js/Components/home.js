@@ -267,11 +267,29 @@ class Home extends React.Component {
   remotePeerConnectionForMaster = (channel, remoteNodeIp, remoteNodeId) => {
     const { ip, iceConfigs } = this.state;
     let iceConfigsControlCounter = 0;
+    let verifyMessage = false;
     let connection = false;
     let dataChannel = null;
     let peerConnection = new RTCPeerConnection(
       iceConfigs[iceConfigsControlCounter]
     );
+
+    channel.on(`web:verify_message_${ip}`, ({ ip, remote_master_ip }) => {
+      console.log("Verification reques t received");
+      const { messagesFromMastersPeers } = this.state;
+      messagesFromMastersPeers.forEach(({ message }) => {
+        if (message === "1") {
+          verifyMessage = true;
+        }
+      });
+      console.log("verifyMessage: ", verifyMessage);
+      if (verifyMessage) {
+        channel.push("web:verification_received", {
+          ip,
+          remote_master_ip: remoteNodeIp,
+        });
+      }
+    });
 
     channel.on(
       `web:update_my_peer_connection_${ip}`,
@@ -302,49 +320,10 @@ class Home extends React.Component {
           });
         }
       };
-      dataChannel = peerConnection.createDataChannel("MyDataChannel");
-      dataChannel.onopen = async () => {
-        console.log("Data Channel is open on 307");
-        try {
-          await dataChannel.send("Hello FROM NEW MASTER");
-        } catch (error) {
-          console.log("Error in sending message 311: ", error);
-        }
-        connection = true;
-        const { remoteMasterPeersWebRtcConnections } = this.state;
-        console.log(
-          "remoteMasterPeersWebRtcConnections: ",
-          remoteMasterPeersWebRtcConnections
-        );
-        const updatedArr = remoteMasterPeersWebRtcConnections.map((node) => {
-          console.log("node.machine_id: ", node.machine_id);
-          console.log("remoteNodeId: ", remoteNodeId);
-          if (node.machine_id === remoteNodeId) {
-            console.log("Updating datachannel on 320");
-            node.peerDataChannel = dataChannel;
-            node.peerConnection = peerConnection;
-          }
-          return node;
-        });
-        this.setState({
-          remoteMasterPeersWebRtcConnections: updatedArr,
-        });
-      };
-      dataChannel.onerror = function (error) {
-        console.log("Error:", error, " 330");
-        connection = false;
-      };
-
-      dataChannel.onmessage = (event) => {
-        const { messagesFromMastersPeers } = this.state;
-        console.log("Got message:", event.data);
-        this.setState({
-          messagesFromMastersPeers: [
-            ...messagesFromMastersPeers,
-            { message: event.data },
-          ],
-        });
-      };
+      dataChannel = this.createDataChannelForMasterPeer(
+        peerConnection,
+        remoteNodeId
+      );
 
       const offerForPeerMaster = await peerConnection.createOffer();
       await peerConnection.setLocalDescription(offerForPeerMaster);
@@ -361,45 +340,10 @@ class Home extends React.Component {
         console.log("NEW MASTER request to connect");
         if (isFirst) {
           isFirst = false;
-          dataChannel = peerConnection.createDataChannel("MyDataChannel");
-          dataChannel.onopen = async () => {
-            console.log("Data Channel is open on 362");
-            connection = true;
-            try {
-              await dataChannel.send("Hello FROM NEW MASTER");
-            } catch (error) {
-              console.log("Error in sending message 371: ", error);
-            }
-
-            const { remoteMasterPeersWebRtcConnections } = this.state;
-            const updatedArr = remoteMasterPeersWebRtcConnections.map(
-              (node) => {
-                if (node.machine_id === remoteNodeId) {
-                  console.log("Updating datachannel on 370");
-                  node.peerDataChannel = dataChannel;
-                }
-                return node;
-              }
-            );
-            this.setState({
-              remoteMasterPeersWebRtcConnections: updatedArr,
-            });
-          };
-          dataChannel.onerror = function (error) {
-            console.log("Error:", error, " 386");
-            connection = false;
-          };
-
-          dataChannel.onmessage = (event) => {
-            const { messagesFromMastersPeers } = this.state;
-            console.log("Got message:", event.data);
-            this.setState({
-              messagesFromMastersPeers: [
-                ...messagesFromMastersPeers,
-                { message: event.data },
-              ],
-            });
-          };
+          dataChannel = this.createDataChannelForMasterPeer(
+            peerConnection,
+            remoteNodeId
+          );
           const offerForPeerMaster = await peerConnection.createOffer();
           await peerConnection.setLocalDescription(offerForPeerMaster);
           channel.push(`web:send_offer_to_peer_master`, {
@@ -492,51 +436,7 @@ class Home extends React.Component {
     };
 
     peerConnection.ondatachannel = (event) => {
-      dataChannel = event.channel;
-      dataChannel.onopen = async (event) => {
-        console.log("Data channel is open at  on 489");
-        try {
-          await dataChannel.send("Hello FROM NEW MASTER");
-        } catch (error) {
-          console.log("Error in sending message 501: ", error);
-        }
-
-        const { remoteMasterPeersWebRtcConnections } = this.state;
-        const updatedPeersArr = remoteMasterPeersWebRtcConnections.map(
-          (node) => {
-            if (node.ip === remoteNodeIp) {
-              console.log("Updating datachannel on 497");
-              node.peerDataChannel = dataChannel;
-              node.peerConnection = peerConnection;
-            }
-            return node;
-          }
-        );
-
-        this.setState({
-          remoteMasterPeersWebRtcConnections: updatedPeersArr,
-        });
-      };
-      dataChannel.onerror = function (error) {
-        console.log("Error:", error, " 513");
-      };
-
-      dataChannel.onmessage = (event) => {
-        const { messagesFromMastersPeers } = this.state;
-        console.log("Got message:", event.data);
-        const message = JSON.parse(event.data);
-        if (message.message) {
-          if (message === "1") {
-            dataChannel.send(JSON.stringify({ type: "MASTER", messgae: "2" }));
-          }
-        }
-        this.setState({
-          messagesFromMastersPeers: [
-            ...messagesFromMastersPeers,
-            { message: message.message },
-          ],
-        });
-      };
+      dataChannel = this.onDataChannelForMasterPeer(event, remoteNodeId);
     };
 
     return { peerConnection };
@@ -567,18 +467,27 @@ class Home extends React.Component {
     };
     dataChannel.onerror = function (error) {
       console.log("Error: ", error, " 569");
-      connection = false;
     };
 
     dataChannel.onmessage = (event) => {
       const { messagesFromMastersPeers } = this.state;
       console.log("Got message:", event.data);
-      this.setState({
-        messagesFromMastersPeers: [
-          ...messagesFromMastersPeers,
-          { message: event.data },
-        ],
-      });
+      try {
+        const parsedMessage = JSON.parse(event.data);
+        this.setState({
+          messagesFromMastersPeers: [
+            ...messagesFromMastersPeers,
+            { message: parsedMessage.message },
+          ],
+        });
+      } catch (error) {
+        this.setState({
+          messagesFromMastersPeers: [
+            ...messagesFromMastersPeers,
+            { message: event.data },
+          ],
+        });
+      }
     };
     return dataChannel;
   };
@@ -611,7 +520,24 @@ class Home extends React.Component {
     };
 
     dataChannel.onmessage = (event) => {
+      const { messagesFromMastersPeers } = this.state;
       console.log("Got message:", event.data);
+      try {
+        const parsedMessage = JSON.parse(event.data);
+        this.setState({
+          messagesFromMastersPeers: [
+            ...messagesFromMastersPeers,
+            { message: parsedMessage.message },
+          ],
+        });
+      } catch (error) {
+        this.setState({
+          messagesFromMastersPeers: [
+            ...messagesFromMastersPeers,
+            { message: event.data },
+          ],
+        });
+      }
     };
     return dataChannel;
   };
@@ -620,7 +546,6 @@ class Home extends React.Component {
     const { iceConfigs, ip } = this.state;
     let iceConfigsControlCounter = 0;
     let connection = false;
-    let verified = false;
     let dataChannel = null;
     let peerConnection = new RTCPeerConnection(
       iceConfigs[iceConfigsControlCounter]
@@ -692,10 +617,36 @@ class Home extends React.Component {
           createAndSendOffer();
         }
       } else {
-        console.log("Retry removed");
-        clearInterval(connectionRetry);
+        // verify channel via message
+        dataChannel.send(JSON.stringify({ type: "VERIFY", message: "1" }));
+        channel.push("web:verify_message", {
+          ip,
+          remote_master_ip: remoteNodeIp,
+        });
+        setTimeout(() => {
+          if (connection) {
+            console.log("Retry removed");
+            clearInterval(connectionRetry);
+            if (isOther) {
+              isOther = false;
+            } else {
+              isOther = true;
+            }
+          } else {
+            console.log("message verification failed");
+            peerConnection.close();
+          }
+        }, 1000);
       }
-    }, 16000);
+    }, 8000);
+
+    channel.on(
+      `web:verification_received_from_other_master_peer_${ip}`,
+      ({ ip: currentIp, remote_master_ip }) => {
+        console.log("Verified------------");
+        connection = true;
+      }
+    );
 
     channel.on(
       `web:receive_ice_from_master_peer_${ip}_${remoteNodeId}`,
@@ -786,14 +737,19 @@ class Home extends React.Component {
     };
     peerConnection.onnegotiationneeded = async () => {
       console.log("NEGOTIATION Needed OLD MASTER");
-      const offerForPeerMaster = await peerConnection.createOffer();
-      await peerConnection.setLocalDescription(offerForPeerMaster);
-      channel.push(`web:send_offer_to_peer_master`, {
-        offer_for_peer_master: JSON.stringify(offerForPeerMaster),
-        ip,
-        remote_master_ip: remoteNodeIp,
-      });
-      console.log("OLD MASTER Set And Send Offer To: ", remoteNodeIp);
+      if (
+        peerConnection.connectionState !== "connected" ||
+        dataChannel.readyState !== "open"
+      ) {
+        const offerForPeerMaster = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offerForPeerMaster);
+        channel.push(`web:send_offer_to_peer_master`, {
+          offer_for_peer_master: JSON.stringify(offerForPeerMaster),
+          ip,
+          remote_master_ip: remoteNodeIp,
+        });
+        console.log("OLD MASTER Set And Send Offer To: ", remoteNodeIp);
+      }
     };
 
     dataChannel = this.createDataChannelForMasterPeer(
@@ -997,7 +953,6 @@ class Home extends React.Component {
         };
         dataChannel.onerror = function (error) {
           console.log("Error:", error);
-          connection = false;
         };
 
         dataChannel.onmessage = (event) => {
