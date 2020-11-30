@@ -295,7 +295,7 @@ class Home extends React.Component {
       `web:update_my_peer_connection_${ip}`,
       ({ iceConfigsControlCounter: otherMasterPeerIceCounter }) => {
         peerConnection = new RTCPeerConnection(
-          iceConfigs[otherMasterPeerIceCounter]
+          iceConfigs[otherMasterPeerIceCounter - 1]
         );
         iceConfigsControlCounter = otherMasterPeerIceCounter;
       }
