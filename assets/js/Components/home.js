@@ -405,23 +405,52 @@ class Home extends React.Component {
       async ({ offer_for_peer_master, ip: peer_master_id }) => {
         const parsedMasterOffer = JSON.parse(offer_for_peer_master);
         console.log("NEW MASTER Received Offer : ", remoteNodeIp);
-        await peerConnection.setRemoteDescription(
-          new RTCSessionDescription(parsedMasterOffer)
-        );
-        await peerConnection.createAnswer(
-          async (answer) => {
-            await peerConnection.setLocalDescription(answer);
-            channel.push("web:send_answer_to_master_peer", {
-              answer_for_master_peer: JSON.stringify(answer),
-              ip: ip,
-              remote_master_ip: peer_master_id,
-            });
-            console.log("NEW MASTER Set Offer And Send Answer: ", remoteNodeIp);
-          },
-          function (error) {
-            alert("oops...error");
-          }
-        );
+        try {
+          await peerConnection.setRemoteDescription(
+            new RTCSessionDescription(parsedMasterOffer)
+          );
+          await peerConnection.createAnswer(
+            async (answer) => {
+              await peerConnection.setLocalDescription(answer);
+              channel.push("web:send_answer_to_master_peer", {
+                answer_for_master_peer: JSON.stringify(answer),
+                ip: ip,
+                remote_master_ip: peer_master_id,
+              });
+              console.log(
+                "NEW MASTER Set Offer And Send Answer: ",
+                remoteNodeIp
+              );
+            },
+            function (error) {
+              alert("oops...error");
+            }
+          );
+        } catch (error) {
+          peerConnection = new RTCPeerConnection(
+            iceConfigs[iceConfigsControlCounter]
+          );
+          await peerConnection.setRemoteDescription(
+            new RTCSessionDescription(parsedMasterOffer)
+          );
+          await peerConnection.createAnswer(
+            async (answer) => {
+              await peerConnection.setLocalDescription(answer);
+              channel.push("web:send_answer_to_master_peer", {
+                answer_for_master_peer: JSON.stringify(answer),
+                ip: ip,
+                remote_master_ip: peer_master_id,
+              });
+              console.log(
+                "NEW MASTER Set Offer And Send Answer: ",
+                remoteNodeIp
+              );
+            },
+            function (error) {
+              alert("oops...error");
+            }
+          );
+        }
       }
     );
 
