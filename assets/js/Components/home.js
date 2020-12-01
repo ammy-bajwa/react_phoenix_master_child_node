@@ -305,35 +305,35 @@ class Home extends React.Component {
 
     let isFirst = true;
 
-    const createAndSendOffer = async () => {
-      const { iceConfigs } = this.state;
-      if (iceConfigsControlCounter > iceConfigs.length || connection) {
-        console.log("All Have Been Tried");
-        return;
-      }
-      peerConnection.onicecandidate = (event) => {
-        if (event.candidate) {
-          console.log("candidate send to: ", remoteNodeIp);
-          channel.push(`web:add_ice_candidate_from_master_peer`, {
-            candidate: JSON.stringify(event.candidate),
-            remote_master_ip: remoteNodeIp,
-            ip: ip,
-          });
-        }
-      };
-      const offerForPeerMaster = await peerConnection.createOffer();
-      await peerConnection.setLocalDescription(offerForPeerMaster);
-      channel.push(`web:send_offer_to_peer_master`, {
-        offer_for_peer_master: JSON.stringify(offerForPeerMaster),
-        ip: ip,
-        remote_master_ip: remoteNodeIp,
-      });
-      dataChannel = this.createDataChannelForMasterPeer(
-        peerConnection,
-        remoteNodeId
-      );
-      console.log("NEW MASTER create and send offer");
-    };
+    // const createAndSendOffer = async () => {
+    //   const { iceConfigs } = this.state;
+    //   if (iceConfigsControlCounter > iceConfigs.length || connection) {
+    //     console.log("All Have Been Tried");
+    //     return;
+    //   }
+    //   peerConnection.onicecandidate = (event) => {
+    //     if (event.candidate) {
+    //       console.log("candidate send to: ", remoteNodeIp);
+    //       channel.push(`web:add_ice_candidate_from_master_peer`, {
+    //         candidate: JSON.stringify(event.candidate),
+    //         remote_master_ip: remoteNodeIp,
+    //         ip: ip,
+    //       });
+    //     }
+    //   };
+    //   const offerForPeerMaster = await peerConnection.createOffer();
+    //   await peerConnection.setLocalDescription(offerForPeerMaster);
+    //   channel.push(`web:send_offer_to_peer_master`, {
+    //     offer_for_peer_master: JSON.stringify(offerForPeerMaster),
+    //     ip: ip,
+    //     remote_master_ip: remoteNodeIp,
+    //   });
+    //   dataChannel = this.createDataChannelForMasterPeer(
+    //     peerConnection,
+    //     remoteNodeId
+    //   );
+    //   console.log("NEW MASTER create and send offer");
+    // };
     channel.on(
       `web:try_to_connect_to_master_${ip}`,
       async ({ remote_node_ip, ice_config_control_counter }) => {
@@ -344,6 +344,9 @@ class Home extends React.Component {
             iceConfigs[ice_config_control_counter]
           );
         }
+        peerConnection.ondatachannel = (event) => {
+          dataChannel = this.onDataChannelForMasterPeer(event, remoteNodeId);
+        };
         dataChannel = this.createDataChannelForMasterPeer(
           peerConnection,
           remoteNodeId
