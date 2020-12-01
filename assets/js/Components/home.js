@@ -379,9 +379,9 @@ class Home extends React.Component {
     channel.on(
       `web:receive_offer_${ip}_${remoteNodeIp}`,
       async ({ offer_for_peer_master, ip: peer_master_id }) => {
-        console.log(
-          "NEW MASTER iceConfigsControlCounter: ",
-          iceConfigsControlCounter
+        dataChannel = this.createDataChannelForMasterPeer(
+          peerConnection,
+          remoteNodeId
         );
         const parsedMasterOffer = JSON.parse(offer_for_peer_master);
         console.log("NEW MASTER Received Offer : ", remoteNodeIp);
