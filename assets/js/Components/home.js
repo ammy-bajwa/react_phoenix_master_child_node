@@ -314,14 +314,14 @@ class Home extends React.Component {
           iceConfigsControlCounter
         );
         if (iceConfigsControlCounter !== ice_config_control_counter) {
-          console.log(
-            "NEW MASTER iceConfigsControlCounter: ",
-            iceConfigsControlCounter
-          );
           peerConnection = new RTCPeerConnection(
             iceConfigs[ice_config_control_counter]
           );
           iceConfigsControlCounter = ice_config_control_counter;
+          console.log(
+            "NEW MASTER iceConfigsControlCounter: ",
+            iceConfigsControlCounter
+          );
         }
         dataChannel = this.createDataChannelForMasterPeer(
           peerConnection,
@@ -556,6 +556,11 @@ class Home extends React.Component {
           "Old MASTER iceConfigsControlCounter: ",
           iceConfigsControlCounter
         );
+        if (iceConfigsControlCounter > iceConfigs.length) {
+          console.log("ALL Have Been Tried");
+          clearInterval(connectionRetry);
+          return;
+        }
         if (isOther) {
           channel.push(`web:try_to_connect_again_remote_master`, {
             ip: ip,
