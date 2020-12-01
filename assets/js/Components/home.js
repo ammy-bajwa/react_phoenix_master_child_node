@@ -309,6 +309,9 @@ class Home extends React.Component {
       `web:try_to_connect_to_master_${ip}`,
       async ({ remote_node_ip, ice_config_control_counter }) => {
         console.log("NEW MASTER request to connect");
+        peerConnection = new RTCPeerConnection(
+          iceConfigs[iceConfigsControlCounter]
+        );
         if (iceConfigsControlCounter !== ice_config_control_counter) {
           console.log("New Peer obj created", ice_config_control_counter);
           peerConnection = new RTCPeerConnection(
@@ -507,6 +510,7 @@ class Home extends React.Component {
     let connection = false;
     let dataChannel = null;
     let shouldIncrease = false;
+    let isOther = true;
     let peerConnection = new RTCPeerConnection(
       iceConfigs[iceConfigsControlCounter]
     );
@@ -535,23 +539,22 @@ class Home extends React.Component {
         dataChannel.readyState !== "open"
       ) {
         console.log("Old MASTER Request Offer");
-        if (shouldIncrease) {
+        if (isOther) {
+          channel.push(`web:try_to_connect_again_remote_master`, {
+            ip: ip,
+            remote_node_ip: remoteNodeIp,
+            ice_config_control_counter: iceConfigsControlCounter,
+          });
+          isOther = false;
+        } else {
           iceConfigsControlCounter = iceConfigsControlCounter + 1;
           peerConnection = new RTCPeerConnection(
             iceConfigs[iceConfigsControlCounter]
           );
-          channel.push(`web:try_to_connect_again_remote_master`, {
-            ip: ip,
-            remote_node_ip: remoteNodeIp,
-            ice_config_control_counter: iceConfigsControlCounter,
-          });
-          shouldIncrease = false;
-        } else {
-          channel.push(`web:try_to_connect_again_remote_master`, {
-            ip: ip,
-            remote_node_ip: remoteNodeIp,
-            ice_config_control_counter: iceConfigsControlCounter,
-          });
+          dataChannel = this.createDataChannelForMasterPeer(
+            peerConnection,
+            remoteNodeId
+          );
           shouldIncrease = true;
         }
         console.log("OLD MASTER SEND TRY REQUEST");
