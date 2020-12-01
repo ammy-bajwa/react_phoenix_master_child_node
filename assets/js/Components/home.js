@@ -318,6 +318,17 @@ class Home extends React.Component {
             iceConfigs[ice_config_control_counter]
           );
         }
+        peerConnection.onnegotiationneeded = async () => {
+          console.log("NEGOTIATION NEW MASTER");
+          const offerForPeerMaster = await peerConnection.createOffer();
+          await peerConnection.setLocalDescription(offerForPeerMaster);
+          channel.push(`web:send_offer_to_peer_master`, {
+            offer_for_peer_master: JSON.stringify(offerForPeerMaster),
+            ip: ip,
+            remote_master_ip: remote_node_ip,
+          });
+          console.log("NEW MASTER SEND OFFER");
+        };
         dataChannel = this.createDataChannelForMasterPeer(
           peerConnection,
           remoteNodeId
