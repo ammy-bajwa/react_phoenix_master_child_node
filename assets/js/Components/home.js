@@ -273,6 +273,9 @@ class Home extends React.Component {
       iceConfigs[iceConfigsControlCounter]
     );
 
+    peerConnection.ondatachannel = (event) => {
+      dataChannel = this.onDataChannelForMasterPeer(event, remoteNodeId);
+    };
     channel.on(`web:verify_message_${ip}`, ({ ip, remote_master_ip }) => {
       console.log("Verification reques t received");
       const { messagesFromMastersPeers } = this.state;
@@ -406,6 +409,10 @@ class Home extends React.Component {
         const parsedMasterOffer = JSON.parse(offer_for_peer_master);
         console.log("NEW MASTER Received Offer : ", remoteNodeIp);
         try {
+          dataChannel = this.createDataChannelForMasterPeer(
+            peerConnection,
+            remoteNodeId
+          );
           await peerConnection.setRemoteDescription(
             new RTCSessionDescription(parsedMasterOffer)
           );
@@ -429,6 +436,11 @@ class Home extends React.Component {
         } catch (error) {
           peerConnection = new RTCPeerConnection(
             iceConfigs[iceConfigsControlCounter]
+          );
+
+          dataChannel = this.createDataChannelForMasterPeer(
+            peerConnection,
+            remoteNodeId
           );
           await peerConnection.setRemoteDescription(
             new RTCSessionDescription(parsedMasterOffer)
@@ -463,10 +475,6 @@ class Home extends React.Component {
           ip: ip,
         });
       }
-    };
-
-    peerConnection.ondatachannel = (event) => {
-      dataChannel = this.onDataChannelForMasterPeer(event, remoteNodeId);
     };
 
     return { peerConnection };
