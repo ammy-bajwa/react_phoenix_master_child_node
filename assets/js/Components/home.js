@@ -268,7 +268,6 @@ class Home extends React.Component {
     const { ip, iceConfigs } = this.state;
     let iceConfigsControlCounter = 0;
     let verifyMessage = false;
-    let connection = false;
     let dataChannel = null;
     let peerConnection = new RTCPeerConnection(
       iceConfigs[iceConfigsControlCounter]
@@ -291,19 +290,17 @@ class Home extends React.Component {
       }
     });
 
-    channel.on(
-      `web:update_my_peer_connection_${ip}`,
-      ({ iceConfigsControlCounter: otherMasterPeerIceCounter }) => {
-        peerConnection = new RTCPeerConnection(
-          iceConfigs[otherMasterPeerIceCounter]
-        );
-        console.log("iceConfigsControlCounter: ", iceConfigsControlCounter);
-        console.log("otherMasterPeerIceCounter: ", otherMasterPeerIceCounter);
-        iceConfigsControlCounter = otherMasterPeerIceCounter;
-      }
-    );
-
-    let isFirst = true;
+    // channel.on(
+    //   `web:update_my_peer_connection_${ip}`,
+    //   ({ iceConfigsControlCounter: otherMasterPeerIceCounter }) => {
+    //     peerConnection = new RTCPeerConnection(
+    //       iceConfigs[otherMasterPeerIceCounter]
+    //     );
+    //     console.log("iceConfigsControlCounter: ", iceConfigsControlCounter);
+    //     console.log("otherMasterPeerIceCounter: ", otherMasterPeerIceCounter);
+    //     iceConfigsControlCounter = otherMasterPeerIceCounter;
+    //   }
+    // );
 
     // const createAndSendOffer = async () => {
     //   const { iceConfigs } = this.state;
@@ -343,10 +340,10 @@ class Home extends React.Component {
           peerConnection = new RTCPeerConnection(
             iceConfigs[ice_config_control_counter]
           );
+          peerConnection.ondatachannel = (event) => {
+            dataChannel = this.onDataChannelForMasterPeer(event, remoteNodeId);
+          };
         }
-        peerConnection.ondatachannel = (event) => {
-          dataChannel = this.onDataChannelForMasterPeer(event, remoteNodeId);
-        };
         dataChannel = this.createDataChannelForMasterPeer(
           peerConnection,
           remoteNodeId
@@ -574,25 +571,14 @@ class Home extends React.Component {
         "------------------Peer updated iceConfigsControlCounter: ",
         iceConfigsControlCounter
       );
-      // channel.push(`web:updated_peer_connection_master_peer`, {
-      //   iceConfigsControlCounter,
-      //   remote_master_ip: remoteNodeIp,
-      // });
-
-      peerConnection.onicecandidate = (event) => {
-        if (event.candidate) {
-          channel.push(`web:add_ice_candidate_from_master_peer`, {
-            candidate: JSON.stringify(event.candidate),
-            ip: ip,
-            remote_master_ip: remoteNodeIp,
-          });
-          console.log("NEW MASTER send candidate to: ", remoteNodeIp);
-        }
-      };
 
       console.log("Peer connection: ", peerConnection);
       console.log("iceConfigs: ", iceConfigs);
       console.log("iceConfigsControlCounter: ", iceConfigsControlCounter);
+
+      peerConnection.ondatachannel = (event) => {
+        dataChannel = this.onDataChannelForMasterPeer(event, remoteNodeId);
+      };
 
       dataChannel = this.createDataChannelForMasterPeer(
         peerConnection,
@@ -691,20 +677,11 @@ class Home extends React.Component {
     channel.on(
       `web:receive_offer_${ip}_${remoteNodeIp}`,
       async ({ offer_for_peer_master, ip: peer_master_id }) => {
-        peerConnection = new RTCPeerConnection(
-          iceConfigs[iceConfigsControlCounter]
-        );
+        peerConnection = new RTCPeerConnection(iceConfigs);
         const parsedMasterOffer = JSON.parse(offer_for_peer_master);
         console.log(
           "OLD MASTER Received Offer from NEW MASTER : ",
           remoteNodeIp
-        );
-        peerConnection.ondatachannel = (event) => {
-          dataChannel = this.onDataChannelForMasterPeer(event, remoteNodeId);
-        };
-        dataChannel = this.createDataChannelForMasterPeer(
-          peerConnection,
-          remoteNodeId
         );
         await peerConnection.setRemoteDescription(
           new RTCSessionDescription(parsedMasterOffer)
@@ -771,12 +748,12 @@ class Home extends React.Component {
       remote_master_ip: remoteNodeIp,
     });
 
-    document.getElementById("sendToMaster").addEventListener("click", () => {
-      const { message } = this.state;
-      dataChannel.send(JSON.stringify({ type: "MASTER", message: message }));
-      console.log("Peerconnection ", peerConnection);
-      console.log("Datachannel ", dataChannel);
-    });
+    // document.getElementById("sendToMaster").addEventListener("click", () => {
+    //   const { message } = this.state;
+    //   dataChannel.send(JSON.stringify({ type: "MASTER", message: message }));
+    //   console.log("Peerconnection ", peerConnection);
+    //   console.log("Datachannel ", dataChannel);
+    // });
 
     return {
       peerConnection,
