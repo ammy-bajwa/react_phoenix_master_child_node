@@ -323,10 +323,6 @@ class Home extends React.Component {
             iceConfigsControlCounter
           );
         }
-        dataChannel = this.createDataChannelForMasterPeer(
-          peerConnection,
-          remoteNodeId
-        );
         const offerForPeerMaster = await peerConnection.createOffer();
         await peerConnection.setLocalDescription(offerForPeerMaster);
         channel.push(`web:send_offer_to_peer_master`, {
@@ -370,7 +366,13 @@ class Home extends React.Component {
         await peerConnection.setRemoteDescription(
           new RTCSessionDescription(answerFromChild)
         );
+
+        dataChannel = this.createDataChannelForMasterPeer(
+          peerConnection,
+          remoteNodeId
+        );
         console.log("New MASTER Receives and set Answer from: ", remoteNodeIp);
+        console.log("New MASTER Datachannel created");
       }
     );
 
