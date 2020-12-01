@@ -562,6 +562,7 @@ class Home extends React.Component {
             peerConnection,
             remoteNodeId
           );
+          console.log("OLD MASTER CREATE DATA CHANNEL");
           shouldIncrease = true;
         }
         console.log("OLD MASTER SEND TRY REQUEST");
