@@ -547,10 +547,7 @@ class Home extends React.Component {
     const connectionRetry = setInterval(async () => {
       console.log("connection state", peerConnection.connectionState);
       console.log("Data channel state", dataChannel.readyState);
-      if (
-        peerConnection.connectionState !== "connected" ||
-        dataChannel.readyState !== "open"
-      ) {
+      if (dataChannel.readyState !== "open") {
         console.log("Old MASTER Request Offer");
         console.log(
           "Old MASTER iceConfigsControlCounter: ",
