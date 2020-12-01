@@ -388,8 +388,8 @@ class Home extends React.Component {
     channel.on(
       `web:receive_answer_${ip}_${remoteNodeIp}`,
       async ({ answer_for_master_peer, ip: remote_master_ip }) => {
-        const answerFromChild = JSON.parse(answer_for_master_peer);
         try {
+          const answerFromChild = JSON.parse(answer_for_master_peer);
           await peerConnection.setRemoteDescription(
             new RTCSessionDescription(answerFromChild)
           );
@@ -398,7 +398,21 @@ class Home extends React.Component {
             remoteNodeIp
           );
         } catch (error) {
-          console.log("Error In MASTER setRemoteDescription Answer");
+          peerConnection = new RTCPeerConnection(
+            iceConfigs[iceConfigsControlCounter]
+          );
+          dataChannel = this.createDataChannelForMasterPeer(
+            peerConnection,
+            remoteNodeId
+          );
+          const answerFromChild = JSON.parse(answer_for_master_peer);
+          await peerConnection.setRemoteDescription(
+            new RTCSessionDescription(answerFromChild)
+          );
+          console.log(
+            "New MASTER Receives and set Answer from: ",
+            remoteNodeIp
+          );
         }
       }
     );
