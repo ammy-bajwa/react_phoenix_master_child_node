@@ -744,17 +744,20 @@ class Home extends React.Component {
     peerConnection.onnegotiationneeded = async () => {
       console.log("NEGOTIATION Needed OLD MASTER");
       if (
-        (peerConnection.connectionState !== "connected" ||
-          dataChannel.readyState !== "open") &&
-        iceConfigsControlCounter > 0
+        peerConnection.connectionState !== "connected" ||
+        dataChannel.readyState !== "open"
       ) {
-        const offerForPeerMaster = await peerConnection.createOffer();
-        await peerConnection.setLocalDescription(offerForPeerMaster);
-        channel.push(`web:send_offer_to_peer_master`, {
-          offer_for_peer_master: JSON.stringify(offerForPeerMaster),
-          ip,
-          remote_master_ip: remoteNodeIp,
-        });
+        if (iceConfigsControlCounter <= 0) {
+          const offerForPeerMaster = await peerConnection.createOffer();
+          await peerConnection.setLocalDescription(offerForPeerMaster);
+          channel.push(`web:send_offer_to_peer_master`, {
+            offer_for_peer_master: JSON.stringify(offerForPeerMaster),
+            ip,
+            remote_master_ip: remoteNodeIp,
+          });
+        } else {
+          createAndSendOffer();
+        }
         console.log("OLD MASTER Set And Send Offer To: ", remoteNodeIp);
       }
     };
