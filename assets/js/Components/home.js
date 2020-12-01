@@ -321,6 +321,7 @@ class Home extends React.Component {
           peerConnection = new RTCPeerConnection(
             iceConfigs[ice_config_control_counter]
           );
+          iceConfigsControlCounter = ice_config_control_counter;
         }
         dataChannel = this.createDataChannelForMasterPeer(
           peerConnection,
