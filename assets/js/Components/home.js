@@ -522,7 +522,6 @@ class Home extends React.Component {
     let iceConfigsControlCounter = 0;
     let connection = false;
     let dataChannel = null;
-    let shouldIncrease = false;
     let isOther = true;
     let peerConnection = new RTCPeerConnection(
       iceConfigs[iceConfigsControlCounter]
@@ -586,7 +585,7 @@ class Home extends React.Component {
             remote_master_ip: remoteNodeIp,
           });
           console.log("OLD MASTER SEND OFFER");
-          shouldIncrease = true;
+          isOther = true;
         }
       } else {
         // verify channel via message
