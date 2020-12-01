@@ -543,7 +543,11 @@ class Home extends React.Component {
     return dataChannel;
   };
 
-  createConnectionForNewMaster = (channel, remoteNodeIp, remoteNodeId) => {
+  createConnectionForNewMaster = async (
+    channel,
+    remoteNodeIp,
+    remoteNodeId
+  ) => {
     const { iceConfigs, ip } = this.state;
     let iceConfigsControlCounter = 0;
     let connection = false;
@@ -741,31 +745,19 @@ class Home extends React.Component {
     peerConnection.ondatachannel = (event) => {
       dataChannel = this.onDataChannelForMasterPeer(event, remoteNodeId);
     };
-    peerConnection.onnegotiationneeded = async () => {
-      console.log("NEGOTIATION Needed OLD MASTER");
-      if (
-        peerConnection.connectionState !== "connected" ||
-        dataChannel.readyState !== "open"
-      ) {
-        if (iceConfigsControlCounter <= 0) {
-          const offerForPeerMaster = await peerConnection.createOffer();
-          await peerConnection.setLocalDescription(offerForPeerMaster);
-          channel.push(`web:send_offer_to_peer_master`, {
-            offer_for_peer_master: JSON.stringify(offerForPeerMaster),
-            ip,
-            remote_master_ip: remoteNodeIp,
-          });
-        } else {
-          createAndSendOffer();
-        }
-        console.log("OLD MASTER Set And Send Offer To: ", remoteNodeIp);
-      }
-    };
 
     dataChannel = this.createDataChannelForMasterPeer(
       peerConnection,
       remoteNodeId
     );
+    const offerForPeerMaster = await peerConnection.createOffer();
+    await peerConnection.setLocalDescription(offerForPeerMaster);
+    channel.push(`web:send_offer_to_peer_master`, {
+      offer_for_peer_master: JSON.stringify(offerForPeerMaster),
+      ip,
+      remote_master_ip: remoteNodeIp,
+    });
+
     document.getElementById("sendToMaster").addEventListener("click", () => {
       const { message } = this.state;
       dataChannel.send(JSON.stringify({ type: "MASTER", message: message }));
