@@ -52,107 +52,107 @@ class Home extends React.Component {
     messagesFromChildsPeers: [],
     iceConfigs: [
       { iceServers: [] },
-      {
-        iceServers: [
-          {
-            urls: ["stun:avm4962.com:3478", "stun:avm4962.com:5349"],
-          },
-          { urls: ["stun:ss-turn1.xirsys.com"] },
-        ],
-      },
-      {
-        iceServers: [
-          {
-            username: "TuR9Us3r",
-            credential:
-              "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
-            urls: ["turn:avm4962.com:3478", "turn:avm4962.com:5349"],
-          },
-        ],
-      },
-      {
-        iceServers: [
-          {
-            username: "TuR9Us3r",
-            credential:
-              "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
-            urls: [
-              "turn:avm4962.com:3478?transport=udp",
-              "turn:avm4962.com:5349?transport=udp",
-            ],
-          },
-        ],
-      },
-      {
-        iceServers: [
-          {
-            username: "TuR9Us3r",
-            credential:
-              "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
-            urls: [
-              "turn:avm4962.com:3478?transport=tcp",
-              "turn:avm4962.com:5349?transport=tcp",
-            ],
-          },
-        ],
-      },
-      {
-        iceServers: [
-          {
-            username: "TuR9Us3r",
-            credential:
-              "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
-            urls: [
-              "turn:avm4962.com:3478?transport=udp",
-              "turn:avm4962.com:5349?transport=tcp",
-            ],
-          },
-        ],
-      },
-      {
-        iceServers: [
-          {
-            username:
-              "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
-            credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
-            urls: [
-              "turn:ss-turn1.xirsys.com:80?transport=udp",
-              "turn:ss-turn1.xirsys.com:3478?transport=udp",
-            ],
-          },
-        ],
-      },
-      {
-        iceServers: [
-          {
-            username:
-              "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
-            credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
-            urls: [
-              "turn:ss-turn1.xirsys.com:80?transport=tcp",
-              "turn:ss-turn1.xirsys.com:3478?transport=tcp",
-              "turns:ss-turn1.xirsys.com:443?transport=tcp",
-              "turns:ss-turn1.xirsys.com:5349?transport=tcp",
-            ],
-          },
-        ],
-      },
-      {
-        iceServers: [
-          {
-            urls: ["stun:avm4962.com:3478", "stun:avm4962.com:5349"],
-          },
-          {
-            username: "TuR9Us3r",
-            credential:
-              "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
-            urls: [
-              "turn:avm4962.com:3478?transport=udp",
-              "turn:avm4962.com:5349?transport=tcp",
-            ],
-          },
-        ],
-      },
+      // {
+      //   iceServers: [
+      //     {
+      //       urls: ["stun:avm4962.com:3478", "stun:avm4962.com:5349"],
+      //     },
+      //     { urls: ["stun:ss-turn1.xirsys.com"] },
+      //   ],
+      // },
+      // {
+      //   iceServers: [
+      //     {
+      //       username: "TuR9Us3r",
+      //       credential:
+      //         "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
+      //       urls: ["turn:avm4962.com:3478", "turn:avm4962.com:5349"],
+      //     },
+      //   ],
+      // },
+      // {
+      //   iceServers: [
+      //     {
+      //       username: "TuR9Us3r",
+      //       credential:
+      //         "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
+      //       urls: [
+      //         "turn:avm4962.com:3478?transport=udp",
+      //         "turn:avm4962.com:5349?transport=udp",
+      //       ],
+      //     },
+      //   ],
+      // },
+      // {
+      //   iceServers: [
+      //     {
+      //       username: "TuR9Us3r",
+      //       credential:
+      //         "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
+      //       urls: [
+      //         "turn:avm4962.com:3478?transport=tcp",
+      //         "turn:avm4962.com:5349?transport=tcp",
+      //       ],
+      //     },
+      //   ],
+      // },
+      // {
+      //   iceServers: [
+      //     {
+      //       username: "TuR9Us3r",
+      //       credential:
+      //         "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
+      //       urls: [
+      //         "turn:avm4962.com:3478?transport=udp",
+      //         "turn:avm4962.com:5349?transport=tcp",
+      //       ],
+      //     },
+      //   ],
+      // },
+      // {
+      //   iceServers: [
+      //     {
+      //       username:
+      //         "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
+      //       credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
+      //       urls: [
+      //         "turn:ss-turn1.xirsys.com:80?transport=udp",
+      //         "turn:ss-turn1.xirsys.com:3478?transport=udp",
+      //       ],
+      //     },
+      //   ],
+      // },
+      // {
+      //   iceServers: [
+      //     {
+      //       username:
+      //         "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
+      //       credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
+      //       urls: [
+      //         "turn:ss-turn1.xirsys.com:80?transport=tcp",
+      //         "turn:ss-turn1.xirsys.com:3478?transport=tcp",
+      //         "turns:ss-turn1.xirsys.com:443?transport=tcp",
+      //         "turns:ss-turn1.xirsys.com:5349?transport=tcp",
+      //       ],
+      //     },
+      //   ],
+      // },
+      // {
+      //   iceServers: [
+      //     {
+      //       urls: ["stun:avm4962.com:3478", "stun:avm4962.com:5349"],
+      //     },
+      //     {
+      //       username: "TuR9Us3r",
+      //       credential:
+      //         "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
+      //       urls: [
+      //         "turn:avm4962.com:3478?transport=udp",
+      //         "turn:avm4962.com:5349?transport=tcp",
+      //       ],
+      //     },
+      //   ],
+      // },
       {
         iceServers: [
           {
@@ -297,6 +297,8 @@ class Home extends React.Component {
         peerConnection = new RTCPeerConnection(
           iceConfigs[otherMasterPeerIceCounter]
         );
+        console.log("iceConfigsControlCounter: ", iceConfigsControlCounter);
+        console.log("otherMasterPeerIceCounter: ", otherMasterPeerIceCounter);
         iceConfigsControlCounter = otherMasterPeerIceCounter;
       }
     );
@@ -309,7 +311,6 @@ class Home extends React.Component {
         console.log("All Have Been Tried");
         return;
       }
-
       peerConnection.onicecandidate = (event) => {
         if (event.candidate) {
           console.log("candidate send to: ", remoteNodeIp);
@@ -320,11 +321,6 @@ class Home extends React.Component {
           });
         }
       };
-      dataChannel = this.createDataChannelForMasterPeer(
-        peerConnection,
-        remoteNodeId
-      );
-
       const offerForPeerMaster = await peerConnection.createOffer();
       await peerConnection.setLocalDescription(offerForPeerMaster);
       channel.push(`web:send_offer_to_peer_master`, {
@@ -332,29 +328,34 @@ class Home extends React.Component {
         ip: ip,
         remote_master_ip: remoteNodeIp,
       });
+      dataChannel = this.createDataChannelForMasterPeer(
+        peerConnection,
+        remoteNodeId
+      );
       console.log("NEW MASTER create and send offer");
     };
     channel.on(
       `web:try_to_connect_to_master_${ip}`,
-      async ({ remote_node_ip }) => {
+      async ({ remote_node_ip, ice_config_control_counter }) => {
         console.log("NEW MASTER request to connect");
-        if (isFirst) {
-          isFirst = false;
-          dataChannel = this.createDataChannelForMasterPeer(
-            peerConnection,
-            remoteNodeId
+        if (iceConfigsControlCounter !== ice_config_control_counter) {
+          console.log("New Peer obj created", ice_config_control_counter);
+          peerConnection = new RTCPeerConnection(
+            iceConfigs[ice_config_control_counter]
           );
-          const offerForPeerMaster = await peerConnection.createOffer();
-          await peerConnection.setLocalDescription(offerForPeerMaster);
-          channel.push(`web:send_offer_to_peer_master`, {
-            offer_for_peer_master: JSON.stringify(offerForPeerMaster),
-            ip: ip,
-            remote_master_ip: remote_node_ip,
-          });
-          console.log("NEW MASTER create and send offer");
-        } else {
-          createAndSendOffer();
         }
+        dataChannel = this.createDataChannelForMasterPeer(
+          peerConnection,
+          remoteNodeId
+        );
+        const offerForPeerMaster = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offerForPeerMaster);
+        channel.push(`web:send_offer_to_peer_master`, {
+          offer_for_peer_master: JSON.stringify(offerForPeerMaster),
+          ip: ip,
+          remote_master_ip: remote_node_ip,
+        });
+        console.log("NEW MASTER create and send offer");
       }
     );
 
@@ -562,11 +563,14 @@ class Home extends React.Component {
       peerConnection = new RTCPeerConnection(
         iceConfigs[iceConfigsControlCounter]
       );
-
-      channel.push(`web:updated_peer_connection_master_peer`, {
-        iceConfigsControlCounter,
-        remote_master_ip: remoteNodeIp,
-      });
+      console.log(
+        "------------------Peer updated iceConfigsControlCounter: ",
+        iceConfigsControlCounter
+      );
+      // channel.push(`web:updated_peer_connection_master_peer`, {
+      //   iceConfigsControlCounter,
+      //   remote_master_ip: remoteNodeIp,
+      // });
 
       peerConnection.onicecandidate = (event) => {
         if (event.candidate) {
@@ -610,6 +614,7 @@ class Home extends React.Component {
           channel.push(`web:try_to_connect_again_remote_master`, {
             ip: ip,
             remote_node_ip: remoteNodeIp,
+            ice_config_control_counter: iceConfigsControlCounter,
           });
           isOther = false;
         } else {
@@ -618,6 +623,7 @@ class Home extends React.Component {
         }
       } else {
         // verify channel via message
+        console.log("Connection removed");
         dataChannel.send(JSON.stringify({ type: "VERIFY", message: "1" }));
         channel.push("web:verify_message", {
           ip,
@@ -738,8 +744,9 @@ class Home extends React.Component {
     peerConnection.onnegotiationneeded = async () => {
       console.log("NEGOTIATION Needed OLD MASTER");
       if (
-        peerConnection.connectionState !== "connected" ||
-        dataChannel.readyState !== "open"
+        (peerConnection.connectionState !== "connected" ||
+          dataChannel.readyState !== "open") &&
+        iceConfigsControlCounter > 0
       ) {
         const offerForPeerMaster = await peerConnection.createOffer();
         await peerConnection.setLocalDescription(offerForPeerMaster);

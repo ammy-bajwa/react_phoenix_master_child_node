@@ -252,11 +252,16 @@ defmodule AlivaWeb.NodeChannel do
         "web:try_to_connect_again_remote_master",
         %{
           "ip" => ip,
-          "remote_node_ip" => remote_node_ip
+          "remote_node_ip" => remote_node_ip,
+          "ice_config_control_counter" => ice_config_control_counter
         },
         socket
       ) do
-    broadcast(socket, "web:try_to_connect_to_master_#{remote_node_ip}", %{remote_node_ip: ip})
+    broadcast(socket, "web:try_to_connect_to_master_#{remote_node_ip}", %{
+      remote_node_ip: ip,
+      ice_config_control_counter: ice_config_control_counter
+    })
+
     {:noreply, socket}
   end
 
