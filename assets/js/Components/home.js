@@ -309,8 +309,15 @@ class Home extends React.Component {
       `web:try_to_connect_to_master_${ip}`,
       async ({ remote_node_ip, ice_config_control_counter }) => {
         console.log("NEW MASTER request to connect");
+        console.log(
+          "NEW MASTER iceConfigsControlCounter: ",
+          iceConfigsControlCounter
+        );
         if (iceConfigsControlCounter !== ice_config_control_counter) {
-          console.log("New Peer obj created", ice_config_control_counter);
+          console.log(
+            "NEW MASTER iceConfigsControlCounter: ",
+            iceConfigsControlCounter
+          );
           peerConnection = new RTCPeerConnection(
             iceConfigs[ice_config_control_counter]
           );
@@ -319,7 +326,6 @@ class Home extends React.Component {
           peerConnection,
           remoteNodeId
         );
-        console.log("NEGOTIATION NEW MASTER");
         const offerForPeerMaster = await peerConnection.createOffer();
         await peerConnection.setLocalDescription(offerForPeerMaster);
         channel.push(`web:send_offer_to_peer_master`, {
@@ -546,6 +552,10 @@ class Home extends React.Component {
         dataChannel.readyState !== "open"
       ) {
         console.log("Old MASTER Request Offer");
+        console.log(
+          "Old MASTER iceConfigsControlCounter: ",
+          iceConfigsControlCounter
+        );
         if (isOther) {
           channel.push(`web:try_to_connect_again_remote_master`, {
             ip: ip,
@@ -553,6 +563,7 @@ class Home extends React.Component {
             ice_config_control_counter: iceConfigsControlCounter,
           });
           isOther = false;
+          console.log("OLD MASTER SEND TRY REQUEST");
         } else {
           iceConfigsControlCounter = iceConfigsControlCounter + 1;
           peerConnection = new RTCPeerConnection(
@@ -563,9 +574,20 @@ class Home extends React.Component {
             remoteNodeId
           );
           console.log("OLD MASTER CREATE DATA CHANNEL");
+          console.log(
+            "Old MASTER iceConfigsControlCounter: ",
+            iceConfigsControlCounter
+          );
+          const offerForPeerMaster = await peerConnection.createOffer();
+          await peerConnection.setLocalDescription(offerForPeerMaster);
+          channel.push(`web:send_offer_to_peer_master`, {
+            offer_for_peer_master: JSON.stringify(offerForPeerMaster),
+            ip,
+            remote_master_ip: remoteNodeIp,
+          });
+          console.log("OLD MASTER SEND OFFER");
           shouldIncrease = true;
         }
-        console.log("OLD MASTER SEND TRY REQUEST");
       } else {
         // verify channel via message
         dataChannel.send(JSON.stringify({ type: "VERIFY", message: "1" }));
