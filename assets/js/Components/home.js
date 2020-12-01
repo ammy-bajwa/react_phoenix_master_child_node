@@ -561,6 +561,9 @@ class Home extends React.Component {
           return;
         }
         if (isOther) {
+          peerConnection = new RTCPeerConnection(
+            iceConfigs[iceConfigsControlCounter]
+          );
           channel.push(`web:try_to_connect_again_remote_master`, {
             ip: ip,
             remote_node_ip: remoteNodeIp,
