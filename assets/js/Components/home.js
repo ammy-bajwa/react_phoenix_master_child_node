@@ -318,6 +318,13 @@ class Home extends React.Component {
             iceConfigs[ice_config_control_counter]
           );
           iceConfigsControlCounter = ice_config_control_counter;
+          peerConnection.ondatachannel = (event) => {
+            dataChannel = this.onDataChannelForMasterPeer(event, remoteNodeId);
+          };
+          dataChannel = this.createDataChannelForMasterPeer(
+            peerConnection,
+            remoteNodeId
+          );
           console.log(
             "NEW MASTER iceConfigsControlCounter: ",
             iceConfigsControlCounter
@@ -367,6 +374,9 @@ class Home extends React.Component {
           new RTCSessionDescription(answerFromChild)
         );
 
+        peerConnection.ondatachannel = (event) => {
+          dataChannel = this.onDataChannelForMasterPeer(event, remoteNodeId);
+        };
         dataChannel = this.createDataChannelForMasterPeer(
           peerConnection,
           remoteNodeId
@@ -379,6 +389,9 @@ class Home extends React.Component {
     channel.on(
       `web:receive_offer_${ip}_${remoteNodeIp}`,
       async ({ offer_for_peer_master, ip: peer_master_id }) => {
+        peerConnection.ondatachannel = (event) => {
+          dataChannel = this.onDataChannelForMasterPeer(event, remoteNodeId);
+        };
         dataChannel = this.createDataChannelForMasterPeer(
           peerConnection,
           remoteNodeId
@@ -471,6 +484,7 @@ class Home extends React.Component {
   };
 
   onDataChannelForMasterPeer = (event, remoteNodeId) => {
+    console.log("event: ", event);
     const dataChannel = event.channel;
     dataChannel.onopen = async (event) => {
       console.log("Datachannel is open on 589");
@@ -534,18 +548,6 @@ class Home extends React.Component {
       iceConfigs[iceConfigsControlCounter]
     );
 
-    peerConnection.onnegotiationneeded = async () => {
-      console.log("NEGOTIATION OLD MASTER");
-      const offerForPeerMaster = await peerConnection.createOffer();
-      await peerConnection.setLocalDescription(offerForPeerMaster);
-      channel.push(`web:send_offer_to_peer_master`, {
-        offer_for_peer_master: JSON.stringify(offerForPeerMaster),
-        ip,
-        remote_master_ip: remoteNodeIp,
-      });
-      console.log("OLD MASTER SEND OFFER");
-    };
-
     peerConnection.ondatachannel = (event) => {
       dataChannel = this.onDataChannelForMasterPeer(event, remoteNodeId);
     };
@@ -568,6 +570,13 @@ class Home extends React.Component {
           peerConnection = new RTCPeerConnection(
             iceConfigs[iceConfigsControlCounter]
           );
+          peerConnection.ondatachannel = (event) => {
+            dataChannel = this.onDataChannelForMasterPeer(event, remoteNodeId);
+          };
+          dataChannel = this.createDataChannelForMasterPeer(
+            peerConnection,
+            remoteNodeId
+          );
           channel.push(`web:try_to_connect_again_remote_master`, {
             ip: ip,
             remote_node_ip: remoteNodeIp,
@@ -580,7 +589,11 @@ class Home extends React.Component {
           peerConnection = new RTCPeerConnection(
             iceConfigs[iceConfigsControlCounter]
           );
-          dataChannel = this.onDataChannelForMasterPeer(
+
+          peerConnection.ondatachannel = (event) => {
+            dataChannel = this.onDataChannelForMasterPeer(event, remoteNodeId);
+          };
+          dataChannel = this.createDataChannelForMasterPeer(
             peerConnection,
             remoteNodeId
           );
@@ -709,12 +722,18 @@ class Home extends React.Component {
         console.log("NEW MASTER send candidate to: ", remoteNodeIp);
       }
     };
-
     dataChannel = this.createDataChannelForMasterPeer(
       peerConnection,
       remoteNodeId
     );
-
+    const offerForPeerMaster = await peerConnection.createOffer();
+    await peerConnection.setLocalDescription(offerForPeerMaster);
+    channel.push(`web:send_offer_to_peer_master`, {
+      offer_for_peer_master: JSON.stringify(offerForPeerMaster),
+      ip,
+      remote_master_ip: remoteNodeIp,
+    });
+    console.log("OLD MASTER SEND OFFER");
     return {
       peerConnection,
       dataChannel,
