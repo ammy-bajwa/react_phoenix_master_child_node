@@ -297,19 +297,22 @@ class Home extends React.Component {
       }
     });
 
-    channel.on(`web:update_my_peer_connection_${ip}`, async ({ counter }) => {
-      console.log("Updated peerconnection: ", counter);
-      peerConnection = await this.peerConnectionCreatorMasterPeers(
-        channel,
-        remoteNodeIp,
-        remoteNodeId,
-        counter
-      );
-      iceConfigsControlCounter = counter;
-    });
+    channel.on(
+      `web:update_my_peer_connection_${ip}_${remoteNodeIp}`,
+      async ({ counter }) => {
+        console.log("Updated peerconnection: ", counter);
+        peerConnection = await this.peerConnectionCreatorMasterPeers(
+          channel,
+          remoteNodeIp,
+          remoteNodeId,
+          counter
+        );
+        iceConfigsControlCounter = counter;
+      }
+    );
 
     channel.on(
-      `web:try_to_connect_to_master_${ip}`,
+      `web:try_to_connect_to_master_${ip}_${remoteNodeIp}`,
       async ({ remote_node_ip, ice_config_control_counter }) => {
         console.log("NEW MASTER request to connect");
         console.log("STEP TWO");
@@ -520,6 +523,7 @@ class Home extends React.Component {
         channel.push(`web:add_ice_candidate_from_master_peer`, {
           candidate: JSON.stringify(event.candidate),
           remote_master_ip: remoteNodeIp,
+          remote_master_id: remoteNodeId,
           ip: ip,
         });
       }
@@ -578,6 +582,7 @@ class Home extends React.Component {
           channel.push(`web:updated_peer_connection_master_peer`, {
             iceConfigsControlCounter,
             remote_master_ip: remoteNodeIp,
+            ip,
           });
           peerConnection = await this.peerConnectionCreatorMasterPeers(
             channel,

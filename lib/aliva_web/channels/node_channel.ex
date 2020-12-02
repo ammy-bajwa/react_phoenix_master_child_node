@@ -257,7 +257,7 @@ defmodule AlivaWeb.NodeChannel do
         },
         socket
       ) do
-    broadcast(socket, "web:try_to_connect_to_master_#{remote_node_ip}", %{
+    broadcast(socket, "web:try_to_connect_to_master_#{remote_node_ip}_#{ip}", %{
       remote_node_ip: ip,
       ice_config_control_counter: ice_config_control_counter
     })
@@ -269,11 +269,12 @@ defmodule AlivaWeb.NodeChannel do
         "web:updated_peer_connection_master_peer",
         %{
           "iceConfigsControlCounter" => iceConfigsControlCounter,
-          "remote_master_ip" => remote_master_ip
+          "remote_master_ip" => remote_master_ip,
+          "ip" => ip
         },
         socket
       ) do
-    broadcast(socket, "web:update_my_peer_connection_#{remote_master_ip}", %{
+    broadcast(socket, "web:update_my_peer_connection_#{remote_master_ip}_#{ip}", %{
       counter: iceConfigsControlCounter
     })
 
