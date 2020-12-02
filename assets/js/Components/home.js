@@ -1643,7 +1643,7 @@ class Home extends React.Component {
               remoteMasterPeers.map((node, i) => (
                 <h2 key={i}>
                   {node.ip} - {node.type} - {node.machine_id} -{" "}
-                  {node.connectionType && node.connectionType}
+                  {node.connectionType || "Connecting........."}
                 </h2>
               ))}
             <h1>Message From Other Masters Peers</h1>
