@@ -9,34 +9,6 @@ import {
 } from "../utils/indexedDbUtils";
 import { configureChannel } from "../socket";
 
-const peerConfig = {
-  iceServers: [
-    {
-      urls: ["stun:avm4962.com:3478", "stun:avm4962.com:5349"],
-    },
-    { urls: ["stun:ss-turn1.xirsys.com"] },
-    {
-      username: "TuR9Us3r",
-      credential:
-        "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
-      urls: ["turn:avm4962.com:3478", "turn:avm4962.com:5349"],
-    },
-    {
-      username:
-        "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
-      credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
-      urls: [
-        "turn:ss-turn1.xirsys.com:80?transport=udp",
-        "turn:ss-turn1.xirsys.com:3478?transport=udp",
-        "turn:ss-turn1.xirsys.com:80?transport=tcp",
-        "turn:ss-turn1.xirsys.com:3478?transport=tcp",
-        "turns:ss-turn1.xirsys.com:443?transport=tcp",
-        "turns:ss-turn1.xirsys.com:5349?transport=tcp",
-      ],
-    },
-  ],
-};
-
 class Home extends React.Component {
   state = {
     ip: "",
@@ -48,8 +20,7 @@ class Home extends React.Component {
     remoteMasterPeersWebRtcConnections: [],
     message: "",
     messagesFromMastersPeers: [],
-    messagesFromLanMasterPeer: [],
-    messagesFromChildsPeers: [],
+    messageFromLanPeers: [],
     iceConfigs: [
       { iceServers: [] },
       {
@@ -952,6 +923,14 @@ class Home extends React.Component {
       masterNode.machine_id,
       machineId
     );
+    const masterPeer = {
+      ...masterNode,
+      peerConnection,
+    };
+    console.log("MASTER masterPeer: ", masterPeer);
+    this.setState({
+      lanPeersWebRtcConnections: [masterPeer],
+    });
   };
 
   updateMasterInChild = (channel) => {
@@ -1088,7 +1067,20 @@ class Home extends React.Component {
     };
 
     peerConnection.ondatachannel = (event) => {
-      const dataChannel = this.onDataChannelForLanPeer(event, childId);
+      console.log("ondatachannel: ", type);
+      if (type === "MASTER") {
+        const dataChannel = this.onDataChannelForLanPeer(
+          peerConnection,
+          event,
+          childId
+        );
+      } else {
+        const dataChannel = this.onDataChannelForLanPeer(
+          peerConnection,
+          event,
+          masterId
+        );
+      }
     };
 
     peerConnection.onnegotiationneeded = async () => {
@@ -1118,10 +1110,21 @@ class Home extends React.Component {
     return peerConnection;
   };
 
-  lanPeerCreateDataChannel = (peerConnection) => {
+  lanPeerCreateDataChannel = (peerConnection, lanPeerId) => {
     const dataChannel = peerConnection.createDataChannel("MyDataChannel");
     dataChannel.onopen = () => {
-      console.log("Lan peer data channel is open");
+      console.log("LanPeer Data Channel Is Open");
+      const { lanPeersWebRtcConnections } = this.state;
+      const updatedPeers = lanPeersWebRtcConnections.map((node) => {
+        if (node.machineId === lanPeerId) {
+          node.peerDataChannel = dataChannel;
+          node.peerConnection = peerConnection;
+        }
+        return node;
+      });
+      this.setState({
+        lanPeersWebRtcConnections: updatedPeers,
+      });
     };
     dataChannel.onerror = function (error) {
       console.log("Error:", error);
@@ -1129,37 +1132,28 @@ class Home extends React.Component {
     };
 
     dataChannel.onmessage = (event) => {
-      const { messagesFromChildsPeers, messagesFromMastersPeers } = this.state;
+      const { messageFromLanPeers } = this.state;
       console.log("Got message:", event.data);
-      try {
-        const message = JSON.parse(event.data);
-        this.setState({
-          messagesFromMastersPeers: [
-            ...messagesFromMastersPeers,
-            { message: message.message },
-          ],
-        });
-      } catch (error) {
-        this.setState({
-          messagesFromChildsPeers: [
-            ...messagesFromChildsPeers,
-            { message: event.data },
-          ],
-        });
-      }
+      this.setState({
+        messageFromLanPeers: [...messageFromLanPeers, { message: event.data }],
+      });
     };
     return dataChannel;
   };
 
-  onDataChannelForLanPeer = (event, lanPeerId) => {
+  onDataChannelForLanPeer = (peerConnection, event, lanPeerId) => {
     const dataChannel = event.channel;
     console.log("ondatachannel: ", dataChannel);
     dataChannel.onopen = (event) => {
-      console.log("LanPeer Data Channel Is Open");
       const { lanPeersWebRtcConnections } = this.state;
+      console.log(
+        "onDataChannelForLanPeer LanPeer Data Channel Is Open",
+        lanPeersWebRtcConnections
+      );
       const updatedPeers = lanPeersWebRtcConnections.map((node) => {
-        if (node.machineId === lanPeerId) {
+        if (node.machine_id === lanPeerId) {
           node.peerDataChannel = dataChannel;
+          node.peerConnection = peerConnection;
         }
         return node;
       });
@@ -1172,13 +1166,10 @@ class Home extends React.Component {
     };
 
     dataChannel.onmessage = (event) => {
-      const { messagesFromChildsPeers } = this.state;
+      const { messageFromLanPeers } = this.state;
       console.log("Got message:", event.data);
       this.setState({
-        messagesFromChildsPeers: [
-          ...messagesFromChildsPeers,
-          { message: event.data },
-        ],
+        messageFromLanPeers: [...messageFromLanPeers, { message: event.data }],
       });
     };
     return dataChannel;
@@ -1257,7 +1248,7 @@ class Home extends React.Component {
       }
     );
 
-    dataChannel = this.lanPeerCreateDataChannel(peerConnection);
+    dataChannel = this.lanPeerCreateDataChannel(peerConnection, childId);
 
     return {
       peerConnection,
@@ -1265,18 +1256,27 @@ class Home extends React.Component {
     };
   };
 
-  createDataChannel = (peerConnection) => {
+  createDataChannel = (peerConnection, lanPeerId) => {
     const dataChannel = peerConnection.createDataChannel("MyDataChannel", {
       ordered: false,
       maxRetransmits: 0,
     });
-    dataChannel.onopen = function () {
+    dataChannel.onopen = () => {
       console.log("Data Channel is open");
+      const { lanPeersWebRtcConnections } = this.state;
+      const updatedPeers = lanPeersWebRtcConnections.map((node) => {
+        if (node.machineId === lanPeerId) {
+          node.peerDataChannel = dataChannel;
+        }
+        return node;
+      });
+      this.setState({
+        lanPeersWebRtcConnections: updatedPeers,
+      });
     };
     dataChannel.onerror = function (error) {
       console.log("Error:", error);
     };
-
     dataChannel.onmessage = (event) => {
       const { messagesFromChildsPeers, messagesFromMastersPeers } = this.state;
       console.log("Got message:", event.data);
@@ -1376,7 +1376,7 @@ class Home extends React.Component {
       remoteMasterPeers,
       machineId,
       messagesFromMastersPeers,
-      messagesFromLanMasterPeer,
+      messageFromLanPeers,
       messagesFromChildsPeers,
     } = this.state;
     const style =
@@ -1422,8 +1422,8 @@ class Home extends React.Component {
               ))}
             <hr />
             <h1>Message From Child Peers</h1>
-            {messagesFromChildsPeers.length > 0 &&
-              messagesFromChildsPeers.map(({ message }, i) => (
+            {messageFromLanPeers.length > 0 &&
+              messageFromLanPeers.map(({ message }, i) => (
                 <h2 key={i}>{message}</h2>
               ))}
           </div>
@@ -1449,8 +1449,8 @@ class Home extends React.Component {
               Send To Master
             </button>
             <h1>Message From Master</h1>
-            {messagesFromLanMasterPeer.length > 0 &&
-              messagesFromLanMasterPeer.map(({ message }, i) => (
+            {messageFromLanPeers.length > 0 &&
+              messageFromLanPeers.map(({ message }, i) => (
                 <h2 key={i}>{message}</h2>
               ))}
           </div>
