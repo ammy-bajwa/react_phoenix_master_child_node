@@ -317,8 +317,8 @@ class Home extends React.Component {
           iceServerType = "None";
           break;
       }
-      const { remoteMasterPeersWebRtcConnections } = this.state;
-      const updatedArr = remoteMasterPeersWebRtcConnections.map((node) => {
+      const { remoteMasterPeers } = this.state;
+      const updatedArr = remoteMasterPeers.map((node) => {
         if (node.machine_id === remoteNodeId) {
           node.connectionType = iceServerType;
         }
@@ -326,7 +326,7 @@ class Home extends React.Component {
       });
 
       this.setState({
-        remoteMasterPeersWebRtcConnections: updatedArr,
+        remoteMasterPeers: updatedArr,
       });
     };
 
@@ -643,8 +643,8 @@ class Home extends React.Component {
           iceServerType = "None";
           break;
       }
-      const { remoteMasterPeersWebRtcConnections } = this.state;
-      const updatedArr = remoteMasterPeersWebRtcConnections.map((node) => {
+      const { remoteMasterPeers } = this.state;
+      const updatedArr = remoteMasterPeers.map((node) => {
         if (node.machine_id === remoteNodeId) {
           node.connectionType = iceServerType;
         }
@@ -652,7 +652,7 @@ class Home extends React.Component {
       });
 
       this.setState({
-        remoteMasterPeersWebRtcConnections: updatedArr,
+        remoteMasterPeers: updatedArr,
       });
     };
     const connectionRetry = setInterval(async () => {
@@ -1640,9 +1640,10 @@ class Home extends React.Component {
             <hr />
             <h1>Masters Peers</h1>
             {remoteMasterPeers.length > 0 &&
-              remoteMasterPeers.map(({ ip, type, machine_id }, i) => (
+              remoteMasterPeers.map((node, i) => (
                 <h2 key={i}>
-                  {ip} - {type} - {machine_id}
+                  {node.ip} - {node.type} - {node.machine_id} -{" "}
+                  {node.connectionType && node.connectionType}
                 </h2>
               ))}
             <h1>Message From Other Masters Peers</h1>
