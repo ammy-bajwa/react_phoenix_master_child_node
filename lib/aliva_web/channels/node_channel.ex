@@ -274,7 +274,7 @@ defmodule AlivaWeb.NodeChannel do
         socket
       ) do
     broadcast(socket, "web:update_my_peer_connection_#{remote_master_ip}", %{
-      iceConfigsControlCounter: iceConfigsControlCounter
+      counter: iceConfigsControlCounter
     })
 
     {:noreply, socket}
