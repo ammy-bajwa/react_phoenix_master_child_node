@@ -280,6 +280,56 @@ class Home extends React.Component {
       iceConfigsControlCounter
     );
 
+    const updateConnectionType = () => {
+      let iceServerType = "Nothing";
+      switch (iceConfigsControlCounter) {
+        case 0:
+          iceServerType = "Null_ICE_SERVER";
+          break;
+        case 1:
+          iceServerType = "ALL_STUN";
+          break;
+        case 2:
+          iceServerType = "AVM_TLS";
+          break;
+        case 3:
+          iceServerType = "AVM_UDP";
+          break;
+        case 4:
+          iceServerType = "AVM_TCP";
+          break;
+        case 5:
+          iceServerType = "AVM_UDP_TCP";
+          break;
+        case 6:
+          iceServerType = "XIRSYS_UDP";
+          break;
+        case 7:
+          iceServerType = "XIRSYS_TCP";
+          break;
+        case 8:
+          iceServerType = "AVM_STUN_TURN";
+          break;
+        case 9:
+          iceServerType = "AVM_XIRSYS_STUN_TURN";
+          break;
+        default:
+          iceServerType = "None";
+          break;
+      }
+      const { remoteMasterPeersWebRtcConnections } = this.state;
+      const updatedArr = remoteMasterPeersWebRtcConnections.map((node) => {
+        if (node.machine_id === remoteNodeId) {
+          node.connectionType = iceServerType;
+        }
+        return node;
+      });
+
+      this.setState({
+        remoteMasterPeersWebRtcConnections: updatedArr,
+      });
+    };
+
     channel.on(
       `web:verify_message_${ip}_${remoteNodeIp}`,
       ({ ip, remote_master_ip }) => {
@@ -288,6 +338,7 @@ class Home extends React.Component {
         messagesFromMastersPeers.forEach(({ message }) => {
           if (message === "1") {
             verifyMessage = true;
+            updateConnectionType();
           }
         });
         console.log("verifyMessage: ", verifyMessage);
@@ -555,6 +606,55 @@ class Home extends React.Component {
       peerConnection,
       remoteNodeId
     );
+    const updateConnectionType = () => {
+      let iceServerType = "Nothing";
+      switch (iceConfigsControlCounter) {
+        case 0:
+          iceServerType = "Null_ICE_SERVER";
+          break;
+        case 1:
+          iceServerType = "ALL_STUN";
+          break;
+        case 2:
+          iceServerType = "AVM_TLS";
+          break;
+        case 3:
+          iceServerType = "AVM_UDP";
+          break;
+        case 4:
+          iceServerType = "AVM_TCP";
+          break;
+        case 5:
+          iceServerType = "AVM_UDP_TCP";
+          break;
+        case 6:
+          iceServerType = "XIRSYS_UDP";
+          break;
+        case 7:
+          iceServerType = "XIRSYS_TCP";
+          break;
+        case 8:
+          iceServerType = "AVM_STUN_TURN";
+          break;
+        case 9:
+          iceServerType = "AVM_XIRSYS_STUN_TURN";
+          break;
+        default:
+          iceServerType = "None";
+          break;
+      }
+      const { remoteMasterPeersWebRtcConnections } = this.state;
+      const updatedArr = remoteMasterPeersWebRtcConnections.map((node) => {
+        if (node.machine_id === remoteNodeId) {
+          node.connectionType = iceServerType;
+        }
+        return node;
+      });
+
+      this.setState({
+        remoteMasterPeersWebRtcConnections: updatedArr,
+      });
+    };
     const connectionRetry = setInterval(async () => {
       console.log("peerConnection", peerConnection);
       console.log("connection state", peerConnection.connectionState);
@@ -617,6 +717,7 @@ class Home extends React.Component {
             if (connection) {
               console.log("Retry removed");
               clearInterval(connectionRetry);
+              updateConnectionType();
             } else {
               console.log("message verification failed");
               peerConnection.close();
