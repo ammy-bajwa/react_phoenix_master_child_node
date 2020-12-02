@@ -1618,8 +1618,16 @@ class Home extends React.Component {
       messagesFromLanMasterPeer,
       messagesFromChildsPeers,
     } = this.state;
+    const style =
+      type === "MASTER"
+        ? {
+            backgroundColor: "#fdcb74",
+          }
+        : {
+            backgroundColor: "#bce8f1",
+          };
     return (
-      <div>
+      <div style={style}>
         <h1>Version 5</h1>
         <h1>{type}</h1>
         <h2>{ip}</h2>
@@ -1664,7 +1672,7 @@ class Home extends React.Component {
         {lanPeers.length > 0 &&
           lanPeers.map(({ ip, type, machine_id, connectionType }, i) => (
             <h2 key={i}>
-              {ip} - {type} - {machine_id} - {connectionType}
+              {ip} - {type} - {machine_id} - {connectionType || "Connecting...."}
             </h2>
           ))}
 
