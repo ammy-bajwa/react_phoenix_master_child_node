@@ -910,6 +910,8 @@ class Home extends React.Component {
       }
     );
 
+    const dataChannel = this.lanPeerCreateDataChannel(peerConnection, childId);
+
     return { peerConnection };
   };
 
@@ -1248,7 +1250,7 @@ class Home extends React.Component {
       }
     );
 
-    dataChannel = this.lanPeerCreateDataChannel(peerConnection, childId);
+    // dataChannel = this.lanPeerCreateDataChannel(peerConnection, childId);
 
     return {
       peerConnection,
@@ -1265,8 +1267,9 @@ class Home extends React.Component {
       console.log("Data Channel is open");
       const { lanPeersWebRtcConnections } = this.state;
       const updatedPeers = lanPeersWebRtcConnections.map((node) => {
-        if (node.machineId === lanPeerId) {
+        if (node.machine_id === lanPeerId) {
           node.peerDataChannel = dataChannel;
+          node.peerConnection = peerConnection;
         }
         return node;
       });
@@ -1278,24 +1281,11 @@ class Home extends React.Component {
       console.log("Error:", error);
     };
     dataChannel.onmessage = (event) => {
-      const { messagesFromChildsPeers, messagesFromMastersPeers } = this.state;
+      const { messageFromLanPeers } = this.state;
       console.log("Got message:", event.data);
-      try {
-        const message = JSON.parse(event.data);
-        this.setState({
-          messagesFromMastersPeers: [
-            ...messagesFromMastersPeers,
-            { message: message.message },
-          ],
-        });
-      } catch (error) {
-        this.setState({
-          messagesFromChildsPeers: [
-            ...messagesFromChildsPeers,
-            { message: event.data },
-          ],
-        });
-      }
+      this.setState({
+        messageFromLanPeers: [...messageFromLanPeers, { message: event.data }],
+      });
     };
     return dataChannel;
   };
