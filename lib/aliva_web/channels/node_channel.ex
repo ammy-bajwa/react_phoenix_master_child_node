@@ -168,7 +168,7 @@ defmodule AlivaWeb.NodeChannel do
         %{"ip" => ip, "child_id" => child_id, "candidate" => candidate},
         socket
       ) do
-    broadcast(socket, "web:add_ice_candidate_to_master#{ip}", %{
+    broadcast(socket, "web:add_ice_candidate_to_master_#{ip}_#{child_id}", %{
       child_id: child_id,
       candidate: candidate
     })
@@ -308,6 +308,19 @@ defmodule AlivaWeb.NodeChannel do
     broadcast(socket, "web:verification_received_from_other_master_peer_#{remote_master_ip}", %{
       ip: remote_master_ip,
       remote_master_ip: ip
+    })
+
+    {:noreply, socket}
+  end
+
+  def handle_in(
+        "web:add_ice_candidate_lan",
+        %{"sender_id" => sender_id, "receiver_id" => receiver_id, "candidate" => candidate},
+        socket
+      ) do
+    broadcast(socket, "web:add_ice_candidate_from_lan_#{receiver_id}_#{sender_id}", %{
+      sender_id: sender_id,
+      candidate: candidate
     })
 
     {:noreply, socket}

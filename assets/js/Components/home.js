@@ -864,7 +864,7 @@ class Home extends React.Component {
       });
     });
   };
-  lanPeerCreateConnectionForMasterFromChild = (
+  lanPeerCreateConnectionForMasterFromChild = async (
     channel,
     ip,
     masterId,
@@ -873,168 +873,30 @@ class Home extends React.Component {
     const { iceConfigs } = this.state;
     let iceConfigsControlCounter = 0;
     let connection = false;
-    let peerConnection = new RTCPeerConnection(
-      iceConfigs[iceConfigsControlCounter]
+    let peerConnection = await this.lanPeerConnectionCreator(
+      channel,
+      ip,
+      masterId,
+      childId,
+      iceConfigsControlCounter
     );
-    this.setState({
-      iceConfigs: iceConfigs,
-    });
-    const createAndSendOffer = async () => {
-      const { iceConfigs } = this.state;
-      if (iceConfigsControlCounter >= iceConfigs.length) {
-        console.log("All Have Been Tried");
-        return;
-      }
-      iceConfigsControlCounter++;
-      peerConnection = new RTCPeerConnection(
-        iceConfigs[iceConfigsControlCounter]
-      );
-      const offerForMaster = await peerConnection.createOffer();
-      await peerConnection.setLocalDescription(offerForMaster);
-      channel.push(`web:send_offer_to_master`, {
-        child_id: childId,
-        offer_for_master: JSON.stringify(offerForMaster),
-        master_id: masterId,
-        ip,
-      });
-      console.log("Offer Peer", peerConnection);
-      console.log("OFFER IS SENDED TO MASTER");
-    };
 
     let isOther = true;
     let isFirst = true;
 
-    const checkConnection = () => {
-      setTimeout(() => {
-        if (!connection) {
-          console.log("No connection yet");
-          checkConnection();
-        } else {
-          console.log("Child Is Connected");
-          const { lanPeers } = this.state;
-          const connectionType = iceConfigs[iceConfigsControlCounter];
-          const updatedArr = lanPeers.map((node) => {
-            if (node.machine_id === masterId) {
-              const { iceServers } = connectionType;
-              console.log("iceServers: ", iceServers);
-              if (iceServers.length <= 0) {
-                node.connectionType = "Null Ice Servers";
-              } else if (!iceServers[0].username) {
-                node.connectionType = "All Stuns Used";
-              } else if (
-                iceServers[0].urls[0].includes("turn") &&
-                !iceServers[0].urls[0].includes("transport")
-              ) {
-                node.connectionType = "All AVM TLS Turn Used";
-              } else if (
-                iceServers[0].urls[0].includes("turn") &&
-                iceServers[0].urls[0].includes("transport") &&
-                iceServers[0].urls[0].includes("udp") &&
-                iceServers[0].urls[0].includes("avm")
-              ) {
-                node.connectionType = "All AVM UDP Turn Used";
-              } else if (
-                iceServers[0].urls[0].includes("turn") &&
-                iceServers[0].urls[0].includes("transport") &&
-                iceServers[0].urls[0].includes("tcp") &&
-                iceServers[0].urls[0].includes("avm")
-              ) {
-                node.connectionType = "All AVM TCP Turn Used";
-              } else if (
-                iceServers[0].urls[0].includes("turn") &&
-                iceServers[0].urls[0].includes("transport") &&
-                iceServers[0].urls[0].includes("udp") &&
-                iceServers[0].urls[0].includes("xirsys")
-              ) {
-                node.connectionType = "All XIRSYS UDP Turn Used";
-              } else if (
-                iceServers[0].urls[0].includes("turn") &&
-                iceServers[0].urls[0].includes("transport") &&
-                iceServers[0].urls[0].includes("tcp") &&
-                iceServers[0].urls[0].includes("xirsys")
-              ) {
-                node.connectionType = "All XIRSYS TCP Turn Used";
-              } else {
-                node.connectionType = "Unknown";
-              }
-              console.log("connectionType: ", node.connectionType);
-            }
-            return node;
-          });
-
-          this.setState({
-            lanPeers: updatedArr,
-          });
-        }
-      }, 6000);
-    };
-
-    checkConnection();
-
-    channel.on(`web:try_to_connect_${childId}`, async () => {
-      console.log("----------------Request receive for offer");
-      if (isOther && isFirst) {
-        const dataChannel = peerConnection.createDataChannel("MyDataChannel", {
-          ordered: false,
-          maxRetransmits: 0,
-        });
-        dataChannel.onopen = () => {
-          console.log("Data Channel is open");
-          connection = true;
-          const masterConnObj = {
-            peerConnection,
-            machineId: masterId,
-            type: "MASTER",
-            peerDataChannel: dataChannel,
-          };
-          this.setState({
-            lanPeersWebRtcConnections: [masterConnObj],
-          });
-        };
-        dataChannel.onerror = function (error) {
-          console.log("Error:", error);
-        };
-
-        dataChannel.onmessage = (event) => {
-          const { messagesFromLanMasterPeer } = this.state;
-          console.log("Got message:", event.data);
-          this.setState({
-            messagesFromLanMasterPeer: [
-              ...messagesFromLanMasterPeer,
-              { message: event.data },
-            ],
-          });
-        };
-        const offerForMaster = await peerConnection.createOffer();
-        await peerConnection.setLocalDescription(offerForMaster);
-        channel.push(`web:send_offer_to_master`, {
-          child_id: childId,
-          offer_for_master: JSON.stringify(offerForMaster),
-          master_id: masterId,
-          ip,
-        });
-        dataChannel.onopen = () => {
-          connection = true;
-          console.log("Data channel is open child");
-        };
-        console.log("OFFER IS SENDED TO MASTER");
-        isOther = false;
-        isFirst = false;
-      } else if (isOther) {
-        createAndSendOffer();
-        isOther = false;
-      } else {
-        isOther = true;
-      }
-    });
+    channel.on(`web:try_to_connect_${childId}`, async () => {});
 
     channel.on(
-      `web:add_ice_candidate_to_child${childId}`,
-      async ({ child_id, candidate }) => {
+      `web:add_ice_candidate_from_lan_${childId}_${masterId}`,
+      async ({ sender_id, candidate }) => {
         const parsedCandidate = JSON.parse(candidate);
-        await peerConnection.addIceCandidate(
-          new RTCIceCandidate(parsedCandidate)
-        );
+        try {
+          await peerConnection.addIceCandidate(
+            new RTCIceCandidate(parsedCandidate)
+          );
+        } catch (error) {
+          console.log("Error In Adding Ice Candidate From Child");
+        }
       }
     );
 
@@ -1077,53 +939,6 @@ class Home extends React.Component {
       }
     );
 
-    peerConnection.onicecandidate = (event) => {
-      if (event.candidate) {
-        channel.push(`web:add_ice_candidate_from_child`, {
-          candidate: JSON.stringify(event.candidate),
-          child_id: childId,
-          ip,
-        });
-      }
-    };
-
-    peerConnection.ondatachannel = (event) => {
-      const dataChannel = event.channel;
-      console.log("ondatachannel: ", dataChannel);
-      dataChannel.onopen = (event) => {
-        connection = true;
-        const masterConnObj = {
-          peerConnection,
-          machineId: masterId,
-          type: "MASTER",
-          peerDataChannel: dataChannel,
-        };
-        this.setState({
-          lanPeersWebRtcConnections: [masterConnObj],
-        });
-      };
-      dataChannel.onerror = function (error) {
-        console.log("Error:", error);
-        connection = true;
-      };
-
-      dataChannel.onmessage = (event) => {
-        const { messagesFromLanMasterPeer } = this.state;
-        console.log("Got message:", event.data);
-        this.setState({
-          messagesFromLanMasterPeer: [
-            ...messagesFromLanMasterPeer,
-            {
-              message: event.data,
-            },
-          ],
-        });
-      };
-
-      dataChannel.onerror = function (event) {
-        console.log("Got message:", event.data);
-      };
-    };
     return { peerConnection };
   };
 
@@ -1243,7 +1058,133 @@ class Home extends React.Component {
     });
   };
 
-  lanPeerConnectionForChildFromMaster = (
+  lanPeerConnectionCreator = async (
+    channel,
+    ip,
+    masterId,
+    childId,
+    iceConfigsControlCounter
+  ) => {
+    const { type, iceConfigs } = this.state;
+    const peerConnection = new RTCPeerConnection(
+      iceConfigs[iceConfigsControlCounter]
+    );
+    peerConnection.onicecandidate = (event) => {
+      if (event.candidate) {
+        if (type === "MASTER") {
+          channel.push(`web:add_ice_candidate_lan`, {
+            candidate: JSON.stringify(event.candidate),
+            sender_id: masterId,
+            receiver_id: childId,
+          });
+        } else {
+          channel.push(`web:add_ice_candidate_lan`, {
+            candidate: JSON.stringify(event.candidate),
+            sender_id: childId,
+            receiver_id: masterId,
+          });
+        }
+      }
+    };
+
+    peerConnection.ondatachannel = (event) => {
+      const dataChannel = this.onDataChannelForLanPeer(event, childId);
+    };
+
+    peerConnection.onnegotiationneeded = async () => {
+      const offer = await peerConnection.createOffer();
+      await peerConnection.setLocalDescription(offer);
+      if (type === "MASTER") {
+        channel.push(`web:send_offer_to_child`, {
+          child_id: childId,
+          offer_for_child: JSON.stringify(offer),
+          master_id: masterId,
+          ip,
+        });
+        console.log("NEGOTIATION MASTER");
+        console.log("MASTER SEND OFFER");
+      } else {
+        channel.push(`web:send_offer_to_master`, {
+          child_id: childId,
+          offer_for_master: JSON.stringify(offer),
+          master_id: masterId,
+          ip,
+        });
+        console.log("NEGOTIATION CHILD");
+        console.log("CHILD SEND OFFER");
+      }
+    };
+
+    return peerConnection;
+  };
+
+  lanPeerCreateDataChannel = (peerConnection) => {
+    const dataChannel = peerConnection.createDataChannel("MyDataChannel");
+    dataChannel.onopen = () => {
+      console.log("Lan peer data channel is open");
+    };
+    dataChannel.onerror = function (error) {
+      console.log("Error:", error);
+      connection = false;
+    };
+
+    dataChannel.onmessage = (event) => {
+      const { messagesFromChildsPeers, messagesFromMastersPeers } = this.state;
+      console.log("Got message:", event.data);
+      try {
+        const message = JSON.parse(event.data);
+        this.setState({
+          messagesFromMastersPeers: [
+            ...messagesFromMastersPeers,
+            { message: message.message },
+          ],
+        });
+      } catch (error) {
+        this.setState({
+          messagesFromChildsPeers: [
+            ...messagesFromChildsPeers,
+            { message: event.data },
+          ],
+        });
+      }
+    };
+    return dataChannel;
+  };
+
+  onDataChannelForLanPeer = (event, lanPeerId) => {
+    const dataChannel = event.channel;
+    console.log("ondatachannel: ", dataChannel);
+    dataChannel.onopen = (event) => {
+      console.log("LanPeer Data Channel Is Open");
+      const { lanPeersWebRtcConnections } = this.state;
+      const updatedPeers = lanPeersWebRtcConnections.map((node) => {
+        if (node.machineId === lanPeerId) {
+          node.peerDataChannel = dataChannel;
+        }
+        return node;
+      });
+      this.setState({
+        lanPeersWebRtcConnections: updatedPeers,
+      });
+    };
+    dataChannel.onerror = function (error) {
+      console.log("Error:", error);
+    };
+
+    dataChannel.onmessage = (event) => {
+      const { messagesFromChildsPeers } = this.state;
+      console.log("Got message:", event.data);
+      this.setState({
+        messagesFromChildsPeers: [
+          ...messagesFromChildsPeers,
+          { message: event.data },
+        ],
+      });
+    };
+    return dataChannel;
+  };
+
+  lanPeerConnectionForChildFromMaster = async (
     channel,
     childIp,
     masterId,
@@ -1252,56 +1193,19 @@ class Home extends React.Component {
     const { iceConfigs, ip } = this.state;
     let iceConfigsControlCounter = 0;
     let connection = false;
-    let peerConnection = new RTCPeerConnection(
-      iceConfigs[iceConfigsControlCounter]
-    );
-    const createAndSendOffer = async () => {
-      const { iceConfigs } = this.state;
-      if (
-        iceConfigsControlCounter >= iceConfigs.length ||
-        peerConnection.connectionState === "connected"
-      ) {
-        clearInterval(connectionRetry);
-        console.log("All Have Been Tried");
-        return;
-      }
-      iceConfigsControlCounter++;
-      peerConnection = new RTCPeerConnection(
-        iceConfigs[iceConfigsControlCounter]
-      );
-
-      const offerForChild = await peerConnection.createOffer();
-      await peerConnection.setLocalDescription(offerForChild);
-      channel.push(`web:send_offer_to_child`, {
-        child_id: childId,
-        offer_for_child: JSON.stringify(offerForChild),
-        master_id: masterId,
-        ip: childIp,
-      });
-    };
+    let dataChannel = null;
     let isOther = true;
-    const connectionRetry = setInterval(async () => {
-      if (!connection) {
-        console.log("Not connected: ", peerConnection.connectionState);
-        if (isOther) {
-          channel.push(`web:try_to_connect_again`, {
-            child_id: childId,
-          });
-          isOther = false;
-          console.log("-------------Requesting offer from child");
-        } else {
-          createAndSendOffer();
-          isOther = true;
-        }
-      } else {
-        console.log("Interval is cleared");
-        clearInterval(connectionRetry);
-      }
-    }, 6000);
+    let peerConnection = await this.lanPeerConnectionCreator(
+      channel,
+      childIp,
+      masterId,
+      childId,
+      iceConfigsControlCounter
+    );
 
     channel.on(
-      `web:add_ice_candidate_to_master${childIp}`,
-      async ({ child_id, candidate }) => {
+      `web:add_ice_candidate_from_lan_${masterId}_${childId}`,
+      async ({ sender_id, candidate }) => {
         const parsedCandidate = JSON.parse(candidate);
         try {
           await peerConnection.addIceCandidate(
@@ -1353,150 +1257,7 @@ class Home extends React.Component {
       }
     );
 
-    peerConnection.onicecandidate = (event) => {
-      if (event.candidate) {
-        channel.push(`web:add_ice_candidate_from_master`, {
-          candidate: JSON.stringify(event.candidate),
-          child_id: childId,
-        });
-      }
-    };
-
-    peerConnection.ondatachannel = (event) => {
-      const dataChannel = event.channel;
-      console.log("ondatachannel: ", dataChannel);
-      dataChannel.onopen = (event) => {
-        console.log("Master Data Channel Is Open");
-        connection = true;
-        const { lanPeersWebRtcConnections } = this.state;
-        const updatedPeers = lanPeersWebRtcConnections.map((node) => {
-          if (node.machineId === childId) {
-            node.peerDataChannel = dataChannel;
-          }
-          return node;
-        });
-        this.setState({
-          lanPeersWebRtcConnections: updatedPeers,
-        });
-      };
-      dataChannel.onerror = function (error) {
-        console.log("Error:", error);
-        connection = false;
-      };
-
-      dataChannel.onmessage = (event) => {
-        const { messagesFromChildsPeers } = this.state;
-        console.log("Got message:", event.data);
-        this.setState({
-          messagesFromChildsPeers: [
-            ...messagesFromChildsPeers,
-            { message: event.data },
-          ],
-        });
-      };
-    };
-
-    peerConnection.onnegotiationneeded = async () => {
-      console.log("NEGOTIATION MASTER");
-      const offerForChild = await peerConnection.createOffer();
-      await peerConnection.setLocalDescription(offerForChild);
-      channel.push(`web:send_offer_to_child`, {
-        child_id: childId,
-        offer_for_child: JSON.stringify(offerForChild),
-        master_id: masterId,
-        ip: childIp,
-      });
-    };
-
-    const dataChannel = peerConnection.createDataChannel("MyDataChannel", {
-      ordered: false,
-      maxRetransmits: 0,
-    });
-    dataChannel.onopen = () => {
-      console.log("Data Channel is open");
-      console.log("Interval is cleared");
-      clearInterval(connectionRetry);
-      connection = true;
-      const { lanPeers } = this.state;
-      const connectionType = iceConfigs[iceConfigsControlCounter];
-      const updatedArr = lanPeers.map((node) => {
-        if (node.machine_id === childId) {
-          const { iceServers } = connectionType;
-          console.log("iceServers: ", iceServers);
-          if (iceServers.length <= 0) {
-            node.connectionType = "Null Ice Servers";
-          } else if (!iceServers[0].username) {
-            node.connectionType = "All Stuns Used";
-          } else if (
-            iceServers[0].urls[0].includes("turn") &&
-            !iceServers[0].urls[0].includes("transport")
-          ) {
-            node.connectionType = "All AVM TLS Turn Used";
-          } else if (
-            iceServers[0].urls[0].includes("turn") &&
-            iceServers[0].urls[0].includes("transport") &&
-            iceServers[0].urls[0].includes("udp") &&
-            iceServers[0].urls[0].includes("avm")
-          ) {
-            node.connectionType = "All AVM UDP Turn Used";
-          } else if (
-            iceServers[0].urls[0].includes("turn") &&
-            iceServers[0].urls[0].includes("transport") &&
-            iceServers[0].urls[0].includes("tcp") &&
-            iceServers[0].urls[0].includes("avm")
-          ) {
-            node.connectionType = "All AVM TCP Turn Used";
-          } else if (
-            iceServers[0].urls[0].includes("turn") &&
-            iceServers[0].urls[0].includes("transport") &&
-            iceServers[0].urls[0].includes("udp") &&
-            iceServers[0].urls[0].includes("xirsys")
-          ) {
-            node.connectionType = "All XIRSYS UDP Turn Used";
-          } else if (
-            iceServers[0].urls[0].includes("turn") &&
-            iceServers[0].urls[0].includes("transport") &&
-            iceServers[0].urls[0].includes("tcp") &&
-            iceServers[0].urls[0].includes("xirsys")
-          ) {
-            node.connectionType = "All XIRSYS TCP Turn Used";
-          } else {
-            node.connectionType = "Unknown";
-          }
-          console.log("connectionType: ", node.connectionType);
-        }
-        return node;
-      });
-
-      this.setState({
-        lanPeers: updatedArr,
-      });
-    };
-    dataChannel.onerror = function (error) {
-      console.log("Error:", error);
-      connection = false;
-    };
-
-    dataChannel.onmessage = (event) => {
-      const { messagesFromChildsPeers, messagesFromMastersPeers } = this.state;
-      console.log("Got message:", event.data);
-      try {
-        const message = JSON.parse(event.data);
-        this.setState({
-          messagesFromMastersPeers: [
-            ...messagesFromMastersPeers,
-            { message: message.message },
-          ],
-        });
-      } catch (error) {
-        this.setState({
-          messagesFromChildsPeers: [
-            ...messagesFromChildsPeers,
-            { message: event.data },
-          ],
-        });
-      }
-    };
+    dataChannel = this.lanPeerCreateDataChannel(peerConnection);
 
     return {
       peerConnection,
@@ -1672,7 +1433,8 @@ class Home extends React.Component {
         {lanPeers.length > 0 &&
           lanPeers.map(({ ip, type, machine_id, connectionType }, i) => (
             <h2 key={i}>
-              {ip} - {type} - {machine_id} - {connectionType || "Connecting...."}
+              {ip} - {type} - {machine_id} -{" "}
+              {connectionType || "Connecting...."}
             </h2>
           ))}
 
