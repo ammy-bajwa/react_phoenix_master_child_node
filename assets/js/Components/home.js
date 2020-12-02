@@ -280,22 +280,25 @@ class Home extends React.Component {
       iceConfigsControlCounter
     );
 
-    channel.on(`web:verify_message_${ip}`, ({ ip, remote_master_ip }) => {
-      console.log("Verification reques received");
-      const { messagesFromMastersPeers } = this.state;
-      messagesFromMastersPeers.forEach(({ message }) => {
-        if (message === "1") {
-          verifyMessage = true;
-        }
-      });
-      console.log("verifyMessage: ", verifyMessage);
-      if (verifyMessage) {
-        channel.push("web:verification_received", {
-          ip,
-          remote_master_ip: remoteNodeIp,
+    channel.on(
+      `web:verify_message_${ip}_${remoteNodeIp}`,
+      ({ ip, remote_master_ip }) => {
+        console.log("Verification reques received");
+        const { messagesFromMastersPeers } = this.state;
+        messagesFromMastersPeers.forEach(({ message }) => {
+          if (message === "1") {
+            verifyMessage = true;
+          }
         });
+        console.log("verifyMessage: ", verifyMessage);
+        if (verifyMessage) {
+          channel.push("web:verification_received", {
+            ip,
+            remote_master_ip: remoteNodeIp,
+          });
+        }
       }
-    });
+    );
 
     channel.on(
       `web:update_my_peer_connection_${ip}_${remoteNodeIp}`,

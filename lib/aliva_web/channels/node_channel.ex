@@ -289,7 +289,7 @@ defmodule AlivaWeb.NodeChannel do
         },
         socket
       ) do
-    broadcast(socket, "web:verify_message_#{remote_master_ip}", %{
+    broadcast(socket, "web:verify_message_#{remote_master_ip}_#{ip}", %{
       ip: remote_master_ip,
       remote_master_ip: ip
     })
