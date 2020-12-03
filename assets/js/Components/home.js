@@ -266,34 +266,34 @@ class Home extends React.Component {
       let iceServerType = "Nothing";
       switch (iceConfigsControlCounter) {
         case 0:
-          iceServerType = "Null_ICE_SERVER";
+          iceServerType = "0-Null_ICE_SERVER";
           break;
         case 1:
-          iceServerType = "ALL_STUN";
+          iceServerType = "1-ALL_STUN";
           break;
         case 2:
-          iceServerType = "AVM_TURN_UDP_3478_5349";
+          iceServerType = "2-AVM_TURN_UDP_3478_5349";
           break;
         case 3:
-          iceServerType = "AVM_TURN_TCP_3478_5349";
+          iceServerType = "3-AVM_TURN_TCP_3478_5349";
           break;
         case 4:
-          iceServerType = "AVM_TURN_3478_5349";
+          iceServerType = "4-AVM_TURN_3478_5349";
           break;
         case 5:
-          iceServerType = "AVM_TURN_UDP:3478_TCP:5349";
+          iceServerType = "5-AVM_TURN_UDP:3478_TCP:5349";
           break;
         case 6:
-          iceServerType = "XIRSYS_TURN_UDP_80_3478";
+          iceServerType = "6-XIRSYS_TURN_UDP_80_3478";
           break;
         case 7:
-          iceServerType = "XIRSYS_TURN_TCP_80_3478_443_5349";
+          iceServerType = "7-XIRSYS_TURN_TCP_80_3478_443_5349";
           break;
         case 8:
-          iceServerType = "AVM_STUN_TURN";
+          iceServerType = "8-AVM_STUN_TURN";
           break;
         case 9:
-          iceServerType = "AVM_XIRSYS_STUN_TURN";
+          iceServerType = "9AVM_XIRSYS_STUN_TURN";
           break;
         default:
           iceServerType = "None";
@@ -592,34 +592,34 @@ class Home extends React.Component {
       let iceServerType = "Nothing";
       switch (iceConfigsControlCounter) {
         case 0:
-          iceServerType = "Null_ICE_SERVER";
+          iceServerType = "0-Null_ICE_SERVER";
           break;
         case 1:
-          iceServerType = "ALL_STUN";
+          iceServerType = "1-ALL_STUN";
           break;
         case 2:
-          iceServerType = "AVM_TLS";
+          iceServerType = "2-AVM_TURN_UDP_3478_5349";
           break;
         case 3:
-          iceServerType = "AVM_UDP";
+          iceServerType = "3-AVM_TURN_TCP_3478_5349";
           break;
         case 4:
-          iceServerType = "AVM_TCP";
+          iceServerType = "4-AVM_TURN_3478_5349";
           break;
         case 5:
-          iceServerType = "AVM_UDP_TCP";
+          iceServerType = "5-AVM_TURN_UDP:3478_TCP:5349";
           break;
         case 6:
-          iceServerType = "XIRSYS_UDP";
+          iceServerType = "6-XIRSYS_TURN_UDP_80_3478";
           break;
         case 7:
-          iceServerType = "XIRSYS_TCP";
+          iceServerType = "7-XIRSYS_TURN_TCP_80_3478_443_5349";
           break;
         case 8:
-          iceServerType = "AVM_STUN_TURN";
+          iceServerType = "8-AVM_STUN_TURN";
           break;
         case 9:
-          iceServerType = "AVM_XIRSYS_STUN_TURN";
+          iceServerType = "9AVM_XIRSYS_STUN_TURN";
           break;
         default:
           iceServerType = "None";
@@ -869,34 +869,34 @@ class Home extends React.Component {
       let iceServerType = "Nothing";
       switch (iceConfigsControlCounter) {
         case 0:
-          iceServerType = "Null_ICE_SERVER";
+          iceServerType = "0-Null_ICE_SERVER";
           break;
         case 1:
-          iceServerType = "ALL_STUN";
+          iceServerType = "1-ALL_STUN";
           break;
         case 2:
-          iceServerType = "AVM_TLS";
+          iceServerType = "2-AVM_TURN_UDP_3478_5349";
           break;
         case 3:
-          iceServerType = "AVM_UDP";
+          iceServerType = "3-AVM_TURN_TCP_3478_5349";
           break;
         case 4:
-          iceServerType = "AVM_TCP";
+          iceServerType = "4-AVM_TURN_3478_5349";
           break;
         case 5:
-          iceServerType = "AVM_UDP_TCP";
+          iceServerType = "5-AVM_TURN_UDP:3478_TCP:5349";
           break;
         case 6:
-          iceServerType = "XIRSYS_UDP";
+          iceServerType = "6-XIRSYS_TURN_UDP_80_3478";
           break;
         case 7:
-          iceServerType = "XIRSYS_TCP";
+          iceServerType = "7-XIRSYS_TURN_TCP_80_3478_443_5349";
           break;
         case 8:
-          iceServerType = "AVM_STUN_TURN";
+          iceServerType = "8-AVM_STUN_TURN";
           break;
         case 9:
-          iceServerType = "AVM_XIRSYS_STUN_TURN";
+          iceServerType = "9AVM_XIRSYS_STUN_TURN";
           break;
         default:
           iceServerType = "None";
@@ -1381,34 +1381,34 @@ class Home extends React.Component {
       let iceServerType = "Nothing";
       switch (iceConfigsControlCounter) {
         case 0:
-          iceServerType = "Null_ICE_SERVER";
+          iceServerType = "0-Null_ICE_SERVER";
           break;
         case 1:
-          iceServerType = "ALL_STUN";
+          iceServerType = "1-ALL_STUN";
           break;
         case 2:
-          iceServerType = "AVM_TLS";
+          iceServerType = "2-AVM_TURN_UDP_3478_5349";
           break;
         case 3:
-          iceServerType = "AVM_UDP";
+          iceServerType = "3-AVM_TURN_TCP_3478_5349";
           break;
         case 4:
-          iceServerType = "AVM_TCP";
+          iceServerType = "4-AVM_TURN_3478_5349";
           break;
         case 5:
-          iceServerType = "AVM_UDP_TCP";
+          iceServerType = "5-AVM_TURN_UDP:3478_TCP:5349";
           break;
         case 6:
-          iceServerType = "XIRSYS_UDP";
+          iceServerType = "6-XIRSYS_TURN_UDP_80_3478";
           break;
         case 7:
-          iceServerType = "XIRSYS_TCP";
+          iceServerType = "7-XIRSYS_TURN_TCP_80_3478_443_5349";
           break;
         case 8:
-          iceServerType = "AVM_STUN_TURN";
+          iceServerType = "8-AVM_STUN_TURN";
           break;
         case 9:
-          iceServerType = "AVM_XIRSYS_STUN_TURN";
+          iceServerType = "9AVM_XIRSYS_STUN_TURN";
           break;
         default:
           iceServerType = "None";
