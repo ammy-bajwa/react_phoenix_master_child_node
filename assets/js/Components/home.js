@@ -1564,15 +1564,25 @@ class Home extends React.Component {
   handleMessageToChilds = () => {
     const { lanPeersWebRtcConnections, message } = this.state;
     lanPeersWebRtcConnections.map(({ peerDataChannel }) => {
-      peerDataChannel.send(message);
+      const defaultMessage = document.querySelector("#masterInputField").value;
+      let messageToSend = defaultMessage;
+      if (message) {
+        messageToSend = message;
+      }
+      peerDataChannel.send(messageToSend);
     });
   };
 
   handleMessageToMasters = () => {
     const { remoteMasterPeersWebRtcConnections, message } = this.state;
     remoteMasterPeersWebRtcConnections.map((masterNode) => {
+      const defaultMessage = document.querySelector("#masterInputField").value;
+      let messageToSend = defaultMessage;
+      if (message) {
+        messageToSend = message;
+      }
       masterNode.peerDataChannel.send(
-        JSON.stringify({ message, type: "MASTER" })
+        JSON.stringify({ message: messageToSend, type: "MASTER" })
       );
       console.log("masterNode: ", masterNode);
     });
@@ -1581,7 +1591,12 @@ class Home extends React.Component {
   handleMessageToLanMaster = () => {
     const { lanPeersWebRtcConnections, message } = this.state;
     lanPeersWebRtcConnections.map((masterNode) => {
-      masterNode.peerDataChannel.send(message);
+      const defaultMessage = document.querySelector("#childInputField").value;
+      let messageToSend = defaultMessage;
+      if (message) {
+        messageToSend = message;
+      }
+      masterNode.peerDataChannel.send(messageToSend);
       console.log("masterNode: ", masterNode);
     });
   };
@@ -1618,7 +1633,8 @@ class Home extends React.Component {
               type="text"
               onChange={this.handleMessage}
               placeholder="Send message to child"
-              value={`${type}-${ip}-${machineId}-hi`}
+              id="masterInputField"
+              value={`${type}__${ip}__${machineId}__Hello`}
             />
             <button onClick={this.handleMessageToChilds}>Send To Child</button>
             <button onClick={this.handleMessageToMasters} id="sendToMaster">
@@ -1662,7 +1678,8 @@ class Home extends React.Component {
               type="text"
               onChange={this.handleMessage}
               placeholder="Send message to master"
-              value={`${type}-${machineId}-hi`}
+              id="childInputField"
+              value={`${type}__${ip}__${machineId}__Hello`}
             />
             <button onClick={this.handleMessageToLanMaster}>
               Send To Master
