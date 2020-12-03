@@ -320,6 +320,7 @@ class Home extends React.Component {
         messagesFromMastersPeers.forEach(({ message }) => {
           if (message === "1") {
             verifyMessage = true;
+            dataChannel.send("1");
             updateConnectionType();
           }
         });
@@ -1230,6 +1231,7 @@ class Home extends React.Component {
     dataChannel.onopen = () => {
       console.log("LanPeer Data Channel Is Open");
       const { lanPeersWebRtcConnections } = this.state;
+      dataChannel.send("1");
       const updatedPeers = lanPeersWebRtcConnections.map((node) => {
         if (node.machineId === lanPeerId) {
           node.peerDataChannel = dataChannel;
@@ -1264,6 +1266,7 @@ class Home extends React.Component {
         "onDataChannelForLanPeer LanPeer Data Channel Is Open",
         lanPeersWebRtcConnections
       );
+      dataChannel.send("1");
       const updatedPeers = lanPeersWebRtcConnections.map((node) => {
         if (node.machine_id === lanPeerId) {
           node.peerDataChannel = dataChannel;
@@ -1355,8 +1358,6 @@ class Home extends React.Component {
         }
       } else {
         // verify channel via message
-        dataChannel.send("1");
-
         setTimeout(() => {
           channel.push("web:verify_message_lan_peer", {
             child_id: childId,
@@ -1372,10 +1373,10 @@ class Home extends React.Component {
               console.log("message verification failed");
               peerConnection.close();
             }
-          }, 1000);
-        }, 1000);
+          }, 500);
+        }, 500);
       }
-    }, 8000);
+    }, 5000);
 
     const updateConnectionType = () => {
       let iceServerType = "Nothing";
@@ -1430,8 +1431,14 @@ class Home extends React.Component {
     channel.on(
       `web:verification_received_from_child_${masterId}_${childId}`,
       ({ ip: currentIp, remote_master_ip }) => {
-        console.log("Verified------------");
-        connection = true;
+        const { messageFromLanPeers } = this.state;
+        console.log("messageFromLanPeers: ", messageFromLanPeers);
+        messageFromLanPeers.map(({ message }) => {
+          if (message === "1") {
+            console.log("Verified------------");
+            connection = true;
+          }
+        });
       }
     );
     channel.on(
@@ -1625,11 +1632,11 @@ class Home extends React.Component {
     const style =
       type === "MASTER"
         ? {
-          backgroundColor: "#fdcb74",
-        }
+            backgroundColor: "#fdcb74",
+          }
         : {
-          backgroundColor: "#bce8f1",
-        };
+            backgroundColor: "#bce8f1",
+          };
     return (
       <div style={style}>
         <h1>Version 5</h1>
