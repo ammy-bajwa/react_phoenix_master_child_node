@@ -432,7 +432,7 @@ class Home extends React.Component {
       console.log("Data Channel is open on 548");
       try {
         await dataChannel.send(
-          JSON.stringify({ type: "MASTER", message: "Hello from old master" })
+          JSON.stringify({ type: "MASTER", message: "1" })
         );
       } catch (error) {
         console.log("Error in sending message 553: ", error);
@@ -482,7 +482,7 @@ class Home extends React.Component {
       console.log("Datachannel is open on 589");
       try {
         await dataChannel.send(
-          JSON.stringify({ type: "MASTER", message: "Hello from old master" })
+          JSON.stringify({ type: "MASTER", message: "1" })
         );
       } catch (error) {
         console.log("Error in sending message 595: ", error);
@@ -649,7 +649,6 @@ class Home extends React.Component {
           return;
         }
         if (isOther) {
-          console.log("STEP ONE");
           channel.push(`web:try_to_connect_again_remote_master`, {
             ip: ip,
             remote_node_ip: remoteNodeIp,
@@ -663,7 +662,6 @@ class Home extends React.Component {
           );
           return;
         } else {
-          console.log("STEP THREE");
           iceConfigsControlCounter = iceConfigsControlCounter + 1;
           channel.push(`web:updated_peer_connection`, {
             iceConfigsControlCounter,
@@ -689,8 +687,6 @@ class Home extends React.Component {
         }
       } else {
         // verify channel via message
-        dataChannel.send(JSON.stringify({ type: "VERIFY", message: "1" }));
-
         setTimeout(() => {
           channel.push("web:verify_message", {
             ip,
@@ -705,16 +701,22 @@ class Home extends React.Component {
               console.log("message verification failed");
               peerConnection.close();
             }
-          }, 1000);
-        }, 1000);
+          }, 500);
+        }, 500);
       }
-    }, 8000);
+    }, 5000);
 
     channel.on(
       `web:verification_received_from_other_master_peer_${ip}`,
       ({ ip: currentIp, remote_master_ip }) => {
-        console.log("Verified------------");
-        connection = true;
+        const { messagesFromMastersPeers } = this.state;
+        console.log("messagesFromMastersPeers: ", messagesFromMastersPeers);
+        messagesFromMastersPeers.map(({ message }) => {
+          if (message === "1") {
+            console.log("Verified------------");
+            connection = true;
+          }
+        });
       }
     );
     channel.on(
