@@ -1618,6 +1618,7 @@ class Home extends React.Component {
               type="text"
               onChange={this.handleMessage}
               placeholder="Send message to child"
+              value={`${type}-${ip}-${machineId}-hi`}
             />
             <button onClick={this.handleMessageToChilds}>Send To Child</button>
             <button onClick={this.handleMessageToMasters} id="sendToMaster">
@@ -1661,6 +1662,7 @@ class Home extends React.Component {
               type="text"
               onChange={this.handleMessage}
               placeholder="Send message to master"
+              value={`${type}-${machineId}-hi`}
             />
             <button onClick={this.handleMessageToLanMaster}>
               Send To Master
