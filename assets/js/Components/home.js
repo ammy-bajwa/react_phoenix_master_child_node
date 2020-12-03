@@ -706,6 +706,13 @@ class Home extends React.Component {
       }
     }, 5000);
 
+    channel.on(`web:master_is_removed`, async ({ ip, machine_id }) => {
+      if (machine_id === remoteNodeId) {
+        console.log("Clearing interval");
+        clearInterval(connectionRetry);
+      }
+    });
+
     channel.on(
       `web:verification_received_from_other_master_peer_${ip}`,
       ({ ip: currentIp, remote_master_ip }) => {
