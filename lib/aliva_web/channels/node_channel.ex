@@ -238,13 +238,19 @@ defmodule AlivaWeb.NodeChannel do
   end
 
   def handle_in(
-        "web:try_to_connect_again",
+        "web:try_to_connect_again_lan_child",
         %{
-          "child_id" => child_id
+          "ip" => ip,
+          "child_id" => child_id,
+          "ice_config_control_counter" => ice_config_control_counter
         },
         socket
       ) do
-    broadcast(socket, "web:try_to_connect_#{child_id}", %{})
+    broadcast(socket, "web:try_to_connect_child_#{child_id}", %{
+      senderIp: ip,
+      ice_config_control_counter: ice_config_control_counter
+    })
+
     {:noreply, socket}
   end
 
@@ -266,15 +272,15 @@ defmodule AlivaWeb.NodeChannel do
   end
 
   def handle_in(
-        "web:updated_peer_connection_master_peer",
+        "web:updated_peer_connection",
         %{
           "iceConfigsControlCounter" => iceConfigsControlCounter,
-          "remote_master_ip" => remote_master_ip,
-          "ip" => ip
+          "sender" => sender,
+          "receiver" => receiver
         },
         socket
       ) do
-    broadcast(socket, "web:update_my_peer_connection_#{remote_master_ip}_#{ip}", %{
+    broadcast(socket, "web:update_my_peer_connection_#{receiver}_#{sender}", %{
       counter: iceConfigsControlCounter
     })
 
@@ -298,6 +304,22 @@ defmodule AlivaWeb.NodeChannel do
   end
 
   def handle_in(
+        "web:verify_message_lan_peer",
+        %{
+          "child_id" => child_id,
+          "master_id" => master_id
+        },
+        socket
+      ) do
+    broadcast(socket, "web:verify_message_#{child_id}_#{master_id}", %{
+      child_id: child_id,
+      master_id: master_id
+    })
+
+    {:noreply, socket}
+  end
+
+  def handle_in(
         "web:verification_received",
         %{
           "ip" => ip,
@@ -308,6 +330,23 @@ defmodule AlivaWeb.NodeChannel do
     broadcast(socket, "web:verification_received_from_other_master_peer_#{remote_master_ip}", %{
       ip: remote_master_ip,
       remote_master_ip: ip
+    })
+
+    {:noreply, socket}
+  end
+
+
+  def handle_in(
+        "web:verification_received_lan_peer",
+        %{
+          "child_id" => child_id,
+          "master_id" => master_id
+        },
+        socket
+      ) do
+    broadcast(socket, "web:verification_received_from_child#{master_id}_#{child_id}", %{
+      "child_id" => child_id,
+      "master_id" => master_id
     })
 
     {:noreply, socket}

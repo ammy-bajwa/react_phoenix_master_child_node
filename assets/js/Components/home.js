@@ -653,10 +653,10 @@ class Home extends React.Component {
         } else {
           console.log("STEP THREE");
           iceConfigsControlCounter = iceConfigsControlCounter + 1;
-          channel.push(`web:updated_peer_connection_master_peer`, {
+          channel.push(`web:updated_peer_connection`, {
             iceConfigsControlCounter,
-            remote_master_ip: remoteNodeIp,
-            ip,
+            receiver: remoteNodeIp,
+            sender: ip,
           });
           peerConnection = await this.peerConnectionCreatorMasterPeers(
             channel,
@@ -697,6 +697,7 @@ class Home extends React.Component {
         }, 1000);
       }
     }, 8000);
+
     channel.on(
       `web:verification_received_from_other_master_peer_${ip}`,
       ({ ip: currentIp, remote_master_ip }) => {
@@ -843,7 +844,8 @@ class Home extends React.Component {
   ) => {
     const { iceConfigs } = this.state;
     let iceConfigsControlCounter = 0;
-    let connection = false;
+    let dataChannel;
+    let verifyMessage = false;
     let peerConnection = await this.lanPeerConnectionCreator(
       channel,
       ip,
@@ -852,10 +854,58 @@ class Home extends React.Component {
       iceConfigsControlCounter
     );
 
-    let isOther = true;
-    let isFirst = true;
+    channel.on(
+      `web:verify_message_${childId}_${masterId}`,
+      async ({ child_id, master_id }) => {
+        console.log("Verification request received");
+        const { messageFromLanPeers } = this.state;
+        messageFromLanPeers.forEach(({ message }) => {
+          if (message === "1") {
+            verifyMessage = true;
+            // updateConnectionType();
+          }
+        });
+        console.log("verifyMessage: ", verifyMessage);
+        if (verifyMessage) {
+          channel.push("web:verification_received_lan_peer", {
+            child_id: childId,
+            master_id: masterId,
+          });
+        }
+      }
+    );
 
-    channel.on(`web:try_to_connect_${childId}`, async () => {});
+    channel.on(
+      `web:update_my_peer_connection_${childId}_${masterId}`,
+      async ({ counter }) => {
+        console.log("Updated peerconnection: ", counter);
+        peerConnection = await this.lanPeerConnectionCreator(
+          channel,
+          ip,
+          masterId,
+          childId,
+          counter
+        );
+        iceConfigsControlCounter = counter;
+      }
+    );
+
+    channel.on(
+      `web:try_to_connect_child_${childId}`,
+      async ({ senderIp, ice_config_control_counter }) => {
+        console.log("CHILD RECEIVE TRY REQUEST FROM MASTER");
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+        channel.push(`web:send_offer_to_master`, {
+          child_id: childId,
+          offer_for_master: JSON.stringify(offer),
+          master_id: masterId,
+          ip,
+        });
+        console.log("CHILD SEND OFFER");
+        dataChannel = this.lanPeerCreateDataChannel(peerConnection, masterId);
+      }
+    );
 
     channel.on(
       `web:add_ice_candidate_from_lan_${childId}_${masterId}`,
@@ -910,7 +960,7 @@ class Home extends React.Component {
       }
     );
 
-    const dataChannel = this.lanPeerCreateDataChannel(peerConnection, childId);
+    // dataChannel = this.lanPeerCreateDataChannel(peerConnection, childId);
 
     return { peerConnection };
   };
@@ -975,7 +1025,6 @@ class Home extends React.Component {
         await setNodeType("MASTER");
         this.newNodeListener(channel);
         this.newMasterNodeListener(channel);
-        console.log("2nd :- ", new Date().getMilliseconds());
         this.setupRemotePeerConnections(channel);
         this.removeNodeListener(channel);
         this.removeMasterNodeListener(channel);
@@ -1130,7 +1179,6 @@ class Home extends React.Component {
     };
     dataChannel.onerror = function (error) {
       console.log("Error:", error);
-      connection = false;
     };
 
     dataChannel.onmessage = (event) => {
@@ -1195,7 +1243,82 @@ class Home extends React.Component {
       childId,
       iceConfigsControlCounter
     );
+    const connectionRetry = setInterval(async () => {
+      console.log("peerConnection", peerConnection);
+      console.log("connection state", peerConnection.connectionState);
+      console.log("Data channel state", dataChannel.readyState);
+      if (dataChannel.readyState !== "open") {
+        if (iceConfigsControlCounter >= iceConfigs.length) {
+          console.log("ALL Have Been Tried");
+          clearInterval(connectionRetry);
+          return;
+        }
+        if (isOther) {
+          channel.push(`web:try_to_connect_again_lan_child`, {
+            ip: ip,
+            child_id: childId,
+            ice_config_control_counter: iceConfigsControlCounter,
+          });
+          isOther = false;
+          console.log("MASTER SEND TRY REQUEST");
+          console.log(
+            "MASTER iceConfigsControlCounter: ",
+            iceConfigsControlCounter
+          );
+          return;
+        } else {
+          console.log("STEP THREE");
+          iceConfigsControlCounter = iceConfigsControlCounter + 1;
+          channel.push(`web:updated_peer_connection`, {
+            iceConfigsControlCounter,
+            sender: masterId,
+            receiver: childId,
+          });
+          peerConnection = await this.lanPeerConnectionCreator(
+            channel,
+            ip,
+            masterId,
+            childId,
+            iceConfigsControlCounter
+          );
+          dataChannel = this.lanPeerCreateDataChannel(peerConnection, childId);
+          console.log("MASTER CREATE DATA CHANNEL");
+          console.log(
+            "MASTER iceConfigsControlCounter: ",
+            iceConfigsControlCounter
+          );
+          isOther = true;
+        }
+      } else {
+        // verify channel via message
+        dataChannel.send("1");
 
+        setTimeout(() => {
+          channel.push("web:verify_message_lan_peer", {
+            child_id: childId,
+            master_id: masterId,
+          });
+          setTimeout(() => {
+            if (connection) {
+              console.log("Retry removed");
+              clearInterval(connectionRetry);
+              // updateConnectionType();
+            } else {
+              console.log("message verification failed");
+              peerConnection.close();
+            }
+          }, 1000);
+        }, 1000);
+      }
+    }, 8000);
+
+    channel.on(
+      `web:verification_received_from_child_${masterId}_${childId}`,
+      ({ ip: currentIp, remote_master_ip }) => {
+        console.log("Verified------------");
+        connection = true;
+      }
+    );
     channel.on(
       `web:add_ice_candidate_from_lan_${masterId}_${childId}`,
       async ({ sender_id, candidate }) => {
@@ -1250,7 +1373,7 @@ class Home extends React.Component {
       }
     );
 
-    // dataChannel = this.lanPeerCreateDataChannel(peerConnection, childId);
+    dataChannel = this.lanPeerCreateDataChannel(peerConnection, childId);
 
     return {
       peerConnection,
