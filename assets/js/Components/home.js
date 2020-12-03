@@ -1299,6 +1299,7 @@ class Home extends React.Component {
             master_id: masterId,
           });
           setTimeout(() => {
+            console.log("Connection ------------", connection);
             if (connection) {
               console.log("Retry removed");
               clearInterval(connectionRetry);

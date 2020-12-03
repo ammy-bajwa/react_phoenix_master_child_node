@@ -344,7 +344,7 @@ defmodule AlivaWeb.NodeChannel do
         },
         socket
       ) do
-    broadcast(socket, "web:verification_received_from_child#{master_id}_#{child_id}", %{
+    broadcast(socket, "web:verification_received_from_child_#{master_id}_#{child_id}", %{
       "child_id" => child_id,
       "master_id" => master_id
     })
