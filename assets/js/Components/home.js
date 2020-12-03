@@ -989,10 +989,6 @@ class Home extends React.Component {
     const { ip } = this.state;
     channel.on(`web:update_master_in_child${ip}`, (data) => {
       const { machineId } = this.state;
-
-      const updatedPeers = [
-        { machine_id: data.machine_id, ip: data.ip, type: "MASTER" },
-      ];
       // Here we will create the connection for child to connect to master
       const { peerConnection } = this.lanPeerCreateConnectionForMasterFromChild(
         channel,
@@ -1000,7 +996,14 @@ class Home extends React.Component {
         data.machine_id,
         machineId
       );
-
+      const updatedPeers = [
+        {
+          machine_id: data.machine_id,
+          ip: data.ip,
+          type: "MASTER",
+          peerConnection,
+        },
+      ];
       this.setState({
         lanPeers: updatedPeers,
       });
