@@ -854,6 +854,56 @@ class Home extends React.Component {
       iceConfigsControlCounter
     );
 
+    const updateConnectionType = () => {
+      let iceServerType = "Nothing";
+      switch (iceConfigsControlCounter) {
+        case 0:
+          iceServerType = "Null_ICE_SERVER";
+          break;
+        case 1:
+          iceServerType = "ALL_STUN";
+          break;
+        case 2:
+          iceServerType = "AVM_TLS";
+          break;
+        case 3:
+          iceServerType = "AVM_UDP";
+          break;
+        case 4:
+          iceServerType = "AVM_TCP";
+          break;
+        case 5:
+          iceServerType = "AVM_UDP_TCP";
+          break;
+        case 6:
+          iceServerType = "XIRSYS_UDP";
+          break;
+        case 7:
+          iceServerType = "XIRSYS_TCP";
+          break;
+        case 8:
+          iceServerType = "AVM_STUN_TURN";
+          break;
+        case 9:
+          iceServerType = "AVM_XIRSYS_STUN_TURN";
+          break;
+        default:
+          iceServerType = "None";
+          break;
+      }
+      const { lanPeers } = this.state;
+      const updatedArr = lanPeers.map((node) => {
+        if (node.machine_id === masterId) {
+          node.connectionType = iceServerType;
+        }
+        return node;
+      });
+
+      this.setState({
+        lanPeers: updatedArr,
+      });
+    };
+
     channel.on(
       `web:verify_message_${childId}_${masterId}`,
       async ({ child_id, master_id }) => {
@@ -862,7 +912,7 @@ class Home extends React.Component {
         messageFromLanPeers.forEach(({ message }) => {
           if (message === "1") {
             verifyMessage = true;
-            // updateConnectionType();
+            updateConnectionType();
           }
         });
         console.log("verifyMessage: ", verifyMessage);
@@ -1306,7 +1356,7 @@ class Home extends React.Component {
             if (connection) {
               console.log("Retry removed");
               clearInterval(connectionRetry);
-              // updateConnectionType();
+              updateConnectionType();
             } else {
               console.log("message verification failed");
               peerConnection.close();
@@ -1315,6 +1365,56 @@ class Home extends React.Component {
         }, 1000);
       }
     }, 8000);
+
+    const updateConnectionType = () => {
+      let iceServerType = "Nothing";
+      switch (iceConfigsControlCounter) {
+        case 0:
+          iceServerType = "Null_ICE_SERVER";
+          break;
+        case 1:
+          iceServerType = "ALL_STUN";
+          break;
+        case 2:
+          iceServerType = "AVM_TLS";
+          break;
+        case 3:
+          iceServerType = "AVM_UDP";
+          break;
+        case 4:
+          iceServerType = "AVM_TCP";
+          break;
+        case 5:
+          iceServerType = "AVM_UDP_TCP";
+          break;
+        case 6:
+          iceServerType = "XIRSYS_UDP";
+          break;
+        case 7:
+          iceServerType = "XIRSYS_TCP";
+          break;
+        case 8:
+          iceServerType = "AVM_STUN_TURN";
+          break;
+        case 9:
+          iceServerType = "AVM_XIRSYS_STUN_TURN";
+          break;
+        default:
+          iceServerType = "None";
+          break;
+      }
+      const { lanPeers } = this.state;
+      const updatedArr = lanPeers.map((node) => {
+        if (node.machine_id === childId) {
+          node.connectionType = iceServerType;
+        }
+        return node;
+      });
+
+      this.setState({
+        lanPeers: updatedArr,
+      });
+    };
 
     channel.on(
       `web:verification_received_from_child_${masterId}_${childId}`,
