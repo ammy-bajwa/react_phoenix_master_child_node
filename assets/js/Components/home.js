@@ -22,7 +22,9 @@ class Home extends React.Component {
     messagesFromMastersPeers: [],
     messageFromLanPeers: [],
     iceConfigs: [
+      // 0
       { iceServers: [] },
+      // 1
       {
         iceServers: [
           {
@@ -31,16 +33,7 @@ class Home extends React.Component {
           { urls: ["stun:ss-turn1.xirsys.com"] },
         ],
       },
-      {
-        iceServers: [
-          {
-            username: "TuR9Us3r",
-            credential:
-              "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
-            urls: ["turn:avm4962.com:3478", "turn:avm4962.com:5349"],
-          },
-        ],
-      },
+      //2
       {
         iceServers: [
           {
@@ -54,6 +47,7 @@ class Home extends React.Component {
           },
         ],
       },
+      //3
       {
         iceServers: [
           {
@@ -67,6 +61,19 @@ class Home extends React.Component {
           },
         ],
       },
+      // 4
+
+      {
+        iceServers: [
+          {
+            username: "TuR9Us3r",
+            credential:
+              "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
+            urls: ["turn:avm4962.com:3478", "turn:avm4962.com:5349"],
+          },
+        ],
+      },
+      // 5
       {
         iceServers: [
           {
@@ -80,6 +87,7 @@ class Home extends React.Component {
           },
         ],
       },
+      // 6
       {
         iceServers: [
           {
@@ -93,6 +101,7 @@ class Home extends React.Component {
           },
         ],
       },
+      // 7
       {
         iceServers: [
           {
@@ -108,6 +117,7 @@ class Home extends React.Component {
           },
         ],
       },
+      // 8
       {
         iceServers: [
           {
@@ -124,6 +134,7 @@ class Home extends React.Component {
           },
         ],
       },
+      // 9
       {
         iceServers: [
           {
@@ -261,22 +272,22 @@ class Home extends React.Component {
           iceServerType = "ALL_STUN";
           break;
         case 2:
-          iceServerType = "AVM_TLS";
+          iceServerType = "AVM_TURN_UDP_3478_5349";
           break;
         case 3:
-          iceServerType = "AVM_UDP";
+          iceServerType = "AVM_TURN_TCP_3478_5349";
           break;
         case 4:
-          iceServerType = "AVM_TCP";
+          iceServerType = "AVM_TURN_3478_5349";
           break;
         case 5:
-          iceServerType = "AVM_UDP_TCP";
+          iceServerType = "AVM_TURN_UDP:3478_TCP:5349";
           break;
         case 6:
-          iceServerType = "XIRSYS_UDP";
+          iceServerType = "XIRSYS_TURN_UDP_80_3478";
           break;
         case 7:
-          iceServerType = "XIRSYS_TCP";
+          iceServerType = "XIRSYS_TURN_TCP_80_3478_443_5349";
           break;
         case 8:
           iceServerType = "AVM_STUN_TURN";
@@ -1614,11 +1625,11 @@ class Home extends React.Component {
     const style =
       type === "MASTER"
         ? {
-            backgroundColor: "#fdcb74",
-          }
+          backgroundColor: "#fdcb74",
+        }
         : {
-            backgroundColor: "#bce8f1",
-          };
+          backgroundColor: "#bce8f1",
+        };
     return (
       <div style={style}>
         <h1>Version 5</h1>
