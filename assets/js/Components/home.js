@@ -252,7 +252,7 @@ class Home extends React.Component {
     remoteNodeId
   ) => {
     const { ip } = this.state;
-    let iceConfigsControlCounter = 0;
+    let iceConfigsControlCounter = 1;
     let verifyMessage = false;
     let dataChannel = null;
     let peerConnection = await this.peerConnectionCreatorMasterPeers(
@@ -574,7 +574,7 @@ class Home extends React.Component {
     remoteNodeId
   ) => {
     const { iceConfigs, ip } = this.state;
-    let iceConfigsControlCounter = 0;
+    let iceConfigsControlCounter = 1;
     let connection = false;
     let dataChannel = null;
     let isOther = true;
