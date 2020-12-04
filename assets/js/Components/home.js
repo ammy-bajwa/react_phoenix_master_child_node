@@ -710,6 +710,18 @@ class Home extends React.Component {
       if (machine_id === remoteNodeId) {
         console.log("Clearing interval");
         clearInterval(connectionRetry);
+        iceConfigsControlCounter = 0;
+        peerConnection = await this.peerConnectionCreatorMasterPeers(
+          channel,
+          remoteNodeIp,
+          remoteNodeId,
+          iceConfigsControlCounter
+        );
+        channel.push(`web:updated_peer_connection`, {
+          iceConfigsControlCounter,
+          receiver: remoteNodeIp,
+          sender: ip,
+        });
       }
     });
 
