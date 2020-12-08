@@ -1660,12 +1660,58 @@ class Home extends React.Component {
           };
     return (
       <div style={style}>
-        <h1>Version 5</h1>
-        <h1>{type}</h1>
-        <h2>{ip}</h2>
-        <h2>
-          I am {type} - {machineId}
-        </h2>
+        <h1 style={{ color: "#2700ff", fontSize: "25px" }}>
+          {type}__{ip}__{machineId}
+        </h1>
+        <div
+          style={{
+            width: "100%",
+            display: "inline-block",
+            height: "auto",
+            backgroundColor: "green",
+            color: "white",
+          }}
+        >
+          <div
+            style={{
+              width: "50%",
+              display: "inline-block",
+              height: "auto",
+              backgroundColor: "blue",
+            }}
+          >
+            {remoteMasterPeers.length > 0 &&
+              remoteMasterPeers.map((node, i) => (
+                <div
+                  key={i}
+                  style={{
+                    border: "2px solid black",
+                    padding: "3px",
+                    margin: "3px",
+                    display: "inline-block",
+                  }}
+                >
+                  {node.ip} - {node.type} - {node.machine_id} -{" "}
+                  {node.connectionType || "Connecting........."}
+                  <div>
+                    <span>Total Messages</span>
+                    <hr />
+                    <span>0</span>
+                  </div>
+                </div>
+              ))}
+          </div>
+          <div
+            style={{
+              width: "50%",
+              display: "inline-block",
+              height: "auto",
+              backgroundColor: "green",
+            }}
+          >
+            Childs
+          </div>
+        </div>
         {type === "MASTER" && (
           <div>
             <input
