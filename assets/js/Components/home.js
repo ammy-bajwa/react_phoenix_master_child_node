@@ -23,100 +23,100 @@ class Home extends React.Component {
     messageFromLanPeers: [],
     iceConfigs: [
       // 0
-      // { iceServers: [] },
-      // // 1
-      // {
-      //   iceServers: [
-      //     {
-      //       urls: ["stun:avm4962.com:3478", "stun:avm4962.com:5349"],
-      //     },
-      //     { urls: ["stun:ss-turn1.xirsys.com"] },
-      //   ],
-      // },
-      // //2
-      // {
-      //   iceServers: [
-      //     {
-      //       username: "TuR9Us3r",
-      //       credential:
-      //         "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
-      //       urls: [
-      //         "turn:avm4962.com:3478?transport=udp",
-      //         "turn:avm4962.com:5349?transport=udp",
-      //       ],
-      //     },
-      //   ],
-      // },
+      { iceServers: [] },
+      // 1
+      {
+        iceServers: [
+          {
+            urls: ["stun:avm4962.com:3478", "stun:avm4962.com:5349"],
+          },
+          { urls: ["stun:ss-turn1.xirsys.com"] },
+        ],
+      },
+      //2
+      {
+        iceServers: [
+          {
+            username: "TuR9Us3r",
+            credential:
+              "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
+            urls: [
+              "turn:avm4962.com:3478?transport=udp",
+              "turn:avm4962.com:5349?transport=udp",
+            ],
+          },
+        ],
+      },
       //3
-      // {
-      //   iceServers: [
-      //     {
-      //       username: "TuR9Us3r",
-      //       credential:
-      //         "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
-      //       urls: [
-      //         "turn:avm4962.com:3478?transport=tcp",
-      //         "turn:avm4962.com:5349?transport=tcp",
-      //       ],
-      //     },
-      //   ],
-      // },
-      // // 4
+      {
+        iceServers: [
+          {
+            username: "TuR9Us3r",
+            credential:
+              "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
+            urls: [
+              "turn:avm4962.com:3478?transport=tcp",
+              "turn:avm4962.com:5349?transport=tcp",
+            ],
+          },
+        ],
+      },
+      // 4
 
-      // {
-      //   iceServers: [
-      //     {
-      //       username: "TuR9Us3r",
-      //       credential:
-      //         "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
-      //       urls: ["turn:avm4962.com:3478", "turn:avm4962.com:5349"],
-      //     },
-      //   ],
-      // },
-      // // 5
-      // {
-      //   iceServers: [
-      //     {
-      //       username: "TuR9Us3r",
-      //       credential:
-      //         "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
-      //       urls: [
-      //         "turn:avm4962.com:3478?transport=udp",
-      //         "turn:avm4962.com:5349?transport=tcp",
-      //       ],
-      //     },
-      //   ],
-      // },
-      // // 6
-      // {
-      //   iceServers: [
-      //     {
-      //       username:
-      //         "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
-      //       credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
-      //       urls: [
-      //         "turn:ss-turn1.xirsys.com:80?transport=udp",
-      //         "turn:ss-turn1.xirsys.com:3478?transport=udp",
-      //       ],
-      //     },
-      //   ],
-      // },
-      // // 7
-      // {
-      //   iceServers: [
-      //     {
-      //       username:
-      //         "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
-      //       credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
-      //       urls: [
-      //         "turn:ss-turn1.xirsys.com:80?transport=tcp",
-      //         "turn:ss-turn1.xirsys.com:3478?transport=tcp",
-      //         "turns:ss-turn1.xirsys.com:443?transport=tcp",
-      //         "turns:ss-turn1.xirsys.com:5349?transport=tcp",
-      //       ],
-      //     },
-      //   ],
-      // },
+      {
+        iceServers: [
+          {
+            username: "TuR9Us3r",
+            credential:
+              "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
+            urls: ["turn:avm4962.com:3478", "turn:avm4962.com:5349"],
+          },
+        ],
+      },
+      // 5
+      {
+        iceServers: [
+          {
+            username: "TuR9Us3r",
+            credential:
+              "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
+            urls: [
+              "turn:avm4962.com:3478?transport=udp",
+              "turn:avm4962.com:5349?transport=tcp",
+            ],
+          },
+        ],
+      },
+      // 6
+      {
+        iceServers: [
+          {
+            username:
+              "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
+            credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
+            urls: [
+              "turn:ss-turn1.xirsys.com:80?transport=udp",
+              "turn:ss-turn1.xirsys.com:3478?transport=udp",
+            ],
+          },
+        ],
+      },
+      // 7
+      {
+        iceServers: [
+          {
+            username:
+              "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
+            credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
+            urls: [
+              "turn:ss-turn1.xirsys.com:80?transport=tcp",
+              "turn:ss-turn1.xirsys.com:3478?transport=tcp",
+              "turns:ss-turn1.xirsys.com:443?transport=tcp",
+              "turns:ss-turn1.xirsys.com:5349?transport=tcp",
+            ],
+          },
+        ],
+      },
       // 8
       {
         iceServers: [
@@ -402,13 +402,6 @@ class Home extends React.Component {
     channel.on(
       `web:receive_offer_${ip}_${remoteNodeIp}`,
       async ({ offer_for_peer_master, ip: peer_master_id }) => {
-        console.log("iceConfigsControlCounter: ", iceConfigsControlCounter);
-        peerConnection = await this.peerConnectionCreatorMasterPeers(
-          channel,
-          remoteNodeIp,
-          remoteNodeId,
-          iceConfigsControlCounter
-        );
         const parsedMasterOffer = JSON.parse(offer_for_peer_master);
         console.log("NEW MASTER Received Offer : ", remoteNodeIp);
         await peerConnection.setRemoteDescription(
@@ -583,11 +576,9 @@ class Home extends React.Component {
   ) => {
     const { iceConfigs, ip } = this.state;
     let iceConfigsControlCounter = 1;
-    let othePeerIceControlCounter = 1;
-    let tryOthePeerIceControlCounter = 1;
     let connection = false;
     let dataChannel = null;
-    let isOther = false;
+    let isOther = true;
     let peerConnection = await this.peerConnectionCreatorMasterPeers(
       channel,
       remoteNodeIp,
@@ -648,58 +639,35 @@ class Home extends React.Component {
       });
     };
     const connectionRetry = setInterval(async () => {
+      console.log("peerConnection", peerConnection);
+      console.log("connection state", peerConnection.connectionState);
+      console.log("Data channel state", dataChannel.readyState);
       if (dataChannel.readyState !== "open") {
-        console.log("isOther: ", isOther);
-        console.log("iceConfigsControlCounter: ", iceConfigsControlCounter);
-        console.log("othePeerIceControlCounter: ", othePeerIceControlCounter);
-        console.log(
-          "tryOthePeerIceControlCounter: ",
-          tryOthePeerIceControlCounter
-        );
-        // Check remote peer ice control variable
-        // If variable is greater than the iceConfigs.length it means other peers have tried all
-        // If not request from machine a to machine b with all ice servers in machine a
-        if (tryOthePeerIceControlCounter > iceConfigs.length) {
+        if (iceConfigsControlCounter >= iceConfigs.length) {
           console.log("ALL Have Been Tried");
           clearInterval(connectionRetry);
           return;
         }
         if (isOther) {
-          // Updating other remote peer obj
-          if (
-            iceConfigsControlCounter >= iceConfigs.length &&
-            othePeerIceControlCounter <= iceConfigs.length
-          ) {
-            channel.push(`web:updated_peer_connection`, {
-              iceConfigsControlCounter: othePeerIceControlCounter,
-              receiver: remoteNodeIp,
-              sender: ip,
-            });
-            channel.push(`web:try_to_connect_again_remote_master`, {
-              ip: ip,
-              remote_node_ip: remoteNodeIp,
-              ice_config_control_counter: iceConfigsControlCounter,
-            });
-            console.log("OLD MASTER SEND TRY REQUEST");
-            othePeerIceControlCounter = othePeerIceControlCounter + 1;
-            console.log(
-              "Old MASTER othePeerIceControlCounter: ",
-              othePeerIceControlCounter
-            );
-          } else {
-            tryOthePeerIceControlCounter = tryOthePeerIceControlCounter + 1;
-            iceConfigsControlCounter = 1;
-            othePeerIceControlCounter = 1;
-            isOther = false;
-            channel.push(`web:updated_peer_connection`, {
-              iceConfigsControlCounter: tryOthePeerIceControlCounter,
-              receiver: remoteNodeIp,
-              sender: ip,
-            });
-          }
+          channel.push(`web:try_to_connect_again_remote_master`, {
+            ip: ip,
+            remote_node_ip: remoteNodeIp,
+            ice_config_control_counter: iceConfigsControlCounter,
+          });
+          isOther = false;
+          console.log("OLD MASTER SEND TRY REQUEST");
+          console.log(
+            "Old MASTER iceConfigsControlCounter: ",
+            iceConfigsControlCounter
+          );
           return;
         } else {
           iceConfigsControlCounter = iceConfigsControlCounter + 1;
+          channel.push(`web:updated_peer_connection`, {
+            iceConfigsControlCounter,
+            receiver: remoteNodeIp,
+            sender: ip,
+          });
           peerConnection = await this.peerConnectionCreatorMasterPeers(
             channel,
             remoteNodeIp,
@@ -715,9 +683,7 @@ class Home extends React.Component {
             "Old MASTER iceConfigsControlCounter: ",
             iceConfigsControlCounter
           );
-          if (iceConfigsControlCounter >= iceConfigs.length) {
-            isOther = true;
-          }
+          isOther = true;
         }
       } else {
         // verify channel via message
@@ -801,12 +767,6 @@ class Home extends React.Component {
     channel.on(
       `web:receive_offer_${ip}_${remoteNodeIp}`,
       async ({ offer_for_peer_master, ip: peer_master_id }) => {
-        peerConnection = await this.peerConnectionCreatorMasterPeers(
-          channel,
-          remoteNodeIp,
-          remoteNodeId,
-          tryOthePeerIceControlCounter
-        );
         const parsedMasterOffer = JSON.parse(offer_for_peer_master);
         console.log(
           "OLD MASTER Received Offer from NEW MASTER : ",
@@ -1151,7 +1111,7 @@ class Home extends React.Component {
         await setNodeType("MASTER");
         this.newNodeListener(channel);
         this.newMasterNodeListener(channel);
-        this.setupRemotePeerConnections(channel);
+        await this.setupRemotePeerConnections(channel);
         this.removeNodeListener(channel);
         this.removeMasterNodeListener(channel);
         this.updateChildWebRtcArr(channel);
