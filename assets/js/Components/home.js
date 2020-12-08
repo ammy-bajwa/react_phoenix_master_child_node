@@ -281,7 +281,7 @@ class Home extends React.Component {
           iceServerType = "4-AVM_TURN_3478_5349";
           break;
         case 5:
-          iceServerType = "5-AVM_TURN_UDP:3478_TCP:5349";
+          iceServerType = "5-AVM_TURN_:3478_UDP:5349_TCP";
           break;
         case 6:
           iceServerType = "6-XIRSYS_TURN_UDP_80_3478";
@@ -608,7 +608,7 @@ class Home extends React.Component {
           iceServerType = "4-AVM_TURN_3478_5349";
           break;
         case 5:
-          iceServerType = "5-AVM_TURN_UDP:3478_TCP:5349";
+          iceServerType = "5-AVM_TURN_:3478_UDP:5349_TCP";
           break;
         case 6:
           iceServerType = "6-XIRSYS_TURN_UDP_80_3478";
@@ -906,7 +906,7 @@ class Home extends React.Component {
           iceServerType = "4-AVM_TURN_3478_5349";
           break;
         case 5:
-          iceServerType = "5-AVM_TURN_UDP:3478_TCP:5349";
+          iceServerType = "5-AVM_TURN_:3478_UDP:5349_TCP";
           break;
         case 6:
           iceServerType = "6-XIRSYS_TURN_UDP_80_3478";
@@ -1418,7 +1418,7 @@ class Home extends React.Component {
           iceServerType = "4-AVM_TURN_3478_5349";
           break;
         case 5:
-          iceServerType = "5-AVM_TURN_UDP:3478_TCP:5349";
+          iceServerType = "5-AVM_TURN_:3478_UDP:5349_TCP";
           break;
         case 6:
           iceServerType = "6-XIRSYS_TURN_UDP_80_3478";
