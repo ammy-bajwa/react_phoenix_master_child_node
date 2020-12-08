@@ -1151,7 +1151,7 @@ class Home extends React.Component {
         await setNodeType("MASTER");
         this.newNodeListener(channel);
         this.newMasterNodeListener(channel);
-        await this.setupRemotePeerConnections(channel);
+        this.setupRemotePeerConnections(channel);
         this.removeNodeListener(channel);
         this.removeMasterNodeListener(channel);
         this.updateChildWebRtcArr(channel);
