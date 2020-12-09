@@ -1658,6 +1658,20 @@ class Home extends React.Component {
         : {
             backgroundColor: "#bce8f1",
           };
+    const remotePeerContainerStyle = {
+      border: "2px solid white",
+      padding: "3px",
+      margin: "15px 5px",
+      display: "inline-block",
+    };
+
+    const lanPeerContainerStyle = {
+      border: "2px solid black",
+      padding: "3px",
+      margin: "15px 5px",
+      display: "inline-block",
+      color: "black",
+    };
     return (
       <div style={style}>
         <h1 style={{ color: "#2700ff", fontSize: "25px" }}>
@@ -1668,7 +1682,7 @@ class Home extends React.Component {
             width: "100%",
             display: "inline-block",
             height: "auto",
-            backgroundColor: "green",
+            backgroundColor: "383838",
             color: "white",
           }}
         >
@@ -1677,24 +1691,65 @@ class Home extends React.Component {
               width: "50%",
               display: "inline-block",
               height: "auto",
-              backgroundColor: "blue",
+              backgroundColor: "#262626",
             }}
           >
+            <h1 style={{ color: "white", textAlign: "center" }}>
+              Remote Masters
+            </h1>
             {remoteMasterPeers.length > 0 &&
               remoteMasterPeers.map((node, i) => (
                 <div
                   key={i}
-                  style={{
-                    border: "2px solid black",
-                    padding: "3px",
-                    margin: "3px",
-                    display: "inline-block",
-                  }}
+                  style={{ ...remotePeerContainerStyle, borderWidth: "5px" }}
                 >
-                  {node.ip} - {node.type} - {node.machine_id} -{" "}
-                  {node.connectionType || "Connecting........."}
-                  <div>
-                    <span>Total Messages</span>
+                  <div style={remotePeerContainerStyle}>
+                    <span>Ice Server Status</span>
+                    <hr />
+                    <span>{node.connectionType || "Connecting........."}</span>
+                  </div>
+                  <div style={remotePeerContainerStyle}>
+                    <span>IP</span>
+                    <hr />
+                    <span>{node.ip}</span>
+                  </div>
+                  <div style={remotePeerContainerStyle}>
+                    <span>ID</span>
+                    <hr />
+                    <span>{node.machine_id}</span>
+                  </div>
+                  <div style={remotePeerContainerStyle}>
+                    <span>Type</span>
+                    <hr />
+                    <span>{node.type}</span>
+                  </div>
+                  <div style={remotePeerContainerStyle}>
+                    <span>Last Connect Time</span>
+                    <hr />
+                    <span>0</span>
+                  </div>
+                  <div style={remotePeerContainerStyle}>
+                    <span>Last Message Send Time</span>
+                    <hr />
+                    <span>0</span>
+                  </div>
+                  <div style={remotePeerContainerStyle}>
+                    <span>Last Message Receive Time</span>
+                    <hr />
+                    <span>0</span>
+                  </div>
+                  <div style={remotePeerContainerStyle}>
+                    <span>Total Message Send</span>
+                    <hr />
+                    <span>0</span>
+                  </div>
+                  <div style={remotePeerContainerStyle}>
+                    <span>Total Message Receive</span>
+                    <hr />
+                    <span>0</span>
+                  </div>
+                  <div style={remotePeerContainerStyle}>
+                    <span>Total Connection time</span>
                     <hr />
                     <span>0</span>
                   </div>
@@ -1706,10 +1761,68 @@ class Home extends React.Component {
               width: "50%",
               display: "inline-block",
               height: "auto",
-              backgroundColor: "green",
+              backgroundColor: "white",
             }}
           >
-            Childs
+            <h1>Lan Peers</h1>
+            {lanPeers.length > 0 &&
+              lanPeers.map((node, i) => (
+                <div
+                  key={i}
+                  style={{ ...lanPeerContainerStyle, borderWidth: "5px" }}
+                >
+                  <div style={lanPeerContainerStyle}>
+                    <span>Ice Server Status</span>
+                    <hr />
+                    <span>{node.connectionType || "Connecting........."}</span>
+                  </div>
+                  <div style={lanPeerContainerStyle}>
+                    <span>IP</span>
+                    <hr />
+                    <span>{ip}</span>
+                  </div>
+                  <div style={lanPeerContainerStyle}>
+                    <span>ID</span>
+                    <hr />
+                    <span>{node.machine_id}</span>
+                  </div>
+                  <div style={lanPeerContainerStyle}>
+                    <span>Type</span>
+                    <hr />
+                    <span>{node.type}</span>
+                  </div>
+                  <div style={lanPeerContainerStyle}>
+                    <span>Last Connect Time</span>
+                    <hr />
+                    <span>0</span>
+                  </div>
+                  <div style={lanPeerContainerStyle}>
+                    <span>Last Message Send Time</span>
+                    <hr />
+                    <span>0</span>
+                  </div>
+                  <div style={lanPeerContainerStyle}>
+                    <span>Last Message Receive Time</span>
+                    <hr />
+                    <span>0</span>
+                  </div>
+                  <div style={lanPeerContainerStyle}>
+                    <span>Total Message Send</span>
+                    <hr />
+                    <span>0</span>
+                  </div>
+                  <div style={lanPeerContainerStyle}>
+                    <span>Total Message Receive</span>
+                    <hr />
+                    <span>0</span>
+                  </div>
+                  <div style={lanPeerContainerStyle}>
+                    <span>Total Connection time</span>
+                    <hr />
+                    <span>0</span>
+                  </div>
+                </div>
+              ))}
           </div>
         </div>
         {type === "MASTER" && (
@@ -1747,15 +1860,6 @@ class Home extends React.Component {
               ))}
           </div>
         )}
-
-        <h1>Lan Peers</h1>
-        {lanPeers.length > 0 &&
-          lanPeers.map(({ ip, type, machine_id, connectionType }, i) => (
-            <h2 key={i}>
-              {ip} - {type} - {machine_id} -{" "}
-              {connectionType || "Connecting...."}
-            </h2>
-          ))}
 
         {type === "CHILD" && (
           <div>
