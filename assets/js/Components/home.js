@@ -1253,6 +1253,15 @@ class Home extends React.Component {
     return peerConnection;
   };
 
+  hhmmss = (secs) => {
+    var minutes = Math.floor(secs / 60);
+    secs = secs % 60;
+    var hours = Math.floor(minutes / 60);
+    minutes = minutes % 60;
+    return `${hours}:${minutes}:${secs}`;
+    // return pad(hours)+":"+pad(minutes)+":"+pad(secs); for old browsers
+  };
+
   lanPeerCreateDataChannel = (peerConnection, lanPeerId) => {
     const dataChannel = peerConnection.createDataChannel("MyDataChannel");
     let messageInterval = null;
@@ -1284,14 +1293,6 @@ class Home extends React.Component {
       this.setState({
         lanPeersWebRtcConnections: updatedPeers,
       });
-      function hhmmss(secs) {
-        var minutes = Math.floor(secs / 60);
-        secs = secs % 60;
-        var hours = Math.floor(minutes / 60);
-        minutes = minutes % 60;
-        return `${hours}:${minutes}:${secs}`;
-        // return pad(hours)+":"+pad(minutes)+":"+pad(secs); for old browsers
-      }
       let totalSecondTimeCount = 0;
       messageInterval = setInterval(() => {
         dataChannel.send(moment().format("dddd, MMMM Do YYYY, h:mm:ss a"));
@@ -1311,7 +1312,7 @@ class Home extends React.Component {
               "dddd, MMMM Do YYYY, h:mm:ss a"
             );
             totalSecondTimeCount = totalSecondTimeCount + 1;
-            node.totalConnectionTime = hhmmss(totalSecondTimeCount);
+            node.totalConnectionTime = this.hhmmss(totalSecondTimeCount);
           }
           return node;
         });
@@ -1375,14 +1376,6 @@ class Home extends React.Component {
         lanPeersWebRtcConnections
       );
       dataChannel.send("1");
-      function hhmmss(secs) {
-        var minutes = Math.floor(secs / 60);
-        secs = secs % 60;
-        var hours = Math.floor(minutes / 60);
-        minutes = minutes % 60;
-        return `${hours}:${minutes}:${secs}`;
-        // return pad(hours)+":"+pad(minutes)+":"+pad(secs); for old browsers
-      }
       let totalSecondTimeCount = 0;
       messageInterval = setInterval(() => {
         dataChannel.send(moment().format("dddd, MMMM Do YYYY, h:mm:ss a"));
@@ -1399,7 +1392,7 @@ class Home extends React.Component {
               node.totalSendMessageCount = 0;
             }
             totalSecondTimeCount = totalSecondTimeCount + 1;
-            node.totalConnectionTime = hhmmss(totalSecondTimeCount);
+            node.totalConnectionTime = this.hhmmss(totalSecondTimeCount);
             node.lastMessageSendTime = moment().format(
               "dddd, MMMM Do YYYY, h:mm:ss a"
             );
