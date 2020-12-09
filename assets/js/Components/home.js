@@ -321,7 +321,7 @@ class Home extends React.Component {
         console.log("Verification reques received");
         const { messagesFromMastersPeers } = this.state;
         messagesFromMastersPeers.forEach(({ message }) => {
-          if (message === "1") {
+          if (message === remoteNodeId) {
             verifyMessage = true;
             updateConnectionType();
           }
@@ -430,17 +430,12 @@ class Home extends React.Component {
     let messageInterval = null;
     dataChannel.onopen = async () => {
       console.log("Data Channel is open on 548");
-      try {
-        await dataChannel.send(
-          JSON.stringify({ type: "MASTER", message: "1" })
-        );
-      } catch (error) {
-        console.log("Error in sending message 553: ", error);
-      }
       const {
         remoteMasterPeersWebRtcConnections,
         remoteMasterPeers,
+        machineId,
       } = this.state;
+      dataChannel.send(machineId);
       const lanUpdatedPeers = remoteMasterPeers.map((node) => {
         if (node.machine_id === remoteNodeId) {
           node.connectionTime = moment().format(
@@ -540,7 +535,7 @@ class Home extends React.Component {
     let messageInterval = null;
     dataChannel.onopen = async (event) => {
       console.log("Datachannel is open on 589");
-      const { remoteMasterPeers } = this.state;
+      const { remoteMasterPeers, machineId } = this.state;
 
       const updatedPeers = remoteMasterPeers.map((node) => {
         if (node.machine_id === remoteNodeId) {
@@ -553,7 +548,7 @@ class Home extends React.Component {
       this.setState({
         remoteMasterPeers: updatedPeers,
       });
-      dataChannel.send(JSON.stringify({ type: "MASTER", message: "1" }));
+      dataChannel.send(machineId);
       let totalSecondTimeCount = 0;
       messageInterval = setInterval(() => {
         dataChannel.send(moment().format("dddd, MMMM Do YYYY, h:mm:ss a"));
@@ -834,7 +829,7 @@ class Home extends React.Component {
         const { messagesFromMastersPeers } = this.state;
         console.log("messagesFromMastersPeers: ", messagesFromMastersPeers);
         messagesFromMastersPeers.map(({ message }) => {
-          if (message === "1") {
+          if (message === remoteNodeId) {
             console.log("Verified------------");
             connection = true;
           }
