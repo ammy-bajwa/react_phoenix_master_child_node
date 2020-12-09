@@ -9,6 +9,7 @@
   "dependencies": {
     "antd": "^4.3.5",
     "idb": "^5.0.7",
+    "moment": "^2.29.1",
     "phoenix": "file:../deps/phoenix",
     "phoenix_html": "file:../deps/phoenix_html",
     "react": "^16.13.0",

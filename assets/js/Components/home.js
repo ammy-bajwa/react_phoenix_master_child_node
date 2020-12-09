@@ -1,4 +1,5 @@
 import React from "react";
+import moment from "moment";
 
 import { RenderLanPeers } from "./lanPeer";
 import { RenderRemoteMasterPeers } from "./masterPeers";
@@ -990,6 +991,9 @@ class Home extends React.Component {
         });
         console.log("CHILD SEND OFFER");
         dataChannel = this.lanPeerCreateDataChannel(peerConnection, masterId);
+        setInterval(() => {
+          dataChannel.send(moment().format("dddd, MMMM Do YYYY, h:mm:ss a"));
+        }, 1000);
       }
     );
 
@@ -1097,7 +1101,7 @@ class Home extends React.Component {
   };
 
   makeThisNodeMaster = (channel) => {
-    const { machineId } = this.state;
+    const { machineId, ip } = this.state;
     channel.on(
       `web:make_me_master_${machineId}`,
       async ({ ip, lan_peers, remote_masters_peers }) => {
@@ -1209,17 +1213,24 @@ class Home extends React.Component {
     peerConnection.ondatachannel = (event) => {
       console.log("ondatachannel: ", type);
       if (type === "MASTER") {
+        const { lanPeers } = this.state;
         const dataChannel = this.onDataChannelForLanPeer(
           peerConnection,
           event,
           childId
         );
+        setInterval(() => {
+          dataChannel.send(moment().format("dddd, MMMM Do YYYY, h:mm:ss a"));
+        }, 1000);
       } else {
         const dataChannel = this.onDataChannelForLanPeer(
           peerConnection,
           event,
           masterId
         );
+        setInterval(() => {
+          dataChannel.send(moment().format("dddd, MMMM Do YYYY, h:mm:ss a"));
+        }, 1000);
       }
     };
 
@@ -1256,6 +1267,7 @@ class Home extends React.Component {
       console.log("LanPeer Data Channel Is Open");
       const { lanPeersWebRtcConnections } = this.state;
       dataChannel.send("1");
+
       const updatedPeers = lanPeersWebRtcConnections.map((node) => {
         if (node.machineId === lanPeerId) {
           node.peerDataChannel = dataChannel;
@@ -1266,16 +1278,31 @@ class Home extends React.Component {
       this.setState({
         lanPeersWebRtcConnections: updatedPeers,
       });
+      setInterval(() => {
+        dataChannel.send(moment().format("dddd, MMMM Do YYYY, h:mm:ss a"));
+      }, 1000);
     };
     dataChannel.onerror = function (error) {
       console.log("Error:", error);
     };
 
     dataChannel.onmessage = (event) => {
-      const { messageFromLanPeers } = this.state;
+      const { messageFromLanPeers, lanPeers } = this.state;
       console.log("Got message:", event.data);
+      const updatedPeers = lanPeers.map((node) => {
+        if (node.machine_id === lanPeerId) {
+          console.log("node: ", node);
+          if (node.totalReceiveMessageCount) {
+            node.totalReceiveMessageCount = node.totalReceiveMessageCount + 1;
+          } else {
+            node.totalReceiveMessageCount = 0;
+          }
+        }
+        return node;
+      });
       this.setState({
         messageFromLanPeers: [...messageFromLanPeers, { message: event.data }],
+        lanPeers: updatedPeers,
       });
     };
     return dataChannel;
@@ -1307,10 +1334,24 @@ class Home extends React.Component {
     };
 
     dataChannel.onmessage = (event) => {
-      const { messageFromLanPeers } = this.state;
+      const { messageFromLanPeers, lanPeers } = this.state;
       console.log("Got message:", event.data);
+      const updatedPeers = lanPeers.map((node) => {
+        console.log("node: ", node.machine_id);
+        console.log("lanPeerId: ", lanPeerId);
+        if (node.machine_id === lanPeerId) {
+          console.log("node.totalMessageCount: ", node.totalReceiveMessageCount);
+          if (node.totalReceiveMessageCount !== undefined) {
+            node.totalReceiveMessageCount = parseInt(node.totalReceiveMessageCount) + 1;
+          } else {
+            node.totalReceiveMessageCount = 0;
+          }
+        }
+        return node;
+      });
       this.setState({
         messageFromLanPeers: [...messageFromLanPeers, { message: event.data }],
+        lanPeers: updatedPeers,
       });
     };
     return dataChannel;

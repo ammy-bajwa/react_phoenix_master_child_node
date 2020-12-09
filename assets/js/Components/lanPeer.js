@@ -50,14 +50,14 @@ export const RenderLanPeers = ({ lanPeers, ip }) => {
               <span>0</span>
             </div>
             <div style={lanPeerContainerStyle}>
-              <span>Total Message Send</span>
+              <span>Total Messages Send</span>
               <hr />
               <span>0</span>
             </div>
             <div style={lanPeerContainerStyle}>
-              <span>Total Message Receive</span>
+              <span>Total Messages Receive</span>
               <hr />
-              <span>0</span>
+              <span>{node.totalReceiveMessageCount || 0}</span>
             </div>
             <div style={lanPeerContainerStyle}>
               <span>Total Connection time</span>
