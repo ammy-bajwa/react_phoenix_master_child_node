@@ -1041,7 +1041,7 @@ class Home extends React.Component {
         console.log("Verification request received");
         const { messageFromLanPeers } = this.state;
         messageFromLanPeers.forEach(({ message }) => {
-          if (message === "1") {
+          if (message === masterId) {
             verifyMessage = true;
             updateConnectionType();
           }
@@ -1361,8 +1361,8 @@ class Home extends React.Component {
     let messageInterval = null;
     dataChannel.onopen = () => {
       console.log("LanPeer Data Channel Is Open");
-      dataChannel.send("1");
-      const { lanPeersWebRtcConnections, lanPeers } = this.state;
+      const { lanPeersWebRtcConnections, lanPeers, machineId } = this.state;
+      dataChannel.send(machineId);
       const lanUpdatedPeers = lanPeers.map((node) => {
         console.log("node: ", node.machine_id);
         console.log("lanPeerId: ", lanPeerId);
@@ -1451,7 +1451,8 @@ class Home extends React.Component {
     let messageInterval = null;
     console.log("ondatachannel: ", dataChannel);
     dataChannel.onopen = (event) => {
-      const { lanPeersWebRtcConnections, lanPeers } = this.state;
+      const { lanPeersWebRtcConnections, lanPeers, machineId } = this.state;
+      dataChannel.send(machineId);
       const updatedPeers = lanPeers.map((node) => {
         console.log("node: ", node.machine_id);
         console.log("lanPeerId: ", lanPeerId);
@@ -1469,7 +1470,6 @@ class Home extends React.Component {
         "onDataChannelForLanPeer LanPeer Data Channel Is Open",
         lanPeersWebRtcConnections
       );
-      dataChannel.send("1");
       let totalSecondTimeCount = 0;
       messageInterval = setInterval(() => {
         dataChannel.send(moment().format("dddd, MMMM Do YYYY, h:mm:ss a"));
@@ -1685,7 +1685,7 @@ class Home extends React.Component {
         const { messageFromLanPeers } = this.state;
         console.log("messageFromLanPeers: ", messageFromLanPeers);
         messageFromLanPeers.map(({ message }) => {
-          if (message === "1") {
+          if (message === childId) {
             console.log("Verified------------");
             connection = true;
           }
