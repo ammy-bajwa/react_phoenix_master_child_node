@@ -258,7 +258,6 @@ class Home extends React.Component {
     const { ip } = this.state;
     let iceConfigsControlCounter = 1;
     let verifyMessage = false;
-    let dataChannel = null;
     let peerConnection = await this.peerConnectionCreatorMasterPeers(
       channel,
       remoteNodeIp,
@@ -324,7 +323,6 @@ class Home extends React.Component {
         messagesFromMastersPeers.forEach(({ message }) => {
           if (message === "1") {
             verifyMessage = true;
-            dataChannel.send("1");
             updateConnectionType();
           }
         });
@@ -365,10 +363,7 @@ class Home extends React.Component {
           remote_master_ip: remoteNodeIp,
         });
         console.log("MASTER SEND OFFER");
-        dataChannel = this.createDataChannelForMasterPeer(
-          peerConnection,
-          remoteNodeId
-        );
+        this.createDataChannelForMasterPeer(peerConnection, remoteNodeId);
       }
     );
     channel.on(
@@ -432,6 +427,7 @@ class Home extends React.Component {
 
   createDataChannelForMasterPeer = (peerConnection, remoteNodeId) => {
     const dataChannel = peerConnection.createDataChannel("MyDataChannel");
+    let messageInterval = null;
     dataChannel.onopen = async () => {
       console.log("Data Channel is open on 548");
       try {
@@ -441,7 +437,21 @@ class Home extends React.Component {
       } catch (error) {
         console.log("Error in sending message 553: ", error);
       }
-      const { remoteMasterPeersWebRtcConnections } = this.state;
+      const {
+        remoteMasterPeersWebRtcConnections,
+        remoteMasterPeers,
+      } = this.state;
+      const lanUpdatedPeers = remoteMasterPeers.map((node) => {
+        if (node.machine_id === remoteNodeId) {
+          node.connectionTime = moment().format(
+            "dddd, MMMM Do YYYY, h:mm:ss a"
+          );
+        }
+        return node;
+      });
+      this.setState({
+        remoteMasterPeers: lanUpdatedPeers,
+      });
       const updatedArr = remoteMasterPeersWebRtcConnections.map((node) => {
         if (node.machine_id === remoteNodeId) {
           console.log("OLD MASTER Updating datachannel on 559");
@@ -452,13 +462,56 @@ class Home extends React.Component {
       this.setState({
         remoteMasterPeersWebRtcConnections: updatedArr,
       });
+
+      let totalSecondTimeCount = 0;
+      messageInterval = setInterval(() => {
+        dataChannel.send(moment().format("dddd, MMMM Do YYYY, h:mm:ss a"));
+        const { remoteMasterPeers } = this.state;
+        const updatedPeers = remoteMasterPeers.map((node) => {
+          if (node.machine_id === remoteNodeId) {
+            console.log("node.totalMessageCount: ", node.totalSendMessageCount);
+            if (node.totalSendMessageCount !== undefined) {
+              node.totalSendMessageCount =
+                parseInt(node.totalSendMessageCount) + 1;
+            } else {
+              node.totalSendMessageCount = 0;
+            }
+            node.lastMessageSendTime = moment().format(
+              "dddd, MMMM Do YYYY, h:mm:ss a"
+            );
+            totalSecondTimeCount = totalSecondTimeCount + 1;
+            node.totalConnectionTime = this.hhmmss(totalSecondTimeCount);
+          }
+          return node;
+        });
+        this.setState({
+          remoteMasterPeers: updatedPeers,
+        });
+      }, 1000);
     };
     dataChannel.onerror = function (error) {
       console.log("Error: ", error, " 569");
+      clearInterval(messageInterval);
     };
 
     dataChannel.onmessage = (event) => {
-      const { messagesFromMastersPeers } = this.state;
+      const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
+      console.log("Got message:", event.data);
+      const updatedPeers = remoteMasterPeers.map((node) => {
+        if (node.machine_id === remoteNodeId) {
+          console.log("node: ", node);
+          if (node.totalReceiveMessageCount !== undefined) {
+            node.totalReceiveMessageCount =
+              parseInt(node.totalReceiveMessageCount) + 1;
+          } else {
+            node.totalReceiveMessageCount = 0;
+          }
+          node.lastMessageReceiveTime = moment().format(
+            "dddd, MMMM Do YYYY, h:mm:ss a"
+          );
+        }
+        return node;
+      });
       console.log("Got message:", event.data);
       try {
         const parsedMessage = JSON.parse(event.data);
@@ -467,6 +520,7 @@ class Home extends React.Component {
             ...messagesFromMastersPeers,
             { message: parsedMessage.message },
           ],
+          remoteMasterPeers: updatedPeers,
         });
       } catch (error) {
         this.setState({
@@ -474,6 +528,7 @@ class Home extends React.Component {
             ...messagesFromMastersPeers,
             { message: event.data },
           ],
+          remoteMasterPeers: updatedPeers,
         });
       }
     };
@@ -482,15 +537,48 @@ class Home extends React.Component {
 
   onDataChannelForMasterPeer = (event, remoteNodeId) => {
     const dataChannel = event.channel;
+    let messageInterval = null;
     dataChannel.onopen = async (event) => {
       console.log("Datachannel is open on 589");
-      try {
-        await dataChannel.send(
-          JSON.stringify({ type: "MASTER", message: "1" })
-        );
-      } catch (error) {
-        console.log("Error in sending message 595: ", error);
-      }
+      const { remoteMasterPeers } = this.state;
+
+      const updatedPeers = remoteMasterPeers.map((node) => {
+        if (node.machine_id === remoteNodeId) {
+          node.connectionTime = moment().format(
+            "dddd, MMMM Do YYYY, h:mm:ss a"
+          );
+        }
+        return node;
+      });
+      this.setState({
+        remoteMasterPeers: updatedPeers,
+      });
+      dataChannel.send(JSON.stringify({ type: "MASTER", message: "1" }));
+      let totalSecondTimeCount = 0;
+      messageInterval = setInterval(() => {
+        dataChannel.send(moment().format("dddd, MMMM Do YYYY, h:mm:ss a"));
+        const { remoteMasterPeers } = this.state;
+        const remoteUpdatedPeers = remoteMasterPeers.map((node) => {
+          if (node.machine_id === remoteNodeId) {
+            console.log("node.totalMessageCount: ", node.totalSendMessageCount);
+            if (node.totalSendMessageCount !== undefined) {
+              node.totalSendMessageCount =
+                parseInt(node.totalSendMessageCount) + 1;
+            } else {
+              node.totalSendMessageCount = 0;
+            }
+            totalSecondTimeCount = totalSecondTimeCount + 1;
+            node.totalConnectionTime = this.hhmmss(totalSecondTimeCount);
+            node.lastMessageSendTime = moment().format(
+              "dddd, MMMM Do YYYY, h:mm:ss a"
+            );
+          }
+          return node;
+        });
+        this.setState({
+          remoteMasterPeers: remoteUpdatedPeers,
+        });
+      }, 1000);
       const { remoteMasterPeersWebRtcConnections } = this.state;
       const updatedArr = remoteMasterPeersWebRtcConnections.map((node) => {
         if (node.machine_id === remoteNodeId) {
@@ -505,27 +593,38 @@ class Home extends React.Component {
     };
     dataChannel.onerror = (error) => {
       console.log("Error:", error, " 611");
+      clearInterval(messageInterval);
     };
 
     dataChannel.onmessage = (event) => {
-      const { messagesFromMastersPeers } = this.state;
+      const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
       console.log("Got message:", event.data);
-      try {
-        const parsedMessage = JSON.parse(event.data);
-        this.setState({
-          messagesFromMastersPeers: [
-            ...messagesFromMastersPeers,
-            { message: parsedMessage.message },
-          ],
-        });
-      } catch (error) {
-        this.setState({
-          messagesFromMastersPeers: [
-            ...messagesFromMastersPeers,
-            { message: event.data },
-          ],
-        });
-      }
+
+      const updatedPeers = remoteMasterPeers.map((node) => {
+        if (node.machine_id === remoteNodeId) {
+          console.log(
+            "node.totalMessageCount: ",
+            node.totalReceiveMessageCount
+          );
+          if (node.totalReceiveMessageCount !== undefined) {
+            node.totalReceiveMessageCount =
+              parseInt(node.totalReceiveMessageCount) + 1;
+          } else {
+            node.totalReceiveMessageCount = 0;
+          }
+          node.lastMessageReceiveTime = moment().format(
+            "dddd, MMMM Do YYYY, h:mm:ss a"
+          );
+        }
+        return node;
+      });
+      this.setState({
+        messagesFromMastersPeers: [
+          ...messagesFromMastersPeers,
+          { message: event.data },
+        ],
+        remoteMasterPeers: updatedPeers,
+      });
     };
     return dataChannel;
   };

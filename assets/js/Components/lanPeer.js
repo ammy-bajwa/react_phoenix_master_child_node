@@ -62,7 +62,7 @@ export const RenderLanPeers = ({ lanPeers, ip }) => {
             <div style={lanPeerContainerStyle}>
               <span>Total Connection time</span>
               <hr />
-              <span>{node.totalConnectionTime + " Seconds" || 0}</span>
+              <span>{node.totalConnectionTime || 0}</span>
             </div>
           </div>
         ))}

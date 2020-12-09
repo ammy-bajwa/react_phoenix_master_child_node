@@ -42,32 +42,32 @@ export const RenderRemoteMasterPeers = ({ remoteMasterPeers, ip }) => {
             <div style={remotePeerContainerStyle}>
               <span>Last Connect Time</span>
               <hr />
-              <span>0</span>
+              <span>{node.connectionTime || 0}</span>
             </div>
             <div style={remotePeerContainerStyle}>
               <span>Last Message Send Time</span>
               <hr />
-              <span>0</span>
+              <span>{node.lastMessageSendTime || 0}</span>
             </div>
             <div style={remotePeerContainerStyle}>
               <span>Last Message Receive Time</span>
               <hr />
-              <span>0</span>
+              <span>{node.lastMessageReceiveTime || 0}</span>
             </div>
             <div style={remotePeerContainerStyle}>
               <span>Total Message Send</span>
               <hr />
-              <span>0</span>
+              <span>{node.totalSendMessageCount || 0}</span>
             </div>
             <div style={remotePeerContainerStyle}>
               <span>Total Message Receive</span>
               <hr />
-              <span>0</span>
+              <span>{node.totalReceiveMessageCount || 0}</span>
             </div>
             <div style={remotePeerContainerStyle}>
               <span>Total Connection time</span>
               <hr />
-              <span>0</span>
+              <span>{node.totalConnectionTime || 0}</span>
             </div>
           </div>
         ))}
