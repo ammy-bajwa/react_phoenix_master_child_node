@@ -26,6 +26,7 @@ class Home extends React.Component {
     remoteMasterPeers: [],
     remoteMasterPeersWebRtcConnections: [],
     message: "",
+    masterDataChannel: false,
     messagesFromMastersPeers: [],
     messageFromLanPeers: [],
     iceConfigs: [
@@ -324,7 +325,8 @@ class Home extends React.Component {
         console.log("Verification reques received");
         const { messagesFromMastersPeers } = this.state;
         messagesFromMastersPeers.forEach(({ message }) => {
-          if (message === remoteNodeId) {
+          console.log("====================Message---------: ", message);
+          if (message.split("_")[0] === remoteNodeId) {
             verifyMessage = true;
             updateConnectionType();
           }
@@ -437,7 +439,16 @@ class Home extends React.Component {
         remoteMasterPeersWebRtcConnections,
         remoteMasterPeers,
         machineId,
+        masterDataChannel,
       } = this.state;
+      // if (!masterDataChannel) {
+      //   this.setState({
+      //     masterDataChannel: true,
+      //   });
+      // } else {
+      //   dataChannel.close();
+      //   return;
+      // }
       dataChannel.send(machineId);
       const lanUpdatedPeers = remoteMasterPeers.map((node) => {
         if (node.machine_id === remoteNodeId) {
@@ -491,6 +502,7 @@ class Home extends React.Component {
     };
     let verifyCount = 0;
     let totalVerified = 0;
+    let isFirst = true;
     dataChannel.onmessage = (event) => {
       const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
       console.log("Got message:", event.data);
@@ -507,6 +519,8 @@ class Home extends React.Component {
         }
         return node;
       });
+
+      isFirst;
       setTimeout(() => {
         const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
         const filteredMessages = messagesFromMastersPeers.filter(
@@ -580,7 +594,15 @@ class Home extends React.Component {
     let messageInterval = null;
     dataChannel.onopen = async (event) => {
       console.log("Datachannel is open on 589");
-      const { remoteMasterPeers, machineId } = this.state;
+      const { remoteMasterPeers, machineId, masterDataChannel } = this.state;
+      // if (!masterDataChannel) {
+      //   this.setState({
+      //     masterDataChannel: true,
+      //   });
+      // } else {
+      //   dataChannel.close();
+      //   return;
+      // }
       dataChannel.send(machineId);
       const updatedPeers = remoteMasterPeers.map((node) => {
         if (node.machine_id === remoteNodeId) {
@@ -635,7 +657,11 @@ class Home extends React.Component {
     let verifyCount = 0;
     let totalVerified = 0;
     dataChannel.onmessage = (event) => {
-      const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
+      const {
+        messagesFromMastersPeers,
+        remoteMasterPeers,
+        masterDataChannel,
+      } = this.state;
       console.log("Got message:", event.data);
       setTimeout(() => {
         const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
@@ -919,6 +945,7 @@ class Home extends React.Component {
         const { messagesFromMastersPeers } = this.state;
         console.log("messagesFromMastersPeers: ", messagesFromMastersPeers);
         messagesFromMastersPeers.map(({ message }) => {
+          console.log("====================Message---------: ", message);
           if (message.split("_")[0] === remoteNodeId) {
             console.log("Verified------------");
             connection = true;
