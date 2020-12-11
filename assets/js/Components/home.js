@@ -552,8 +552,8 @@ class Home extends React.Component {
               } else {
                 node.totalUnverifiedMessages = 0;
               }
+              node.currentMessage = `${verifyCount}__${remoteNodeId.slice(0, 5)}`;
             }
-            node.currentMessage = `${verifyCount}__${remoteNodeId.slice(0, 5)}`;
             return node;
           });
           this.setState({
@@ -669,9 +669,9 @@ class Home extends React.Component {
               } else {
                 node.totalVerifiedMessages = totalVerified;
               }
+              node.currentMessage = `${verifyCount}__${remoteNodeId.slice(0, 5)}`;
             }
 
-            node.currentMessage = `${verifyCount}__${remoteNodeId.slice(0, 5)}`;
             return node;
           });
           totalVerified++;
