@@ -2,7 +2,6 @@ import React from "react";
 import moment from "moment";
 
 import { RenderLanPeers } from "./lanPeer";
-import { RenderRemoteMasterPeers } from "./masterPeers";
 import { Table } from "./table";
 
 import { getMyIp } from "../utils/index";
