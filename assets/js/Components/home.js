@@ -13,6 +13,8 @@ import {
 } from "../utils/indexedDbUtils";
 import { configureChannel } from "../socket";
 
+const momentFormat = "YYYY/MM/DD__HH:mm:ss";
+
 class Home extends React.Component {
   state = {
     ip: "",
@@ -438,9 +440,7 @@ class Home extends React.Component {
       dataChannel.send(machineId);
       const lanUpdatedPeers = remoteMasterPeers.map((node) => {
         if (node.machine_id === remoteNodeId) {
-          node.connectionTime = moment().format(
-            "dddd, MMMM Do YYYY, h:mm:ss a"
-          );
+          node.connectionTime = moment().format(momentFormat);
         }
         return node;
       });
@@ -460,7 +460,7 @@ class Home extends React.Component {
 
       let totalSecondTimeCount = 0;
       messageInterval = setInterval(() => {
-        dataChannel.send(moment().format("dddd, MMMM Do YYYY, h:mm:ss a"));
+        dataChannel.send(moment().format(momentFormat));
         const { remoteMasterPeers } = this.state;
         const updatedPeers = remoteMasterPeers.map((node) => {
           if (node.machine_id === remoteNodeId) {
@@ -471,9 +471,7 @@ class Home extends React.Component {
             } else {
               node.totalSendMessageCount = 0;
             }
-            node.lastMessageSendTime = moment().format(
-              "dddd, MMMM Do YYYY, h:mm:ss a"
-            );
+            node.lastMessageSendTime = moment().format(momentFormat);
             totalSecondTimeCount = totalSecondTimeCount + 1;
             node.totalConnectionTime = this.hhmmss(totalSecondTimeCount);
           }
@@ -501,9 +499,7 @@ class Home extends React.Component {
           } else {
             node.totalReceiveMessageCount = 0;
           }
-          node.lastMessageReceiveTime = moment().format(
-            "dddd, MMMM Do YYYY, h:mm:ss a"
-          );
+          node.lastMessageReceiveTime = moment().format(momentFormat);
         }
         return node;
       });
@@ -539,9 +535,7 @@ class Home extends React.Component {
 
       const updatedPeers = remoteMasterPeers.map((node) => {
         if (node.machine_id === remoteNodeId) {
-          node.connectionTime = moment().format(
-            "dddd, MMMM Do YYYY, h:mm:ss a"
-          );
+          node.connectionTime = moment().format(momentFormat);
         }
         return node;
       });
@@ -551,7 +545,7 @@ class Home extends React.Component {
       dataChannel.send(machineId);
       let totalSecondTimeCount = 0;
       messageInterval = setInterval(() => {
-        dataChannel.send(moment().format("dddd, MMMM Do YYYY, h:mm:ss a"));
+        dataChannel.send(moment().format(momentFormat));
         const { remoteMasterPeers } = this.state;
         const remoteUpdatedPeers = remoteMasterPeers.map((node) => {
           if (node.machine_id === remoteNodeId) {
@@ -564,9 +558,7 @@ class Home extends React.Component {
             }
             totalSecondTimeCount = totalSecondTimeCount + 1;
             node.totalConnectionTime = this.hhmmss(totalSecondTimeCount);
-            node.lastMessageSendTime = moment().format(
-              "dddd, MMMM Do YYYY, h:mm:ss a"
-            );
+            node.lastMessageSendTime = moment().format(momentFormat);
           }
           return node;
         });
@@ -607,9 +599,7 @@ class Home extends React.Component {
           } else {
             node.totalReceiveMessageCount = 0;
           }
-          node.lastMessageReceiveTime = moment().format(
-            "dddd, MMMM Do YYYY, h:mm:ss a"
-          );
+          node.lastMessageReceiveTime = moment().format(momentFormat);
         }
         return node;
       });
@@ -1367,9 +1357,7 @@ class Home extends React.Component {
         console.log("node: ", node.machine_id);
         console.log("lanPeerId: ", lanPeerId);
         if (node.machine_id === lanPeerId) {
-          node.connectionTime = moment().format(
-            "dddd, MMMM Do YYYY, h:mm:ss a"
-          );
+          node.connectionTime = moment().format(momentFormat);
         }
         return node;
       });
@@ -1389,7 +1377,7 @@ class Home extends React.Component {
       });
       let totalSecondTimeCount = 0;
       messageInterval = setInterval(() => {
-        dataChannel.send(moment().format("dddd, MMMM Do YYYY, h:mm:ss a"));
+        dataChannel.send(moment().format(momentFormat));
         const { lanPeers } = this.state;
         const updatedPeers = lanPeers.map((node) => {
           console.log("node: ", node.machine_id);
@@ -1402,9 +1390,7 @@ class Home extends React.Component {
             } else {
               node.totalSendMessageCount = 0;
             }
-            node.lastMessageSendTime = moment().format(
-              "dddd, MMMM Do YYYY, h:mm:ss a"
-            );
+            node.lastMessageSendTime = moment().format(momentFormat);
             totalSecondTimeCount = totalSecondTimeCount + 1;
             node.totalConnectionTime = this.hhmmss(totalSecondTimeCount);
           }
@@ -1432,9 +1418,7 @@ class Home extends React.Component {
           } else {
             node.totalReceiveMessageCount = 0;
           }
-          node.lastMessageReceiveTime = moment().format(
-            "dddd, MMMM Do YYYY, h:mm:ss a"
-          );
+          node.lastMessageReceiveTime = moment().format(momentFormat);
         }
         return node;
       });
@@ -1457,9 +1441,7 @@ class Home extends React.Component {
         console.log("node: ", node.machine_id);
         console.log("lanPeerId: ", lanPeerId);
         if (node.machine_id === lanPeerId) {
-          node.connectionTime = moment().format(
-            "dddd, MMMM Do YYYY, h:mm:ss a"
-          );
+          node.connectionTime = moment().format(momentFormat);
         }
         return node;
       });
@@ -1472,7 +1454,7 @@ class Home extends React.Component {
       );
       let totalSecondTimeCount = 0;
       messageInterval = setInterval(() => {
-        dataChannel.send(moment().format("dddd, MMMM Do YYYY, h:mm:ss a"));
+        dataChannel.send(moment().format(momentFormat));
         const { lanPeers } = this.state;
         const lanUpdatedPeers = lanPeers.map((node) => {
           console.log("node: ", node.machine_id);
@@ -1487,9 +1469,7 @@ class Home extends React.Component {
             }
             totalSecondTimeCount = totalSecondTimeCount + 1;
             node.totalConnectionTime = this.hhmmss(totalSecondTimeCount);
-            node.lastMessageSendTime = moment().format(
-              "dddd, MMMM Do YYYY, h:mm:ss a"
-            );
+            node.lastMessageSendTime = moment().format(momentFormat);
           }
           return node;
         });
@@ -1529,9 +1509,7 @@ class Home extends React.Component {
           } else {
             node.totalReceiveMessageCount = 0;
           }
-          node.lastMessageReceiveTime = moment().format(
-            "dddd, MMMM Do YYYY, h:mm:ss a"
-          );
+          node.lastMessageReceiveTime = moment().format(momentFormat);
         }
         return node;
       });

@@ -3,7 +3,7 @@ import { TableRow } from "./peer";
 
 export const Table = ({ remotePeers, lanPeers }) => {
   return (
-    <table className="table table-striped table-dark table-bordered">
+    <table className="table table-striped table-dark table-bordered table-hover">
       <thead>
         <tr>
           <th scope="col">Ice Server Status</th>
