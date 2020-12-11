@@ -2,6 +2,7 @@
 
 import "phoenix_html";
 import "antd/dist/antd.css";
+import "./Styles/main.css";
 
 import * as React from "react";
 import * as ReactDOM from "react-dom";

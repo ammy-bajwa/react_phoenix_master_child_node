@@ -2,7 +2,7 @@ import React, { Component } from "react";
 
 export const RenderRemoteMasterPeers = ({ remoteMasterPeers, ip }) => {
   const remotePeerContainerStyle = {
-    border: "2px solid white",
+    // borderBottom: "2px solid white",
     padding: "3px",
     margin: "15px 5px",
     display: "inline-block",

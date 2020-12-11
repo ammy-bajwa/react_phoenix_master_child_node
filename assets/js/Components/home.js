@@ -3,6 +3,7 @@ import moment from "moment";
 
 import { RenderLanPeers } from "./lanPeer";
 import { RenderRemoteMasterPeers } from "./masterPeers";
+import { Table } from "./table";
 
 import { getMyIp } from "../utils/index";
 import {
@@ -1923,28 +1924,11 @@ class Home extends React.Component {
                 color: "white",
               }}
             >
-              <div
-                style={{
-                  width: "50%",
-                  display: "inline-block",
-                  height: "auto",
-                  backgroundColor: "#262626",
-                }}
-              >
-                <RenderRemoteMasterPeers
+              <Table remotePeers={remoteMasterPeers} lanPeers={lanPeers} />
+              {/* <RenderRemoteMasterPeers
                   remoteMasterPeers={remoteMasterPeers}
-                />
-              </div>
-              <div
-                style={{
-                  width: "50%",
-                  display: "inline-block",
-                  height: "auto",
-                  backgroundColor: "white",
-                }}
-              >
-                <RenderLanPeers lanPeers={lanPeers} ip={ip} />
-              </div>
+                /> */}
+              {/* <RenderLanPeers lanPeers={lanPeers} ip={ip} /> */}
             </div>
           </div>
         )}
