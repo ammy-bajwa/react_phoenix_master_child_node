@@ -2042,7 +2042,7 @@ class Home extends React.Component {
     const style =
       type === "MASTER"
         ? {
-            backgroundColor: "rgba(151, 151, 151, 0.9)",
+            backgroundColor: "black",
           }
         : {
             backgroundColor: "white",
@@ -2067,9 +2067,19 @@ class Home extends React.Component {
               placeholder="Send message to child"
               id="masterInputField"
               value={`${type}__${ip}__${machineId}__Hello`}
+              className="form-control"
             />
-            <button onClick={this.handleMessageToChilds}>Send To Child</button>
-            <button onClick={this.handleMessageToMasters} id="sendToMaster">
+            <button
+              className="btn btn-outline-light m-2"
+              onClick={this.handleMessageToChilds}
+            >
+              Send To Child
+            </button>
+            <button
+              className="btn btn-outline-light m-2"
+              onClick={this.handleMessageToMasters}
+              id="sendToMaster"
+            >
               Send To Masters
             </button>
             <hr />
@@ -2093,8 +2103,12 @@ class Home extends React.Component {
               placeholder="Send message to master"
               id="childInputField"
               value={`${type}__${ip}__${machineId}__Hello`}
+              className="form-control"
             />
-            <button onClick={this.handleMessageToLanMaster}>
+            <button
+              className="btn btn-outline-dark m-2"
+              onClick={this.handleMessageToLanMaster}
+            >
               Send To Master
             </button>
             <RenderLanPeers lanPeers={lanPeers} ip={ip} />
