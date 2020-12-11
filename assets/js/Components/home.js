@@ -488,7 +488,8 @@ class Home extends React.Component {
       console.log("Error: ", error, " 569");
       clearInterval(messageInterval);
     };
-
+    let verifyCount = 0;
+    let totalVerified = 0;
     dataChannel.onmessage = (event) => {
       const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
       console.log("Got message:", event.data);
@@ -505,8 +506,6 @@ class Home extends React.Component {
         }
         return node;
       });
-      let verifyCount = 0;
-      let totalVerified = 0;
       setTimeout(() => {
         const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
         const filteredMessages = messagesFromMastersPeers.filter(
@@ -522,6 +521,10 @@ class Home extends React.Component {
               } else {
                 node.totalVerifiedMessages = totalVerified;
               }
+              node.currentMessage = `${verifyCount}__${remoteNodeId.slice(
+                0,
+                5
+              )}`;
             }
             return node;
           });
@@ -540,6 +543,7 @@ class Home extends React.Component {
                 node.totalUnverifiedMessages = 0;
               }
             }
+            node.currentMessage = `${verifyCount}__${remoteNodeId.slice(0, 5)}`;
             return node;
           });
           this.setState({
@@ -651,6 +655,8 @@ class Home extends React.Component {
                 node.totalVerifiedMessages = totalVerified;
               }
             }
+
+            node.currentMessage = `${verifyCount}__${remoteNodeId.slice(0, 5)}`;
             return node;
           });
           totalVerified++;
@@ -667,6 +673,11 @@ class Home extends React.Component {
               } else {
                 node.totalUnverifiedMessages = 0;
               }
+
+              node.currentMessage = `${verifyCount}__${remoteNodeId.slice(
+                0,
+                5
+              )}`;
             }
             return node;
           });
@@ -1273,7 +1284,7 @@ class Home extends React.Component {
     const { machineId, ip } = this.state;
     channel.on(
       `web:make_me_master_${machineId}`,
-      async ({ ip, lan_peers, remote_masters_peers }) => {
+      async ({ ip: currentIp, lan_peers, remote_masters_peers }) => {
         this.setState({
           lanPeers: lan_peers,
           type: "MASTER",
@@ -1518,6 +1529,7 @@ class Home extends React.Component {
               } else {
                 node.totalVerifiedMessages = totalVerified;
               }
+              node.currentMessage = `${verifyCount}__${lanPeerId.slice(0, 5)}`;
             }
             return node;
           });
@@ -1535,6 +1547,8 @@ class Home extends React.Component {
               } else {
                 node.totalUnverifiedMessages = 0;
               }
+
+              node.currentMessage = `${verifyCount}__${lanPeerId.slice(0, 5)}`;
             }
             return node;
           });
@@ -1651,6 +1665,7 @@ class Home extends React.Component {
               } else {
                 node.totalVerifiedMessages = totalVerified;
               }
+              node.currentMessage = `${verifyCount}__${lanPeerId.slice(0, 5)}`;
             }
             return node;
           });
@@ -1668,6 +1683,8 @@ class Home extends React.Component {
               } else {
                 node.totalUnverifiedMessages = 0;
               }
+
+              node.currentMessage = `${verifyCount}__${lanPeerId.slice(0, 5)}`;
             }
             return node;
           });
