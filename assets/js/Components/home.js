@@ -635,8 +635,11 @@ class Home extends React.Component {
       setTimeout(() => {
         const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
         const filteredMessages = messagesFromMastersPeers.filter(
-          ({ message }) => message !== `${remoteNodeId}_${verifyCount}`
+          ({ message }) => message !== `${remoteNodeId}_${verifyCount - 1}`
         );
+        console.log("verifyCount: ", verifyCount);
+        console.log("filteredMessages: ", filteredMessages);
+        console.log("messagesFromMastersPeers: ", messagesFromMastersPeers);
         verifyCount++;
         if (filteredMessages.length !== messagesFromMastersPeers.length) {
           const updatedPeers = remoteMasterPeers.map((node) => {
