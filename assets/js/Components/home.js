@@ -14,6 +14,7 @@ import {
 import { configureChannel } from "../socket";
 
 const momentFormat = "YYYY/MM/DD__HH:mm:ss";
+const messageVerifyTime = 1000;
 
 class Home extends React.Component {
   state = {
@@ -550,7 +551,7 @@ class Home extends React.Component {
             remoteMasterPeers: updatedPeers,
           });
         }
-      }, 500);
+      }, messageVerifyTime);
       console.log("Got message:", event.data);
       try {
         const parsedMessage = JSON.parse(event.data);
@@ -685,7 +686,7 @@ class Home extends React.Component {
             remoteMasterPeers: updatedPeers,
           });
         }
-      }, 500);
+      }, messageVerifyTime);
       const updatedPeers = remoteMasterPeers.map((node) => {
         if (node.machine_id === remoteNodeId) {
           console.log(
@@ -1556,7 +1557,7 @@ class Home extends React.Component {
             lanPeers: updatedPeers,
           });
         }
-      }, 500);
+      }, messageVerifyTime);
       const updatedPeers = lanPeers.map((node) => {
         if (node.machine_id === lanPeerId) {
           console.log("node: ", node);
@@ -1692,7 +1693,7 @@ class Home extends React.Component {
             lanPeers: updatedPeers,
           });
         }
-      }, 500);
+      }, messageVerifyTime);
       const updatedPeers = lanPeers.map((node) => {
         console.log("node: ", node.machine_id);
         console.log("lanPeerId: ", lanPeerId);
