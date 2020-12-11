@@ -64,6 +64,21 @@ export const RenderLanPeers = ({ lanPeers, ip }) => {
               <hr />
               <span>{node.totalConnectionTime || 0}</span>
             </div>
+            <div style={lanPeerContainerStyle}>
+              <span>Current Message</span>
+              <hr />
+              <span>{node.currentMessage || 0}</span>
+            </div>
+            <div style={lanPeerContainerStyle}>
+              <span>Total Verified</span>
+              <hr />
+              <span>{node.totalVerifiedMessages || 0}</span>
+            </div>
+            <div style={lanPeerContainerStyle}>
+              <span>Total Unverified</span>
+              <hr />
+              <span>{node.totalUnverifiedMessages || 0}</span>
+            </div>
           </div>
         ))}
     </div>
