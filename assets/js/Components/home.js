@@ -1918,17 +1918,11 @@ class Home extends React.Component {
             <div
               style={{
                 width: "100%",
-                display: "inline-block",
-                height: "auto",
                 backgroundColor: "#666666",
                 color: "white",
               }}
             >
               <Table remotePeers={remoteMasterPeers} lanPeers={lanPeers} />
-              {/* <RenderRemoteMasterPeers
-                  remoteMasterPeers={remoteMasterPeers}
-                /> */}
-              {/* <RenderLanPeers lanPeers={lanPeers} ip={ip} /> */}
             </div>
           </div>
         )}
