@@ -944,7 +944,7 @@ class Home extends React.Component {
           }, 500);
         }, 500);
       }
-    }, 5000);
+    }, 3000);
 
     channel.on(`web:master_is_removed`, async ({ ip, machine_id }) => {
       if (machine_id === remoteNodeId) {
