@@ -440,7 +440,7 @@ class Home extends React.Component {
           remote_master_ip: remoteNodeIp,
         });
         console.log("MASTER SEND OFFER");
-        this.createDataChannelForMasterPeer(peerConnection, remoteNodeId);
+        // this.createDataChannelForMasterPeer(peerConnection, remoteNodeId);
       }
     );
     channel.on(
