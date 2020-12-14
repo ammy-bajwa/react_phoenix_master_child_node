@@ -14,7 +14,7 @@ import {
 import { configureChannel } from "../socket";
 
 const momentFormat = "YYYY/MM/DD__HH:mm:ss";
-const messageSendTime = 5;
+const messageSendTime = 50;
 const messageVerifyTime = 300;
 const retryTime = 3000;
 
