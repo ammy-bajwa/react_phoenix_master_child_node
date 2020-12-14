@@ -14,8 +14,8 @@ import {
 import { configureChannel } from "../socket";
 
 const momentFormat = "YYYY/MM/DD__HH:mm:ss";
-const messageSendTime = 100;
-const messageVerifyTime = 500;
+const messageSendTime = 50;
+const messageVerifyTime = 100;
 const retryTime = 3000;
 
 class Home extends React.Component {
