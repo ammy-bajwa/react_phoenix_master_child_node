@@ -36,12 +36,23 @@ class Home extends React.Component {
       {
         iceServers: [
           {
-            urls: ["stun:avm4962.com:3478", "stun:avm4962.com:5349"],
+            urls: ["stun:avm4962.com:3478"],
           },
-          { urls: ["stun:ss-turn1.xirsys.com"] },
         ],
       },
       //2
+      {
+        iceServers: [
+          {
+            urls: ["stun:avm4962.com:5349"],
+          },
+        ],
+      },
+      //3
+      {
+        iceServers: [{ urls: ["stun:ss-turn1.xirsys.com"] }],
+      },
+      //4
       {
         iceServers: [
           {
@@ -52,7 +63,7 @@ class Home extends React.Component {
           },
         ],
       },
-      //3
+      //5
       {
         iceServers: [
           {
@@ -63,7 +74,7 @@ class Home extends React.Component {
           },
         ],
       },
-      //4
+      //6
       {
         iceServers: [
           {
@@ -74,7 +85,7 @@ class Home extends React.Component {
           },
         ],
       },
-      //5
+      //7
       {
         iceServers: [
           {
@@ -85,7 +96,7 @@ class Home extends React.Component {
           },
         ],
       },
-      //6
+      //8
       {
         iceServers: [
           {
@@ -96,7 +107,7 @@ class Home extends React.Component {
           },
         ],
       },
-      //7
+      //9
       {
         iceServers: [
           {
@@ -107,7 +118,7 @@ class Home extends React.Component {
           },
         ],
       },
-      // 8
+      //10
       {
         iceServers: [
           {
@@ -121,7 +132,7 @@ class Home extends React.Component {
           },
         ],
       },
-      // 9
+      //11
       {
         iceServers: [
           {
@@ -132,7 +143,7 @@ class Home extends React.Component {
           },
         ],
       },
-      //10
+      //12
       {
         iceServers: [
           {
@@ -143,7 +154,7 @@ class Home extends React.Component {
           },
         ],
       },
-      // 11
+      // 13
       {
         iceServers: [
           {
@@ -154,7 +165,7 @@ class Home extends React.Component {
           },
         ],
       },
-      //12
+      //14
       {
         iceServers: [
           {
@@ -165,7 +176,7 @@ class Home extends React.Component {
           },
         ],
       },
-      //13
+      //15
       {
         iceServers: [
           {
@@ -176,7 +187,7 @@ class Home extends React.Component {
           },
         ],
       },
-      //14
+      //16
       {
         iceServers: [
           {
@@ -187,7 +198,7 @@ class Home extends React.Component {
           },
         ],
       },
-      // 15
+      // 17
       {
         iceServers: [
           {
@@ -204,7 +215,7 @@ class Home extends React.Component {
           },
         ],
       },
-      // 16
+      // 18
       {
         iceServers: [
           {
@@ -321,37 +332,41 @@ class Home extends React.Component {
       case 0:
         return "0-Null_ICE_SERVER";
       case 1:
-        return "1-ALL_STUN";
+        return "1-AVM_STUN_3478";
       case 2:
-        return "2-AVM_TURN_UDP_3478";
+        return "2-AVM_STUN_5349";
       case 3:
-        return "3-AVM_TURN_UDP_5349";
+        return "3-XIRSYS_STUN";
       case 4:
-        return "4-AVM_TURN_TCP_3478";
+        return "4-AVM_TURN_UDP_3478";
       case 5:
-        return "5-AVM_TURN_TCP_5349";
+        return "5-AVM_TURN_UDP_5349";
       case 6:
-        return "6-AVM_TURN_3478";
+        return "6-AVM_TURN_TCP_3478";
       case 7:
-        return "7-AVM_TURN_5349";
+        return "7-AVM_TURN_TCP_5349";
       case 8:
-        return "8-AVM_TURN_:3478_UDP:5349_TCP";
+        return "8-AVM_TURN_3478";
       case 9:
-        return "9-XIRSYS_TURN_UDP_80";
+        return "9-AVM_TURN_5349";
       case 10:
-        return "10-XIRSYS_TURN_UDP_3478";
+        return "10-AVM_TURN_:3478_UDP:5349_TCP";
       case 11:
-        return "11-XIRSYS_TURN_TCP_80";
+        return "11-XIRSYS_TURN_UDP_80";
       case 12:
-        return "12-XIRSYS_TURN_TCP_3478";
+        return "12-XIRSYS_TURN_UDP_3478";
       case 13:
-        return "13-XIRSYS_TURN_TCP_443";
+        return "13-XIRSYS_TURN_TCP_80";
       case 14:
-        return "14-XIRSYS_TURN_TCP_5349";
+        return "14-XIRSYS_TURN_TCP_3478";
       case 15:
-        return "15-AVM_TURN_UDP_3475_TCP_5349";
+        return "15-XIRSYS_TURN_TCP_443";
       case 16:
-        return "16-AVM_XIRSYS_STUN_TURN_UDP_TCP_ALL";
+        return "16-XIRSYS_TURN_TCP_5349";
+      case 17:
+        return "17-AVM_TURN_UDP_3475_TCP_5349";
+      case 18:
+        return "18-AVM_XIRSYS_STUN_TURN_UDP_TCP_ALL";
       default:
         return "None";
     }
