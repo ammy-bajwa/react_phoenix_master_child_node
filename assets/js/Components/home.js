@@ -14,7 +14,9 @@ import {
 import { configureChannel } from "../socket";
 
 const momentFormat = "YYYY/MM/DD__HH:mm:ss";
-const messageVerifyTime = 1500;
+const messageSendTime = 5;
+const messageVerifyTime = 300;
+const retryTime = 3000;
 
 class Home extends React.Component {
   state = {
@@ -520,6 +522,7 @@ class Home extends React.Component {
   createDataChannelForMasterPeer = (peerConnection, remoteNodeId) => {
     const dataChannel = peerConnection.createDataChannel("MyDataChannel");
     let messageInterval = null;
+    let timeInterval = null;
     dataChannel.onopen = async () => {
       console.log("Data Channel is open on 548");
       const {
@@ -548,8 +551,20 @@ class Home extends React.Component {
       this.setState({
         remoteMasterPeersWebRtcConnections: updatedArr,
       });
-
       let totalSecondTimeCount = 0;
+      timeInterval = setInterval(() => {
+        const { remoteMasterPeers } = this.state;
+        const remoteUpdatedPeers = remoteMasterPeers.map((node) => {
+          if (node.machine_id === remoteNodeId) {
+            totalSecondTimeCount = totalSecondTimeCount + 1;
+            node.totalConnectionTime = this.hhmmss(totalSecondTimeCount);
+          }
+          return node;
+        });
+        this.setState({
+          remoteMasterPeers: remoteUpdatedPeers,
+        });
+      }, 1000);
       let verifyCount = 0;
       messageInterval = setInterval(() => {
         dataChannel.send(`${machineId}_${verifyCount}`);
@@ -557,7 +572,6 @@ class Home extends React.Component {
         const { remoteMasterPeers } = this.state;
         const updatedPeers = remoteMasterPeers.map((node) => {
           if (node.machine_id === remoteNodeId) {
-            console.log("node.totalMessageCount: ", node.totalSendMessageCount);
             if (node.totalSendMessageCount !== undefined) {
               node.totalSendMessageCount =
                 parseInt(node.totalSendMessageCount) + 1;
@@ -565,19 +579,18 @@ class Home extends React.Component {
               node.totalSendMessageCount = 0;
             }
             node.lastMessageSendTime = moment().format(momentFormat);
-            totalSecondTimeCount = totalSecondTimeCount + 1;
-            node.totalConnectionTime = this.hhmmss(totalSecondTimeCount);
           }
           return node;
         });
         this.setState({
           remoteMasterPeers: updatedPeers,
         });
-      }, 1000);
+      }, messageSendTime);
     };
     dataChannel.onerror = function (error) {
       console.log("Error: ", error, " 569");
       clearInterval(messageInterval);
+      clearInterval(timeInterval);
     };
     let verifyCount = 0;
     let totalVerified = 0;
@@ -673,6 +686,7 @@ class Home extends React.Component {
   onDataChannelForMasterPeer = (event, remoteNodeId) => {
     const dataChannel = event.channel;
     let messageInterval = null;
+    let timeInterval = null;
     dataChannel.onopen = async (event) => {
       console.log("Datachannel is open on 589");
       const { remoteMasterPeers, machineId, masterDataChannel } = this.state;
@@ -687,23 +701,12 @@ class Home extends React.Component {
         remoteMasterPeers: updatedPeers,
       });
       let totalSecondTimeCount = 0;
-      let verifyCount = 0;
-      messageInterval = setInterval(() => {
-        dataChannel.send(`${machineId}_${verifyCount}`);
-        verifyCount = verifyCount + 1;
+      timeInterval = setInterval(() => {
         const { remoteMasterPeers } = this.state;
         const remoteUpdatedPeers = remoteMasterPeers.map((node) => {
           if (node.machine_id === remoteNodeId) {
-            console.log("node.totalMessageCount: ", node.totalSendMessageCount);
-            if (node.totalSendMessageCount !== undefined) {
-              node.totalSendMessageCount =
-                parseInt(node.totalSendMessageCount) + 1;
-            } else {
-              node.totalSendMessageCount = 0;
-            }
             totalSecondTimeCount = totalSecondTimeCount + 1;
             node.totalConnectionTime = this.hhmmss(totalSecondTimeCount);
-            node.lastMessageSendTime = moment().format(momentFormat);
           }
           return node;
         });
@@ -711,6 +714,27 @@ class Home extends React.Component {
           remoteMasterPeers: remoteUpdatedPeers,
         });
       }, 1000);
+      let verifyCount = 0;
+      messageInterval = setInterval(() => {
+        dataChannel.send(`${machineId}_${verifyCount}`);
+        verifyCount = verifyCount + 1;
+        const { remoteMasterPeers } = this.state;
+        const remoteUpdatedPeers = remoteMasterPeers.map((node) => {
+          if (node.machine_id === remoteNodeId) {
+            if (node.totalSendMessageCount !== undefined) {
+              node.totalSendMessageCount =
+                parseInt(node.totalSendMessageCount) + 1;
+            } else {
+              node.totalSendMessageCount = 0;
+            }
+            node.lastMessageSendTime = moment().format(momentFormat);
+          }
+          return node;
+        });
+        this.setState({
+          remoteMasterPeers: remoteUpdatedPeers,
+        });
+      }, messageSendTime);
       const { remoteMasterPeersWebRtcConnections } = this.state;
       const updatedArr = remoteMasterPeersWebRtcConnections.map((node) => {
         if (node.machine_id === remoteNodeId) {
@@ -724,27 +748,20 @@ class Home extends React.Component {
       });
     };
     dataChannel.onerror = (error) => {
-      console.log("Error:", error, " 611");
+      console.log("Error:", error, " 750");
       clearInterval(messageInterval);
+      clearInterval(timeInterval);
     };
     let verifyCount = 0;
     let totalVerified = 0;
     dataChannel.onmessage = (event) => {
-      const {
-        messagesFromMastersPeers,
-        remoteMasterPeers,
-        masterDataChannel,
-      } = this.state;
-      console.log("Got message:", event.data);
+      const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
       setTimeout(() => {
         const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
         const textToSearch = `${remoteNodeId}_${verifyCount}`;
         const filtered = messagesFromMastersPeers.filter(
           ({ message }) => message === textToSearch
         );
-        console.log("verifyCount: ", verifyCount);
-        console.log("filtered: ", filtered);
-        console.log("messagesFromMastersPeers: ", messagesFromMastersPeers);
         verifyCount++;
         if (filtered.length !== 0) {
           const updatedPeers = remoteMasterPeers.map((node) => {
@@ -791,10 +808,6 @@ class Home extends React.Component {
       }, messageVerifyTime);
       const updatedPeers = remoteMasterPeers.map((node) => {
         if (node.machine_id === remoteNodeId) {
-          console.log(
-            "node.totalMessageCount: ",
-            node.totalReceiveMessageCount
-          );
           if (node.totalReceiveMessageCount !== undefined) {
             node.totalReceiveMessageCount =
               parseInt(node.totalReceiveMessageCount) + 1;
@@ -959,7 +972,7 @@ class Home extends React.Component {
           }, 500);
         }, 500);
       }
-    }, 3000);
+    }, retryTime);
 
     channel.on(`web:master_is_removed`, async ({ ip, machine_id }) => {
       if (machine_id === remoteNodeId) {
@@ -1482,6 +1495,7 @@ class Home extends React.Component {
   lanPeerCreateDataChannel = (peerConnection, lanPeerId) => {
     const dataChannel = peerConnection.createDataChannel("MyDataChannel");
     let messageInterval = null;
+    let timeInterval = null;
     dataChannel.onopen = () => {
       console.log("LanPeer Data Channel Is Open");
       const { lanPeersWebRtcConnections, lanPeers, machineId } = this.state;
@@ -1509,23 +1523,10 @@ class Home extends React.Component {
         lanPeersWebRtcConnections: updatedPeers,
       });
       let totalSecondTimeCount = 0;
-      let verifyCount = 0;
-      messageInterval = setInterval(() => {
-        dataChannel.send(`${machineId}_${verifyCount}`);
-        verifyCount = verifyCount + 1;
+      timeInterval = setInterval(() => {
         const { lanPeers } = this.state;
         const updatedPeers = lanPeers.map((node) => {
-          console.log("node: ", node.machine_id);
-          console.log("lanPeerId: ", lanPeerId);
           if (node.machine_id === lanPeerId) {
-            console.log("node.totalMessageCount: ", node.totalSendMessageCount);
-            if (node.totalSendMessageCount !== undefined) {
-              node.totalSendMessageCount =
-                parseInt(node.totalSendMessageCount) + 1;
-            } else {
-              node.totalSendMessageCount = 0;
-            }
-            node.lastMessageSendTime = moment().format(momentFormat);
             totalSecondTimeCount = totalSecondTimeCount + 1;
             node.totalConnectionTime = this.hhmmss(totalSecondTimeCount);
           }
@@ -1535,10 +1536,34 @@ class Home extends React.Component {
           lanPeers: updatedPeers,
         });
       }, 1000);
+      let verifyCount = 0;
+      messageInterval = setInterval(() => {
+        dataChannel.send(`${machineId}_${verifyCount}`);
+        verifyCount = verifyCount + 1;
+        const { lanPeers } = this.state;
+        const updatedPeers = lanPeers.map((node) => {
+          console.log("node: ", node.machine_id);
+          console.log("lanPeerId: ", lanPeerId);
+          if (node.machine_id === lanPeerId) {
+            if (node.totalSendMessageCount !== undefined) {
+              node.totalSendMessageCount =
+                parseInt(node.totalSendMessageCount) + 1;
+            } else {
+              node.totalSendMessageCount = 0;
+            }
+            node.lastMessageSendTime = moment().format(momentFormat);
+          }
+          return node;
+        });
+        this.setState({
+          lanPeers: updatedPeers,
+        });
+      }, messageSendTime);
     };
     dataChannel.onerror = function (error) {
       console.log("Error:", error);
       clearInterval(messageInterval);
+      clearInterval(timeInterval);
     };
     let verifyCount = 0;
     let totalVerified = 0;
@@ -1550,9 +1575,6 @@ class Home extends React.Component {
         const filteredMessages = messageFromLanPeers.filter(
           ({ message }) => message !== `${lanPeerId}_${verifyCount - 1}`
         );
-        console.log("verifyCount: ", verifyCount);
-        console.log("filteredMessages: ", filteredMessages);
-        console.log("messageFromLanPeers: ", messageFromLanPeers);
         verifyCount++;
         if (filteredMessages.length !== messageFromLanPeers.length) {
           const updatedPeers = lanPeers.map((node) => {
@@ -1615,6 +1637,7 @@ class Home extends React.Component {
   onDataChannelForLanPeer = (peerConnection, event, lanPeerId) => {
     const dataChannel = event.channel;
     let messageInterval = null;
+    let timeInterval = null;
     console.log("ondatachannel: ", dataChannel);
     dataChannel.onopen = (event) => {
       const { lanPeersWebRtcConnections, lanPeers, machineId } = this.state;
@@ -1635,6 +1658,19 @@ class Home extends React.Component {
         lanPeersWebRtcConnections
       );
       let totalSecondTimeCount = 0;
+      timeInterval = setInterval(() => {
+        const { lanPeers } = this.state;
+        const updatedPeers = lanPeers.map((node) => {
+          if (node.machine_id === lanPeerId) {
+            totalSecondTimeCount = totalSecondTimeCount + 1;
+            node.totalConnectionTime = this.hhmmss(totalSecondTimeCount);
+          }
+          return node;
+        });
+        this.setState({
+          lanPeers: updatedPeers,
+        });
+      }, 1000);
       let verifyCount = 0;
       messageInterval = setInterval(() => {
         dataChannel.send(`${machineId}_${verifyCount}`);
@@ -1644,15 +1680,12 @@ class Home extends React.Component {
           console.log("node: ", node.machine_id);
           console.log("lanPeerId: ", lanPeerId);
           if (node.machine_id === lanPeerId) {
-            console.log("node.totalMessageCount: ", node.totalSendMessageCount);
             if (node.totalSendMessageCount !== undefined) {
               node.totalSendMessageCount =
                 parseInt(node.totalSendMessageCount) + 1;
             } else {
               node.totalSendMessageCount = 0;
             }
-            totalSecondTimeCount = totalSecondTimeCount + 1;
-            node.totalConnectionTime = this.hhmmss(totalSecondTimeCount);
             node.lastMessageSendTime = moment().format(momentFormat);
           }
           return node;
@@ -1660,7 +1693,7 @@ class Home extends React.Component {
         this.setState({
           lanPeers: lanUpdatedPeers,
         });
-      }, 1000);
+      }, messageSendTime);
       const lanWebRtcupdatedPeers = lanPeersWebRtcConnections.map((node) => {
         if (node.machine_id === lanPeerId) {
           node.peerDataChannel = dataChannel;
@@ -1675,6 +1708,7 @@ class Home extends React.Component {
     dataChannel.onerror = function (error) {
       console.log("Error:", error);
       clearInterval(messageInterval);
+      clearInterval(timeInterval);
     };
     let totalVerified = 0;
     let verifyCount = 0;
@@ -1686,9 +1720,6 @@ class Home extends React.Component {
         const filteredMessages = messageFromLanPeers.filter(
           ({ message }) => message !== `${lanPeerId}_${verifyCount - 1}`
         );
-        console.log("verifyCount: ", verifyCount);
-        console.log("filteredMessages: ", filteredMessages);
-        console.log("messageFromLanPeers: ", messageFromLanPeers);
         verifyCount++;
         if (filteredMessages.length !== messageFromLanPeers.length) {
           const updatedPeers = lanPeers.map((node) => {
@@ -1731,10 +1762,6 @@ class Home extends React.Component {
         console.log("node: ", node.machine_id);
         console.log("lanPeerId: ", lanPeerId);
         if (node.machine_id === lanPeerId) {
-          console.log(
-            "node.totalMessageCount: ",
-            node.totalReceiveMessageCount
-          );
           if (node.totalReceiveMessageCount !== undefined) {
             node.totalReceiveMessageCount =
               parseInt(node.totalReceiveMessageCount) + 1;
@@ -1837,7 +1864,7 @@ class Home extends React.Component {
           }, 500);
         }, 500);
       }
-    }, 5000);
+    }, retryTime);
 
     const updateConnectionType = () => {
       let iceServerType = this.getIceServerType(iceConfigsControlCounter);
