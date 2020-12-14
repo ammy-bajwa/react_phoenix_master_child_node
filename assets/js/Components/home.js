@@ -1192,7 +1192,7 @@ class Home extends React.Component {
           ip,
         });
         console.log("CHILD SEND OFFER");
-        dataChannel = this.lanPeerCreateDataChannel(peerConnection, masterId);
+        // dataChannel = this.lanPeerCreateDataChannel(peerConnection, masterId);
       }
     );
 
