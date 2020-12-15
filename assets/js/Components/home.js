@@ -1205,6 +1205,7 @@ class Home extends React.Component {
       `web:try_to_connect_child_${childId}`,
       async ({ senderIp, ice_config_control_counter }) => {
         console.log("CHILD RECEIVE TRY REQUEST FROM MASTER");
+        dataChannel = this.lanPeerCreateDataChannel(peerConnection, masterId);
         const offer = await peerConnection.createOffer();
         await peerConnection.setLocalDescription(offer);
         channel.push(`web:send_offer_to_master`, {
@@ -1214,7 +1215,6 @@ class Home extends React.Component {
           ip,
         });
         console.log("CHILD SEND OFFER");
-        // dataChannel = this.lanPeerCreateDataChannel(peerConnection, masterId);
       }
     );
 
@@ -1554,8 +1554,8 @@ class Home extends React.Component {
     };
     dataChannel.onerror = function (error) {
       console.log("Error:", error);
-      clearInterval("Clearing Send Message Interval: ", messageInterval);
-      clearInterval("Clearing Total Time Interval: ", timeInterval);
+      clearInterval(messageInterval);
+      clearInterval(timeInterval);
     };
     let verifyCount = 0;
     let totalVerified = 0;
@@ -1693,8 +1693,8 @@ class Home extends React.Component {
     };
     dataChannel.onerror = function (error) {
       console.log("Error:", error);
-      clearInterval("Clearing Send Message Interval: ", messageInterval);
-      clearInterval("Clearing Total Time Interval: ", timeInterval);
+      clearInterval(messageInterval);
+      clearInterval(timeInterval);
     };
     let totalVerified = 0;
     let verifyCount = 0;
