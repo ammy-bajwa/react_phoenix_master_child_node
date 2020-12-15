@@ -1140,6 +1140,7 @@ class Home extends React.Component {
   ) => {
     const { iceConfigs } = this.state;
     let iceConfigsControlCounter = 0;
+    let datachannel;
     let verifyMessage = false;
     let peerConnection = await this.lanPeerConnectionCreator(
       channel,
