@@ -1,6 +1,9 @@
 Remote Peers
 	offer sender createConnectionForNewMaster
 	offer receiver remotePeerConnectionForMaster
+
+	createDataChannelForMasterPeer
+	onDataChannelForMasterPeer
 	
 Lan Peers
 	offer sender lanPeerConnectionForChildFromMaster

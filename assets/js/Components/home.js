@@ -415,7 +415,6 @@ class Home extends React.Component {
         messagesFromMastersPeers.forEach(({ message }) => {
           if (message.split("_")[0] === remoteNodeId) {
             verifyMessage = true;
-            updateConnectionType();
           }
         });
         console.log("verifyMessage: ", verifyMessage);
@@ -424,6 +423,7 @@ class Home extends React.Component {
             ip,
             remote_master_ip: remoteNodeIp,
           });
+          updateConnectionType();
         }
       }
     );
@@ -527,9 +527,29 @@ class Home extends React.Component {
         remoteMasterPeersWebRtcConnections,
         remoteMasterPeers,
         machineId,
-        masterDataChannel,
       } = this.state;
       dataChannel.send(machineId);
+      let verifyCount = 0;
+      messageInterval = setInterval(() => {
+        dataChannel.send(`${machineId}_${verifyCount}`);
+        verifyCount = verifyCount + 1;
+        const { remoteMasterPeers } = this.state;
+        const updatedPeers = remoteMasterPeers.map((node) => {
+          if (node.machine_id === remoteNodeId) {
+            if (node.totalSendMessageCount !== undefined) {
+              node.totalSendMessageCount =
+                parseInt(node.totalSendMessageCount) + 1;
+            } else {
+              node.totalSendMessageCount = 0;
+            }
+            node.lastMessageSendTime = moment().format(momentFormat);
+          }
+          return node;
+        });
+        this.setState({
+          remoteMasterPeers: updatedPeers,
+        });
+      }, messageSendTime);
       const lanUpdatedPeers = remoteMasterPeers.map((node) => {
         if (node.machine_id === remoteNodeId) {
           node.connectionTime = moment().format(momentFormat);
@@ -563,27 +583,6 @@ class Home extends React.Component {
           remoteMasterPeers: remoteUpdatedPeers,
         });
       }, 1000);
-      let verifyCount = 0;
-      messageInterval = setInterval(() => {
-        dataChannel.send(`${machineId}_${verifyCount}`);
-        verifyCount = verifyCount + 1;
-        const { remoteMasterPeers } = this.state;
-        const updatedPeers = remoteMasterPeers.map((node) => {
-          if (node.machine_id === remoteNodeId) {
-            if (node.totalSendMessageCount !== undefined) {
-              node.totalSendMessageCount =
-                parseInt(node.totalSendMessageCount) + 1;
-            } else {
-              node.totalSendMessageCount = 0;
-            }
-            node.lastMessageSendTime = moment().format(momentFormat);
-          }
-          return node;
-        });
-        this.setState({
-          remoteMasterPeers: updatedPeers,
-        });
-      }, messageSendTime);
     };
     dataChannel.onerror = function (error) {
       console.log("Error: ", error, " 569");
@@ -686,6 +685,27 @@ class Home extends React.Component {
       console.log("Datachannel is open on 682");
       const { remoteMasterPeers, machineId, masterDataChannel } = this.state;
       dataChannel.send(machineId);
+      let verifyCount = 0;
+      messageInterval = setInterval(() => {
+        dataChannel.send(`${machineId}_${verifyCount}`);
+        verifyCount = verifyCount + 1;
+        const { remoteMasterPeers } = this.state;
+        const remoteUpdatedPeers = remoteMasterPeers.map((node) => {
+          if (node.machine_id === remoteNodeId) {
+            if (node.totalSendMessageCount !== undefined) {
+              node.totalSendMessageCount =
+                parseInt(node.totalSendMessageCount) + 1;
+            } else {
+              node.totalSendMessageCount = 0;
+            }
+            node.lastMessageSendTime = moment().format(momentFormat);
+          }
+          return node;
+        });
+        this.setState({
+          remoteMasterPeers: remoteUpdatedPeers,
+        });
+      }, messageSendTime);
       const updatedPeers = remoteMasterPeers.map((node) => {
         if (node.machine_id === remoteNodeId) {
           node.connectionTime = moment().format(momentFormat);
@@ -709,27 +729,6 @@ class Home extends React.Component {
           remoteMasterPeers: remoteUpdatedPeers,
         });
       }, 1000);
-      let verifyCount = 0;
-      messageInterval = setInterval(() => {
-        dataChannel.send(`${machineId}_${verifyCount}`);
-        verifyCount = verifyCount + 1;
-        const { remoteMasterPeers } = this.state;
-        const remoteUpdatedPeers = remoteMasterPeers.map((node) => {
-          if (node.machine_id === remoteNodeId) {
-            if (node.totalSendMessageCount !== undefined) {
-              node.totalSendMessageCount =
-                parseInt(node.totalSendMessageCount) + 1;
-            } else {
-              node.totalSendMessageCount = 0;
-            }
-            node.lastMessageSendTime = moment().format(momentFormat);
-          }
-          return node;
-        });
-        this.setState({
-          remoteMasterPeers: remoteUpdatedPeers,
-        });
-      }, messageSendTime);
       const { remoteMasterPeersWebRtcConnections } = this.state;
       const updatedArr = remoteMasterPeersWebRtcConnections.map((node) => {
         if (node.machine_id === remoteNodeId) {
@@ -963,8 +962,8 @@ class Home extends React.Component {
               console.log("message verification failed");
               peerConnection.close();
             }
-          }, 500);
-        }, 500);
+          }, 1000);
+        }, 50);
       }
     }, retryTime);
 
