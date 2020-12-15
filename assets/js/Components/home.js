@@ -14,9 +14,12 @@ import {
 import { configureChannel } from "../socket";
 
 const momentFormat = "YYYY/MM/DD__HH:mm:ss";
-const messageSendTime = 100;
-const messageVerifyTime = 300;
+const messageSendTime = 400;
+const messageVerifyTime = 1000;
 const retryTime = 3000;
+
+const pingTime = 1000;
+const pongTime = 1000;
 
 class Home extends React.Component {
   state = {
@@ -1495,7 +1498,10 @@ class Home extends React.Component {
   };
 
   lanPeerCreateDataChannel = (peerConnection, lanPeerId) => {
-    const dataChannel = peerConnection.createDataChannel("MyDataChannel");
+    const dataChannel = peerConnection.createDataChannel("MyDataChannel", {
+      ordered: true, // do not guarantee order
+      maxPacketLifeTime: 3000, // in milliseconds
+    });
     let messageInterval = null;
     let timeInterval = null;
     dataChannel.onopen = () => {
@@ -1571,7 +1577,6 @@ class Home extends React.Component {
     let totalVerified = 0;
     dataChannel.onmessage = (event) => {
       const { messageFromLanPeers, lanPeers } = this.state;
-      console.log("Got message:", event.data);
       setTimeout(() => {
         const { messageFromLanPeers, lanPeers } = this.state;
         const filteredMessages = messageFromLanPeers.filter(
@@ -1617,7 +1622,6 @@ class Home extends React.Component {
       }, messageVerifyTime);
       const updatedPeers = lanPeers.map((node) => {
         if (node.machine_id === lanPeerId) {
-          console.log("node: ", node);
           if (node.totalReceiveMessageCount !== undefined) {
             node.totalReceiveMessageCount =
               parseInt(node.totalReceiveMessageCount) + 1;
