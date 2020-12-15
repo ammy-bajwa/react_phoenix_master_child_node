@@ -16,7 +16,7 @@ import { configureChannel } from "../socket";
 const momentFormat = "YYYY/MM/DD__HH:mm:ss";
 const messageSendTime = 400;
 const messageVerifyTime = 1000;
-const retryTime = 3000;
+const retryTime = 5000;
 const dataChannelOptions = {
   ordered: true, // do not guarantee order
   maxPacketLifeTime: 300, // in milliseconds
@@ -1842,7 +1842,7 @@ class Home extends React.Component {
               peerConnection.close();
             }
           }, 500);
-        }, 500);
+        }, 50);
       }
     }, retryTime);
 
