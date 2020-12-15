@@ -36,190 +36,190 @@ class Home extends React.Component {
     messageFromLanPeers: [],
     iceConfigs: [
       // 0
-      // { iceServers: [] },
-      // // 1
-      // {
-      //   iceServers: [
-      //     {
-      //       urls: ["stun:avm4962.com:3478"],
-      //     },
-      //   ],
-      // },
-      // //2
-      // {
-      //   iceServers: [
-      //     {
-      //       urls: ["stun:avm4962.com:5349"],
-      //     },
-      //   ],
-      // },
-      // //3
-      // {
-      //   iceServers: [{ urls: ["stun:ss-turn1.xirsys.com"] }],
-      // },
-      // //4
-      // {
-      //   iceServers: [
-      //     {
-      //       username: "TuR9Us3r",
-      //       credential:
-      //         "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
-      //       urls: ["turn:avm4962.com:3478?transport=udp"],
-      //     },
-      //   ],
-      // },
-      // //5
-      // {
-      //   iceServers: [
-      //     {
-      //       username: "TuR9Us3r",
-      //       credential:
-      //         "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
-      //       urls: ["turn:avm4962.com:5349?transport=udp"],
-      //     },
-      //   ],
-      // },
-      // //6
-      // {
-      //   iceServers: [
-      //     {
-      //       username: "TuR9Us3r",
-      //       credential:
-      //         "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
-      //       urls: ["turn:avm4962.com:3478?transport=tcp"],
-      //     },
-      //   ],
-      // },
-      // //7
-      // {
-      //   iceServers: [
-      //     {
-      //       username: "TuR9Us3r",
-      //       credential:
-      //         "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
-      //       urls: ["turn:avm4962.com:5349?transport=tcp"],
-      //     },
-      //   ],
-      // },
-      // //8
-      // {
-      //   iceServers: [
-      //     {
-      //       username: "TuR9Us3r",
-      //       credential:
-      //         "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
-      //       urls: ["turn:avm4962.com:3478"],
-      //     },
-      //   ],
-      // },
-      // //9
-      // {
-      //   iceServers: [
-      //     {
-      //       username: "TuR9Us3r",
-      //       credential:
-      //         "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
-      //       urls: ["turn:avm4962.com:5349"],
-      //     },
-      //   ],
-      // },
-      // //10
-      // {
-      //   iceServers: [
-      //     {
-      //       username: "TuR9Us3r",
-      //       credential:
-      //         "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
-      //       urls: [
-      //         "turn:avm4962.com:3478?transport=udp",
-      //         "turn:avm4962.com:5349?transport=tcp",
-      //       ],
-      //     },
-      //   ],
-      // },
-      // //11
-      // {
-      //   iceServers: [
-      //     {
-      //       username:
-      //         "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
-      //       credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
-      //       urls: ["turn:ss-turn1.xirsys.com:80?transport=udp"],
-      //     },
-      //   ],
-      // },
-      // //12
-      // {
-      //   iceServers: [
-      //     {
-      //       username:
-      //         "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
-      //       credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
-      //       urls: ["turn:ss-turn1.xirsys.com:3478?transport=udp"],
-      //     },
-      //   ],
-      // },
-      // // 13
-      // {
-      //   iceServers: [
-      //     {
-      //       username:
-      //         "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
-      //       credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
-      //       urls: ["turn:ss-turn1.xirsys.com:80?transport=tcp"],
-      //     },
-      //   ],
-      // },
-      // //14
-      // {
-      //   iceServers: [
-      //     {
-      //       username:
-      //         "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
-      //       credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
-      //       urls: ["turn:ss-turn1.xirsys.com:3478?transport=tcp"],
-      //     },
-      //   ],
-      // },
-      // //15
-      // {
-      //   iceServers: [
-      //     {
-      //       username:
-      //         "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
-      //       credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
-      //       urls: ["turns:ss-turn1.xirsys.com:443?transport=tcp"],
-      //     },
-      //   ],
-      // },
-      // //16
-      // {
-      //   iceServers: [
-      //     {
-      //       username:
-      //         "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
-      //       credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
-      //       urls: ["turns:ss-turn1.xirsys.com:5349?transport=tcp"],
-      //     },
-      //   ],
-      // },
-      // // 17
-      // {
-      //   iceServers: [
-      //     {
-      //       urls: ["stun:avm4962.com:3478", "stun:avm4962.com:5349"],
-      //     },
-      //     {
-      //       username: "TuR9Us3r",
-      //       credential:
-      //         "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
-      //       urls: [
-      //         "turn:avm4962.com:3478?transport=udp",
-      //         "turn:avm4962.com:5349?transport=tcp",
-      //       ],
-      //     },
-      //   ],
-      // },
+      { iceServers: [] },
+      // 1
+      {
+        iceServers: [
+          {
+            urls: ["stun:avm4962.com:3478"],
+          },
+        ],
+      },
+      //2
+      {
+        iceServers: [
+          {
+            urls: ["stun:avm4962.com:5349"],
+          },
+        ],
+      },
+      //3
+      {
+        iceServers: [{ urls: ["stun:ss-turn1.xirsys.com"] }],
+      },
+      //4
+      {
+        iceServers: [
+          {
+            username: "TuR9Us3r",
+            credential:
+              "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
+            urls: ["turn:avm4962.com:3478?transport=udp"],
+          },
+        ],
+      },
+      //5
+      {
+        iceServers: [
+          {
+            username: "TuR9Us3r",
+            credential:
+              "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
+            urls: ["turn:avm4962.com:5349?transport=udp"],
+          },
+        ],
+      },
+      //6
+      {
+        iceServers: [
+          {
+            username: "TuR9Us3r",
+            credential:
+              "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
+            urls: ["turn:avm4962.com:3478?transport=tcp"],
+          },
+        ],
+      },
+      //7
+      {
+        iceServers: [
+          {
+            username: "TuR9Us3r",
+            credential:
+              "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
+            urls: ["turn:avm4962.com:5349?transport=tcp"],
+          },
+        ],
+      },
+      //8
+      {
+        iceServers: [
+          {
+            username: "TuR9Us3r",
+            credential:
+              "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
+            urls: ["turn:avm4962.com:3478"],
+          },
+        ],
+      },
+      //9
+      {
+        iceServers: [
+          {
+            username: "TuR9Us3r",
+            credential:
+              "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
+            urls: ["turn:avm4962.com:5349"],
+          },
+        ],
+      },
+      //10
+      {
+        iceServers: [
+          {
+            username: "TuR9Us3r",
+            credential:
+              "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
+            urls: [
+              "turn:avm4962.com:3478?transport=udp",
+              "turn:avm4962.com:5349?transport=tcp",
+            ],
+          },
+        ],
+      },
+      //11
+      {
+        iceServers: [
+          {
+            username:
+              "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
+            credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
+            urls: ["turn:ss-turn1.xirsys.com:80?transport=udp"],
+          },
+        ],
+      },
+      //12
+      {
+        iceServers: [
+          {
+            username:
+              "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
+            credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
+            urls: ["turn:ss-turn1.xirsys.com:3478?transport=udp"],
+          },
+        ],
+      },
+      // 13
+      {
+        iceServers: [
+          {
+            username:
+              "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
+            credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
+            urls: ["turn:ss-turn1.xirsys.com:80?transport=tcp"],
+          },
+        ],
+      },
+      //14
+      {
+        iceServers: [
+          {
+            username:
+              "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
+            credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
+            urls: ["turn:ss-turn1.xirsys.com:3478?transport=tcp"],
+          },
+        ],
+      },
+      //15
+      {
+        iceServers: [
+          {
+            username:
+              "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
+            credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
+            urls: ["turns:ss-turn1.xirsys.com:443?transport=tcp"],
+          },
+        ],
+      },
+      //16
+      {
+        iceServers: [
+          {
+            username:
+              "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
+            credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
+            urls: ["turns:ss-turn1.xirsys.com:5349?transport=tcp"],
+          },
+        ],
+      },
+      // 17
+      {
+        iceServers: [
+          {
+            urls: ["stun:avm4962.com:3478", "stun:avm4962.com:5349"],
+          },
+          {
+            username: "TuR9Us3r",
+            credential:
+              "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
+            urls: [
+              "turn:avm4962.com:3478?transport=udp",
+              "turn:avm4962.com:5349?transport=tcp",
+            ],
+          },
+        ],
+      },
       // 18
       {
         iceServers: [
