@@ -16,7 +16,7 @@ import { configureChannel } from "../socket";
 const momentFormat = "YYYY/MM/DD__HH:mm:ss";
 const messageSendTime = 400;
 const messageVerifyTime = 1000;
-const retryTime = 5000;
+const retryTime = 4000;
 const dataChannelOptions = {
   ordered: true, // do not guarantee order
   maxPacketLifeTime: 300, // in milliseconds
@@ -1140,7 +1140,6 @@ class Home extends React.Component {
   ) => {
     const { iceConfigs } = this.state;
     let iceConfigsControlCounter = 0;
-    let dataChannel;
     let verifyMessage = false;
     let peerConnection = await this.lanPeerConnectionCreator(
       channel,
@@ -1173,7 +1172,6 @@ class Home extends React.Component {
         messageFromLanPeers.forEach(({ message }) => {
           if (message === masterId) {
             verifyMessage = true;
-            updateConnectionType();
           }
         });
         console.log("verifyMessage: ", verifyMessage);
@@ -1182,6 +1180,7 @@ class Home extends React.Component {
             child_id: childId,
             master_id: masterId,
           });
+          updateConnectionType();
         }
       }
     );
@@ -1841,7 +1840,7 @@ class Home extends React.Component {
               console.log("message verification failed");
               peerConnection.close();
             }
-          }, 500);
+          }, 1000);
         }, 50);
       }
     }, retryTime);
@@ -1866,6 +1865,7 @@ class Home extends React.Component {
       ({ ip: currentIp, remote_master_ip }) => {
         const { messageFromLanPeers } = this.state;
         console.log("Verifying child message: ", messageFromLanPeers);
+        console.log("childId: ", childId);
         messageFromLanPeers.map(({ message }) => {
           if (message === childId) {
             console.log("Verified------------");
