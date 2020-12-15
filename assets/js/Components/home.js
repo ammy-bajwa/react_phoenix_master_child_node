@@ -1205,7 +1205,7 @@ class Home extends React.Component {
       `web:try_to_connect_child_${childId}`,
       async ({ senderIp, ice_config_control_counter }) => {
         console.log("CHILD RECEIVE TRY REQUEST FROM MASTER");
-        dataChannel = this.lanPeerCreateDataChannel(peerConnection, masterId);
+        // dataChannel = this.lanPeerCreateDataChannel(peerConnection, masterId);
         const offer = await peerConnection.createOffer();
         await peerConnection.setLocalDescription(offer);
         channel.push(`web:send_offer_to_master`, {
