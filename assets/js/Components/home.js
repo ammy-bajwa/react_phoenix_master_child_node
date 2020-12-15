@@ -1865,6 +1865,7 @@ class Home extends React.Component {
       `web:verification_received_from_child_${masterId}_${childId}`,
       ({ ip: currentIp, remote_master_ip }) => {
         const { messageFromLanPeers } = this.state;
+        console.log("Verifying child message: ", messageFromLanPeers);
         messageFromLanPeers.map(({ message }) => {
           if (message === childId) {
             console.log("Verified------------");
