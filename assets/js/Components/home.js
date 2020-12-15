@@ -275,17 +275,9 @@ class Home extends React.Component {
           alert("Already a connection is established in other tab");
           return;
         }
-        console.log(
-          "remote_masters_peers on before filter: ",
-          remote_masters_peers
-        );
         if (remote_masters_peers) {
           const updatedRemoteMasterPeers = remote_masters_peers.filter(
             (node) => node !== null
-          );
-          console.log(
-            "remote_masters_peers on creation: ",
-            updatedRemoteMasterPeers
           );
           this.setState({
             remoteMasterPeers: updatedRemoteMasterPeers,
@@ -410,13 +402,12 @@ class Home extends React.Component {
     channel.on(
       `web:verify_message_${ip}_${remoteNodeIp}`,
       ({ ip, remote_master_ip }) => {
-        console.log("Verification reques received");
+        console.log("Verification request received");
         const { messagesFromMastersPeers } = this.state;
         console.log(
           "====================messagesFromMastersPeers---------: ",
           messagesFromMastersPeers
         );
-        console.log("remoteNodeId: ", remoteNodeId);
         messagesFromMastersPeers.forEach(({ message }) => {
           if (message.split("_")[0] === remoteNodeId) {
             verifyMessage = true;
@@ -527,7 +518,7 @@ class Home extends React.Component {
     let messageInterval = null;
     let timeInterval = null;
     dataChannel.onopen = async () => {
-      console.log("Data Channel is open on 548");
+      console.log("Data Channel is open on 521");
       const {
         remoteMasterPeersWebRtcConnections,
         remoteMasterPeers,
@@ -599,10 +590,8 @@ class Home extends React.Component {
     let totalVerified = 0;
     dataChannel.onmessage = (event) => {
       const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
-      console.log("Got message:", event.data);
       const updatedPeers = remoteMasterPeers.map((node) => {
         if (node.machine_id === remoteNodeId) {
-          console.log("node: ", node);
           if (node.totalReceiveMessageCount !== undefined) {
             node.totalReceiveMessageCount =
               parseInt(node.totalReceiveMessageCount) + 1;
@@ -663,7 +652,6 @@ class Home extends React.Component {
           });
         }
       }, messageVerifyTime);
-      console.log("Got message:", event.data);
       try {
         const parsedMessage = JSON.parse(event.data);
         this.setState({
@@ -691,7 +679,7 @@ class Home extends React.Component {
     let messageInterval = null;
     let timeInterval = null;
     dataChannel.onopen = async (event) => {
-      console.log("Datachannel is open on 589");
+      console.log("Datachannel is open on 682");
       const { remoteMasterPeers, machineId, masterDataChannel } = this.state;
       dataChannel.send(machineId);
       const updatedPeers = remoteMasterPeers.map((node) => {
@@ -912,9 +900,6 @@ class Home extends React.Component {
       });
     };
     const connectionRetry = setInterval(async () => {
-      console.log("peerConnection", peerConnection);
-      console.log("connection state", peerConnection.connectionState);
-      console.log("Data channel state", dataChannel.readyState);
       if (dataChannel.readyState !== "open") {
         if (iceConfigsControlCounter >= iceConfigs.length) {
           console.log("ALL Have Been Tried");
@@ -1444,7 +1429,6 @@ class Home extends React.Component {
     };
 
     peerConnection.ondatachannel = (event) => {
-      console.log("ondatachannel: ", type);
       if (type === "MASTER") {
         const { lanPeers } = this.state;
         const dataChannel = this.onDataChannelForLanPeer(
@@ -1509,8 +1493,6 @@ class Home extends React.Component {
       const { lanPeersWebRtcConnections, lanPeers, machineId } = this.state;
       dataChannel.send(machineId);
       const lanUpdatedPeers = lanPeers.map((node) => {
-        console.log("node: ", node.machine_id);
-        console.log("lanPeerId: ", lanPeerId);
         if (node.machine_id === lanPeerId) {
           node.connectionTime = moment().format(momentFormat);
         }
@@ -1550,8 +1532,6 @@ class Home extends React.Component {
         verifyCount = verifyCount + 1;
         const { lanPeers } = this.state;
         const updatedPeers = lanPeers.map((node) => {
-          console.log("node: ", node.machine_id);
-          console.log("lanPeerId: ", lanPeerId);
           if (node.machine_id === lanPeerId) {
             if (node.totalSendMessageCount !== undefined) {
               node.totalSendMessageCount =
@@ -1649,8 +1629,6 @@ class Home extends React.Component {
       const { lanPeersWebRtcConnections, lanPeers, machineId } = this.state;
       dataChannel.send(machineId);
       const updatedPeers = lanPeers.map((node) => {
-        console.log("node: ", node.machine_id);
-        console.log("lanPeerId: ", lanPeerId);
         if (node.machine_id === lanPeerId) {
           node.connectionTime = moment().format(momentFormat);
         }
@@ -1683,8 +1661,6 @@ class Home extends React.Component {
         verifyCount = verifyCount + 1;
         const { lanPeers } = this.state;
         const lanUpdatedPeers = lanPeers.map((node) => {
-          console.log("node: ", node.machine_id);
-          console.log("lanPeerId: ", lanPeerId);
           if (node.machine_id === lanPeerId) {
             if (node.totalSendMessageCount !== undefined) {
               node.totalSendMessageCount =
@@ -1720,7 +1696,6 @@ class Home extends React.Component {
     let verifyCount = 0;
     dataChannel.onmessage = (event) => {
       const { messageFromLanPeers, lanPeers } = this.state;
-      console.log("Got message:", event.data);
       setTimeout(() => {
         const { messageFromLanPeers, lanPeers } = this.state;
         const filteredMessages = messageFromLanPeers.filter(
@@ -1765,8 +1740,6 @@ class Home extends React.Component {
         }
       }, messageVerifyTime);
       const updatedPeers = lanPeers.map((node) => {
-        console.log("node: ", node.machine_id);
-        console.log("lanPeerId: ", lanPeerId);
         if (node.machine_id === lanPeerId) {
           if (node.totalReceiveMessageCount !== undefined) {
             node.totalReceiveMessageCount =
@@ -1805,9 +1778,6 @@ class Home extends React.Component {
       iceConfigsControlCounter
     );
     const connectionRetry = setInterval(async () => {
-      console.log("peerConnection", peerConnection);
-      console.log("connection state", peerConnection.connectionState);
-      console.log("Data channel state", dataChannel.readyState);
       if (dataChannel.readyState !== "open") {
         if (iceConfigsControlCounter >= iceConfigs.length) {
           console.log("ALL Have Been Tried");
@@ -1891,7 +1861,6 @@ class Home extends React.Component {
       `web:verification_received_from_child_${masterId}_${childId}`,
       ({ ip: currentIp, remote_master_ip }) => {
         const { messageFromLanPeers } = this.state;
-        console.log("messageFromLanPeers: ", messageFromLanPeers);
         messageFromLanPeers.map(({ message }) => {
           if (message === childId) {
             console.log("Verified------------");
@@ -1986,7 +1955,6 @@ class Home extends React.Component {
     };
     dataChannel.onmessage = (event) => {
       const { messageFromLanPeers } = this.state;
-      console.log("Got message:", event.data);
       this.setState({
         messageFromLanPeers: [...messageFromLanPeers, { message: event.data }],
       });
@@ -2061,7 +2029,6 @@ class Home extends React.Component {
       masterNode.peerDataChannel.send(
         JSON.stringify({ message: messageToSend, type: "MASTER" })
       );
-      console.log("masterNode: ", masterNode);
     });
   };
 
@@ -2074,7 +2041,6 @@ class Home extends React.Component {
         messageToSend = message;
       }
       masterNode.peerDataChannel.send(messageToSend);
-      console.log("masterNode: ", masterNode);
     });
   };
   render() {
