@@ -1492,6 +1492,27 @@ class Home extends React.Component {
       console.log("LanPeer Data Channel Is Open");
       const { lanPeersWebRtcConnections, lanPeers, machineId } = this.state;
       dataChannel.send(machineId);
+      let verifyCount = 0;
+      messageInterval = setInterval(() => {
+        dataChannel.send(`${machineId}_${verifyCount}`);
+        verifyCount = verifyCount + 1;
+        const { lanPeers } = this.state;
+        const updatedPeers = lanPeers.map((node) => {
+          if (node.machine_id === lanPeerId) {
+            if (node.totalSendMessageCount !== undefined) {
+              node.totalSendMessageCount =
+                parseInt(node.totalSendMessageCount) + 1;
+            } else {
+              node.totalSendMessageCount = 0;
+            }
+            node.lastMessageSendTime = moment().format(momentFormat);
+          }
+          return node;
+        });
+        this.setState({
+          lanPeers: updatedPeers,
+        });
+      }, messageSendTime);
       const lanUpdatedPeers = lanPeers.map((node) => {
         if (node.machine_id === lanPeerId) {
           node.connectionTime = moment().format(momentFormat);
@@ -1526,37 +1547,32 @@ class Home extends React.Component {
           lanPeers: updatedPeers,
         });
       }, 1000);
-      let verifyCount = 0;
-      messageInterval = setInterval(() => {
-        dataChannel.send(`${machineId}_${verifyCount}`);
-        verifyCount = verifyCount + 1;
-        const { lanPeers } = this.state;
-        const updatedPeers = lanPeers.map((node) => {
-          if (node.machine_id === lanPeerId) {
-            if (node.totalSendMessageCount !== undefined) {
-              node.totalSendMessageCount =
-                parseInt(node.totalSendMessageCount) + 1;
-            } else {
-              node.totalSendMessageCount = 0;
-            }
-            node.lastMessageSendTime = moment().format(momentFormat);
-          }
-          return node;
-        });
-        this.setState({
-          lanPeers: updatedPeers,
-        });
-      }, messageSendTime);
     };
     dataChannel.onerror = function (error) {
       console.log("Error:", error);
-      clearInterval(messageInterval);
-      clearInterval(timeInterval);
+      clearInterval("Clearing Send Message Interval: ", messageInterval);
+      clearInterval("Clearing Total Time Interval: ", timeInterval);
     };
     let verifyCount = 0;
     let totalVerified = 0;
     dataChannel.onmessage = (event) => {
       const { messageFromLanPeers, lanPeers } = this.state;
+      const updatedPeers = lanPeers.map((node) => {
+        if (node.machine_id === lanPeerId) {
+          if (node.totalReceiveMessageCount !== undefined) {
+            node.totalReceiveMessageCount =
+              parseInt(node.totalReceiveMessageCount) + 1;
+          } else {
+            node.totalReceiveMessageCount = 0;
+          }
+          node.lastMessageReceiveTime = moment().format(momentFormat);
+        }
+        return node;
+      });
+      this.setState({
+        messageFromLanPeers: [...messageFromLanPeers, { message: event.data }],
+        lanPeers: updatedPeers,
+      });
       setTimeout(() => {
         const { messageFromLanPeers, lanPeers } = this.state;
         const filteredMessages = messageFromLanPeers.filter(
@@ -1600,22 +1616,6 @@ class Home extends React.Component {
           });
         }
       }, messageVerifyTime);
-      const updatedPeers = lanPeers.map((node) => {
-        if (node.machine_id === lanPeerId) {
-          if (node.totalReceiveMessageCount !== undefined) {
-            node.totalReceiveMessageCount =
-              parseInt(node.totalReceiveMessageCount) + 1;
-          } else {
-            node.totalReceiveMessageCount = 0;
-          }
-          node.lastMessageReceiveTime = moment().format(momentFormat);
-        }
-        return node;
-      });
-      this.setState({
-        messageFromLanPeers: [...messageFromLanPeers, { message: event.data }],
-        lanPeers: updatedPeers,
-      });
     };
     return dataChannel;
   };
@@ -1628,6 +1628,27 @@ class Home extends React.Component {
     dataChannel.onopen = (event) => {
       const { lanPeersWebRtcConnections, lanPeers, machineId } = this.state;
       dataChannel.send(machineId);
+      let verifyCount = 0;
+      messageInterval = setInterval(() => {
+        dataChannel.send(`${machineId}_${verifyCount}`);
+        verifyCount = verifyCount + 1;
+        const { lanPeers } = this.state;
+        const lanUpdatedPeers = lanPeers.map((node) => {
+          if (node.machine_id === lanPeerId) {
+            if (node.totalSendMessageCount !== undefined) {
+              node.totalSendMessageCount =
+                parseInt(node.totalSendMessageCount) + 1;
+            } else {
+              node.totalSendMessageCount = 0;
+            }
+            node.lastMessageSendTime = moment().format(momentFormat);
+          }
+          return node;
+        });
+        this.setState({
+          lanPeers: lanUpdatedPeers,
+        });
+      }, messageSendTime);
       const updatedPeers = lanPeers.map((node) => {
         if (node.machine_id === lanPeerId) {
           node.connectionTime = moment().format(momentFormat);
@@ -1655,27 +1676,6 @@ class Home extends React.Component {
           lanPeers: updatedPeers,
         });
       }, 1000);
-      let verifyCount = 0;
-      messageInterval = setInterval(() => {
-        dataChannel.send(`${machineId}_${verifyCount}`);
-        verifyCount = verifyCount + 1;
-        const { lanPeers } = this.state;
-        const lanUpdatedPeers = lanPeers.map((node) => {
-          if (node.machine_id === lanPeerId) {
-            if (node.totalSendMessageCount !== undefined) {
-              node.totalSendMessageCount =
-                parseInt(node.totalSendMessageCount) + 1;
-            } else {
-              node.totalSendMessageCount = 0;
-            }
-            node.lastMessageSendTime = moment().format(momentFormat);
-          }
-          return node;
-        });
-        this.setState({
-          lanPeers: lanUpdatedPeers,
-        });
-      }, messageSendTime);
       const lanWebRtcupdatedPeers = lanPeersWebRtcConnections.map((node) => {
         if (node.machine_id === lanPeerId) {
           node.peerDataChannel = dataChannel;
@@ -1689,8 +1689,8 @@ class Home extends React.Component {
     };
     dataChannel.onerror = function (error) {
       console.log("Error:", error);
-      clearInterval(messageInterval);
-      clearInterval(timeInterval);
+      clearInterval("Clearing Send Message Interval: ", messageInterval);
+      clearInterval("Clearing Total Time Interval: ", timeInterval);
     };
     let totalVerified = 0;
     let verifyCount = 0;
