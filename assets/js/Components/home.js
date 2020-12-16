@@ -14,16 +14,13 @@ import {
 import { configureChannel } from "../socket";
 
 const momentFormat = "YYYY/MM/DD__HH:mm:ss";
-const messageSendTime = 400;
+const messageSendTime = 500;
 const messageVerifyTime = 1000;
 const retryTime = 4000;
 const dataChannelOptions = {
   ordered: true, // do not guarantee order
   maxPacketLifeTime: 300, // in milliseconds
 };
-
-const pingTime = 1000;
-const pongTime = 1000;
 
 class Home extends React.Component {
   state = {
@@ -518,7 +515,10 @@ class Home extends React.Component {
   };
 
   createDataChannelForMasterPeer = (peerConnection, remoteNodeId) => {
-    const dataChannel = peerConnection.createDataChannel("MyDataChannel");
+    const dataChannel = peerConnection.createDataChannel(
+      "MyDataChannel",
+      dataChannelOptions
+    );
     let messageInterval = null;
     let timeInterval = null;
     dataChannel.onopen = async () => {
@@ -591,6 +591,7 @@ class Home extends React.Component {
     };
     let verifyCount = 0;
     let totalVerified = 0;
+    let isFirst = true;
     dataChannel.onmessage = (event) => {
       const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
       const updatedPeers = remoteMasterPeers.map((node) => {
@@ -606,55 +607,59 @@ class Home extends React.Component {
         return node;
       });
 
-      setTimeout(() => {
-        const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
-        const textToSearch = `${remoteNodeId}_${verifyCount}`;
-        const filteredMessages = messagesFromMastersPeers.filter(
-          ({ message }) => message !== textToSearch
-        );
-        verifyCount++;
-        if (filteredMessages.length !== messagesFromMastersPeers.length) {
-          const updatedPeers = remoteMasterPeers.map((node) => {
-            if (node.machine_id === remoteNodeId) {
-              if (node.totalVerifiedMessages !== undefined) {
-                node.totalVerifiedMessages =
-                  parseInt(node.totalVerifiedMessages) + 1;
-              } else {
-                node.totalVerifiedMessages = totalVerified;
+      setTimeout(
+        () => {
+          const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
+          const textToSearch = `${remoteNodeId}_${verifyCount}`;
+          const filteredMessages = messagesFromMastersPeers.filter(
+            ({ message }) => message !== textToSearch
+          );
+          verifyCount++;
+          if (filteredMessages.length !== messagesFromMastersPeers.length) {
+            const updatedPeers = remoteMasterPeers.map((node) => {
+              if (node.machine_id === remoteNodeId) {
+                if (node.totalVerifiedMessages !== undefined) {
+                  node.totalVerifiedMessages =
+                    parseInt(node.totalVerifiedMessages) + 1;
+                } else {
+                  node.totalVerifiedMessages = totalVerified;
+                }
+                node.currentMessage = `${verifyCount}__${remoteNodeId.slice(
+                  0,
+                  5
+                )}`;
               }
-              node.currentMessage = `${verifyCount}__${remoteNodeId.slice(
-                0,
-                5
-              )}`;
-            }
-            return node;
-          });
-          totalVerified++;
-          this.setState({
-            messagesFromMastersPeers: filteredMessages,
-            remoteMasterPeers: updatedPeers,
-          });
-        } else {
-          const updatedPeers = remoteMasterPeers.map((node) => {
-            if (node.machine_id === remoteNodeId) {
-              if (node.totalUnverifiedMessages !== undefined) {
-                node.totalUnverifiedMessages =
-                  parseInt(node.totalUnverifiedMessages) + 1;
-              } else {
-                node.totalUnverifiedMessages = 0;
+              return node;
+            });
+            totalVerified++;
+            this.setState({
+              messagesFromMastersPeers: filteredMessages,
+              remoteMasterPeers: updatedPeers,
+            });
+          } else {
+            const updatedPeers = remoteMasterPeers.map((node) => {
+              if (node.machine_id === remoteNodeId) {
+                if (node.totalUnverifiedMessages !== undefined) {
+                  node.totalUnverifiedMessages =
+                    parseInt(node.totalUnverifiedMessages) + 1;
+                } else {
+                  node.totalUnverifiedMessages = 0;
+                }
+                node.currentMessage = `${verifyCount}__${remoteNodeId.slice(
+                  0,
+                  5
+                )}`;
               }
-              node.currentMessage = `${verifyCount}__${remoteNodeId.slice(
-                0,
-                5
-              )}`;
-            }
-            return node;
-          });
-          this.setState({
-            remoteMasterPeers: updatedPeers,
-          });
-        }
-      }, messageVerifyTime);
+              return node;
+            });
+            this.setState({
+              remoteMasterPeers: updatedPeers,
+            });
+          }
+        },
+        isFirst ? messageVerifyTime + 500 : messageVerifyTime
+      );
+      isFirst = false;
       try {
         const parsedMessage = JSON.parse(event.data);
         this.setState({
@@ -748,60 +753,65 @@ class Home extends React.Component {
     };
     let verifyCount = 0;
     let totalVerified = 0;
+    let isFirst = true;
     dataChannel.onmessage = (event) => {
       const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
-      setTimeout(() => {
-        const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
+      setTimeout(
+        () => {
+          const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
 
-        const textToSearch = `${remoteNodeId}_${verifyCount}`;
-        const filteredMessages = messagesFromMastersPeers.filter(
-          ({ message }) => message !== textToSearch
-        );
-        verifyCount++;
-        if (filteredMessages.length !== messagesFromMastersPeers.length) {
-          const updatedPeers = remoteMasterPeers.map((node) => {
-            if (node.machine_id === remoteNodeId) {
-              if (node.totalVerifiedMessages !== undefined) {
-                node.totalVerifiedMessages =
-                  parseInt(node.totalVerifiedMessages) + 1;
-              } else {
-                node.totalVerifiedMessages = totalVerified;
-              }
-              node.currentMessage = `${verifyCount}__${remoteNodeId.slice(
-                0,
-                5
-              )}`;
-            }
-
-            return node;
-          });
-          totalVerified++;
-          this.setState({
-            messagesFromMastersPeers: filteredMessages,
-            remoteMasterPeers: updatedPeers,
-          });
-        } else {
-          const updatedPeers = remoteMasterPeers.map((node) => {
-            if (node.machine_id === remoteNodeId) {
-              if (node.totalUnverifiedMessages !== undefined) {
-                node.totalUnverifiedMessages =
-                  parseInt(node.totalUnverifiedMessages) + 1;
-              } else {
-                node.totalUnverifiedMessages = 0;
+          const textToSearch = `${remoteNodeId}_${verifyCount}`;
+          const filteredMessages = messagesFromMastersPeers.filter(
+            ({ message }) => message !== textToSearch
+          );
+          verifyCount++;
+          if (filteredMessages.length !== messagesFromMastersPeers.length) {
+            const updatedPeers = remoteMasterPeers.map((node) => {
+              if (node.machine_id === remoteNodeId) {
+                if (node.totalVerifiedMessages !== undefined) {
+                  node.totalVerifiedMessages =
+                    parseInt(node.totalVerifiedMessages) + 1;
+                } else {
+                  node.totalVerifiedMessages = totalVerified;
+                }
+                node.currentMessage = `${verifyCount}__${remoteNodeId.slice(
+                  0,
+                  5
+                )}`;
               }
 
-              node.currentMessage = `${verifyCount}__${remoteNodeId.slice(
-                0,
-                5
-              )}`;
-            }
-            return node;
-          });
-          this.setState({
-            remoteMasterPeers: updatedPeers,
-          });
-        }
-      }, messageVerifyTime);
+              return node;
+            });
+            totalVerified++;
+            this.setState({
+              messagesFromMastersPeers: filteredMessages,
+              remoteMasterPeers: updatedPeers,
+            });
+          } else {
+            const updatedPeers = remoteMasterPeers.map((node) => {
+              if (node.machine_id === remoteNodeId) {
+                if (node.totalUnverifiedMessages !== undefined) {
+                  node.totalUnverifiedMessages =
+                    parseInt(node.totalUnverifiedMessages) + 1;
+                } else {
+                  node.totalUnverifiedMessages = 0;
+                }
+
+                node.currentMessage = `${verifyCount}__${remoteNodeId.slice(
+                  0,
+                  5
+                )}`;
+              }
+              return node;
+            });
+            this.setState({
+              remoteMasterPeers: updatedPeers,
+            });
+          }
+        },
+        isFirst ? messageVerifyTime + 500 : messageVerifyTime
+      );
+      isFirst = false;
       const updatedPeers = remoteMasterPeers.map((node) => {
         if (node.machine_id === remoteNodeId) {
           if (node.totalReceiveMessageCount !== undefined) {
@@ -1558,6 +1568,7 @@ class Home extends React.Component {
     };
     let verifyCount = 0;
     let totalVerified = 0;
+    let isFirst = true;
     dataChannel.onmessage = (event) => {
       const { messageFromLanPeers, lanPeers } = this.state;
       const updatedPeers = lanPeers.map((node) => {
@@ -1576,49 +1587,59 @@ class Home extends React.Component {
         messageFromLanPeers: [...messageFromLanPeers, { message: event.data }],
         lanPeers: updatedPeers,
       });
-      setTimeout(() => {
-        const { messageFromLanPeers, lanPeers } = this.state;
-        const filteredMessages = messageFromLanPeers.filter(
-          ({ message }) => message !== `${lanPeerId}_${verifyCount - 1}`
-        );
-        verifyCount++;
-        if (filteredMessages.length !== messageFromLanPeers.length) {
-          const updatedPeers = lanPeers.map((node) => {
-            if (node.machine_id === lanPeerId) {
-              if (node.totalVerifiedMessages !== undefined) {
-                node.totalVerifiedMessages =
-                  parseInt(node.totalVerifiedMessages) + 1;
-              } else {
-                node.totalVerifiedMessages = totalVerified;
+      setTimeout(
+        () => {
+          const { messageFromLanPeers, lanPeers } = this.state;
+          const filteredMessages = messageFromLanPeers.filter(
+            ({ message }) => message !== `${lanPeerId}_${verifyCount - 1}`
+          );
+          verifyCount++;
+          if (filteredMessages.length !== messageFromLanPeers.length) {
+            const updatedPeers = lanPeers.map((node) => {
+              if (node.machine_id === lanPeerId) {
+                if (node.totalVerifiedMessages !== undefined) {
+                  node.totalVerifiedMessages =
+                    parseInt(node.totalVerifiedMessages) + 1;
+                } else {
+                  node.totalVerifiedMessages = totalVerified;
+                }
+                node.currentMessage = `${verifyCount}__${lanPeerId.slice(
+                  0,
+                  5
+                )}`;
               }
-              node.currentMessage = `${verifyCount}__${lanPeerId.slice(0, 5)}`;
-            }
-            return node;
-          });
-          totalVerified++;
-          this.setState({
-            messageFromLanPeers: filteredMessages,
-            lanPeers: updatedPeers,
-          });
-        } else {
-          const updatedPeers = lanPeers.map((node) => {
-            if (node.machine_id === lanPeerId) {
-              if (node.totalUnverifiedMessages !== undefined) {
-                node.totalUnverifiedMessages =
-                  parseInt(node.totalUnverifiedMessages) + 1;
-              } else {
-                node.totalUnverifiedMessages = 0;
-              }
+              return node;
+            });
+            totalVerified++;
+            this.setState({
+              messageFromLanPeers: filteredMessages,
+              lanPeers: updatedPeers,
+            });
+          } else {
+            const updatedPeers = lanPeers.map((node) => {
+              if (node.machine_id === lanPeerId) {
+                if (node.totalUnverifiedMessages !== undefined) {
+                  node.totalUnverifiedMessages =
+                    parseInt(node.totalUnverifiedMessages) + 1;
+                } else {
+                  node.totalUnverifiedMessages = 0;
+                }
 
-              node.currentMessage = `${verifyCount}__${lanPeerId.slice(0, 5)}`;
-            }
-            return node;
-          });
-          this.setState({
-            lanPeers: updatedPeers,
-          });
-        }
-      }, messageVerifyTime);
+                node.currentMessage = `${verifyCount}__${lanPeerId.slice(
+                  0,
+                  5
+                )}`;
+              }
+              return node;
+            });
+            this.setState({
+              lanPeers: updatedPeers,
+            });
+          }
+        },
+        isFirst ? messageVerifyTime + 500 : messageVerifyTime
+      );
+      isFirst = false;
     };
     return dataChannel;
   };
@@ -1697,51 +1718,62 @@ class Home extends React.Component {
     };
     let totalVerified = 0;
     let verifyCount = 0;
+    let isFirst = true;
     dataChannel.onmessage = (event) => {
       const { messageFromLanPeers, lanPeers } = this.state;
-      setTimeout(() => {
-        const { messageFromLanPeers, lanPeers } = this.state;
-        const filteredMessages = messageFromLanPeers.filter(
-          ({ message }) => message !== `${lanPeerId}_${verifyCount - 1}`
-        );
-        verifyCount++;
-        if (filteredMessages.length !== messageFromLanPeers.length) {
-          const updatedPeers = lanPeers.map((node) => {
-            if (node.machine_id === lanPeerId) {
-              if (node.totalVerifiedMessages !== undefined) {
-                node.totalVerifiedMessages =
-                  parseInt(node.totalVerifiedMessages) + 1;
-              } else {
-                node.totalVerifiedMessages = totalVerified;
+      setTimeout(
+        () => {
+          const { messageFromLanPeers, lanPeers } = this.state;
+          const filteredMessages = messageFromLanPeers.filter(
+            ({ message }) => message !== `${lanPeerId}_${verifyCount - 1}`
+          );
+          verifyCount++;
+          if (filteredMessages.length !== messageFromLanPeers.length) {
+            const updatedPeers = lanPeers.map((node) => {
+              if (node.machine_id === lanPeerId) {
+                if (node.totalVerifiedMessages !== undefined) {
+                  node.totalVerifiedMessages =
+                    parseInt(node.totalVerifiedMessages) + 1;
+                } else {
+                  node.totalVerifiedMessages = totalVerified;
+                }
+                node.currentMessage = `${verifyCount}__${lanPeerId.slice(
+                  0,
+                  5
+                )}`;
               }
-              node.currentMessage = `${verifyCount}__${lanPeerId.slice(0, 5)}`;
-            }
-            return node;
-          });
-          totalVerified++;
-          this.setState({
-            messageFromLanPeers: filteredMessages,
-            lanPeers: updatedPeers,
-          });
-        } else {
-          const updatedPeers = lanPeers.map((node) => {
-            if (node.machine_id === lanPeerId) {
-              if (node.totalUnverifiedMessages !== undefined) {
-                node.totalUnverifiedMessages =
-                  parseInt(node.totalUnverifiedMessages) + 1;
-              } else {
-                node.totalUnverifiedMessages = 0;
-              }
+              return node;
+            });
+            totalVerified++;
+            this.setState({
+              messageFromLanPeers: filteredMessages,
+              lanPeers: updatedPeers,
+            });
+          } else {
+            const updatedPeers = lanPeers.map((node) => {
+              if (node.machine_id === lanPeerId) {
+                if (node.totalUnverifiedMessages !== undefined) {
+                  node.totalUnverifiedMessages =
+                    parseInt(node.totalUnverifiedMessages) + 1;
+                } else {
+                  node.totalUnverifiedMessages = 0;
+                }
 
-              node.currentMessage = `${verifyCount}__${lanPeerId.slice(0, 5)}`;
-            }
-            return node;
-          });
-          this.setState({
-            lanPeers: updatedPeers,
-          });
-        }
-      }, messageVerifyTime);
+                node.currentMessage = `${verifyCount}__${lanPeerId.slice(
+                  0,
+                  5
+                )}`;
+              }
+              return node;
+            });
+            this.setState({
+              lanPeers: updatedPeers,
+            });
+          }
+        },
+        isFirst ? messageVerifyTime + 500 : messageVerifyTime
+      );
+      isFirst = false;
       const updatedPeers = lanPeers.map((node) => {
         if (node.machine_id === lanPeerId) {
           if (node.totalReceiveMessageCount !== undefined) {
