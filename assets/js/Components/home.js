@@ -1898,7 +1898,7 @@ class Home extends React.Component {
         console.log("Disconnected with: ", childId);
       } else {
         const { lanPeers } = this.state;
-        for (let index = 0; index < lanPeers.length; index++) {
+        for (let index = 0; index <= lanPeers.length; index++) {
           const { machine_id } = lanPeers[index];
           if (machine_id === childId) {
             try {
@@ -1906,13 +1906,13 @@ class Home extends React.Component {
                 totalSendMessageCount,
                 totalReceiveMessageCount,
               } = lanPeers[index];
-              console.log("lastTotalSendCount: ", lastTotalSendCount);
-              console.log("lastTotalReceiveCount: ", lastTotalReceiveCount);
-              console.log("totalSendMessageCount: ", totalSendMessageCount);
-              console.log(
-                "totalReceiveMessageCount: ",
-                totalReceiveMessageCount
-              );
+              // console.log("lastTotalSendCount: ", lastTotalSendCount);
+              // console.log("lastTotalReceiveCount: ", lastTotalReceiveCount);
+              // console.log("totalSendMessageCount: ", totalSendMessageCount);
+              // console.log(
+              //   "totalReceiveMessageCount: ",
+              //   totalReceiveMessageCount
+              // );
               if (
                 lastTotalSendCount === totalSendMessageCount ||
                 lastTotalReceiveCount === totalReceiveMessageCount
@@ -1929,8 +1929,8 @@ class Home extends React.Component {
             }
             break;
           }
-          console.log("Connected and running with: ", childId);
         }
+        console.log("Connected and running with: ", childId);
       }
     }, 5000);
 
@@ -1948,6 +1948,14 @@ class Home extends React.Component {
         lanPeers: updatedArr,
       });
     };
+
+    channel.on(`web:remove_${ip}`, (data) => {
+      if (data.machine_id === childId) {
+        console.log("Child is removed: ", childId);
+        clearInterval(connectionRetry);
+        clearInterval(checkConnectionInterval);
+      }
+    });
 
     channel.on(
       `web:verification_received_from_child_${masterId}_${childId}`,
