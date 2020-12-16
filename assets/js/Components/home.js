@@ -14,8 +14,8 @@ import {
 import { configureChannel } from "../socket";
 
 const momentFormat = "YYYY/MM/DD__HH:mm:ss";
-const messageSendTime = 500;
-const messageVerifyTime = 1000;
+const messageSendTime = 400;
+const messageVerifyTime = 800;
 const retryTime = 4000;
 const dataChannelOptions = {
   ordered: true, // do not guarantee order
@@ -1804,6 +1804,7 @@ class Home extends React.Component {
     let iceConfigsControlCounter = 0;
     let connection = false;
     let dataChannel = null;
+    let connectionRetry;
     let isOther = true;
     let peerConnection = await this.lanPeerConnectionCreator(
       channel,
@@ -1812,70 +1813,126 @@ class Home extends React.Component {
       childId,
       iceConfigsControlCounter
     );
-    const connectionRetry = setInterval(async () => {
-      if (dataChannel.readyState !== "open") {
-        if (iceConfigsControlCounter >= iceConfigs.length) {
-          console.log("ALL Have Been Tried");
-          clearInterval(connectionRetry);
-          return;
-        }
-        if (isOther) {
-          channel.push(`web:try_to_connect_again_lan_child`, {
-            ip: ip,
-            child_id: childId,
-            ice_config_control_counter: iceConfigsControlCounter,
-          });
-          isOther = false;
-          console.log("MASTER SEND TRY REQUEST");
-          console.log(
-            "MASTER iceConfigsControlCounter: ",
-            iceConfigsControlCounter
-          );
-          return;
+
+    const startRetryInterval = () =>
+      setInterval(async () => {
+        if (dataChannel.readyState !== "open") {
+          if (iceConfigsControlCounter >= iceConfigs.length) {
+            console.log("ALL Have Been Tried");
+            clearInterval(connectionRetry);
+            return;
+          }
+          if (isOther) {
+            channel.push(`web:try_to_connect_again_lan_child`, {
+              ip: ip,
+              child_id: childId,
+              ice_config_control_counter: iceConfigsControlCounter,
+            });
+            isOther = false;
+            console.log("MASTER SEND TRY REQUEST");
+            console.log(
+              "MASTER iceConfigsControlCounter: ",
+              iceConfigsControlCounter
+            );
+            return;
+          } else {
+            console.log("STEP THREE");
+            iceConfigsControlCounter = iceConfigsControlCounter + 1;
+            channel.push(`web:updated_peer_connection`, {
+              iceConfigsControlCounter,
+              sender: masterId,
+              receiver: childId,
+            });
+            peerConnection = await this.lanPeerConnectionCreator(
+              channel,
+              ip,
+              masterId,
+              childId,
+              iceConfigsControlCounter
+            );
+            dataChannel = this.lanPeerCreateDataChannel(
+              peerConnection,
+              childId
+            );
+            console.log("MASTER CREATE DATA CHANNEL");
+            console.log(
+              "MASTER iceConfigsControlCounter: ",
+              iceConfigsControlCounter
+            );
+            isOther = true;
+          }
         } else {
-          console.log("STEP THREE");
-          iceConfigsControlCounter = iceConfigsControlCounter + 1;
-          channel.push(`web:updated_peer_connection`, {
-            iceConfigsControlCounter,
-            sender: masterId,
-            receiver: childId,
-          });
-          peerConnection = await this.lanPeerConnectionCreator(
-            channel,
-            ip,
-            masterId,
-            childId,
-            iceConfigsControlCounter
-          );
-          dataChannel = this.lanPeerCreateDataChannel(peerConnection, childId);
-          console.log("MASTER CREATE DATA CHANNEL");
-          console.log(
-            "MASTER iceConfigsControlCounter: ",
-            iceConfigsControlCounter
-          );
-          isOther = true;
-        }
-      } else {
-        // verify channel via message
-        setTimeout(() => {
-          channel.push("web:verify_message_lan_peer", {
-            child_id: childId,
-            master_id: masterId,
-          });
+          // verify channel via message
           setTimeout(() => {
-            console.log("Connection ------------", connection);
-            if (connection) {
-              console.log("Retry removed");
-              clearInterval(connectionRetry);
-              updateConnectionType();
-            } else {
-              console.log("message verification failed");
-              peerConnection.close();
+            channel.push("web:verify_message_lan_peer", {
+              child_id: childId,
+              master_id: masterId,
+            });
+            setTimeout(() => {
+              console.log("Connection ------------", connection);
+              if (connection) {
+                console.log("Retry removed");
+                clearInterval(connectionRetry);
+                updateConnectionType();
+              } else {
+                console.log("message verification failed");
+                peerConnection.close();
+              }
+            }, 500);
+          }, 50);
+        }
+      }, retryTime);
+
+    let lastTotalSendCount = 0;
+    let lastTotalReceiveCount = 0;
+    connectionRetry = startRetryInterval();
+    const checkConnectionInterval = setInterval(() => {
+      // console.log("dataChannel.readyState: ", dataChannel.readyState);
+      // console.log("iceConfigsControlCounter: ", iceConfigsControlCounter);
+      if (
+        dataChannel.readyState !== "open" &&
+        iceConfigsControlCounter >= iceConfigs.length
+      ) {
+        startRetryInterval();
+        iceConfigsControlCounter = 0;
+        console.log("Disconnected with: ", childId);
+      } else {
+        const { lanPeers } = this.state;
+        for (let index = 0; index < lanPeers.length; index++) {
+          const { machine_id } = lanPeers[index];
+          if (machine_id === childId) {
+            try {
+              const {
+                totalSendMessageCount,
+                totalReceiveMessageCount,
+              } = lanPeers[index];
+              console.log("lastTotalSendCount: ", lastTotalSendCount);
+              console.log("lastTotalReceiveCount: ", lastTotalReceiveCount);
+              console.log("totalSendMessageCount: ", totalSendMessageCount);
+              console.log(
+                "totalReceiveMessageCount: ",
+                totalReceiveMessageCount
+              );
+              if (
+                lastTotalSendCount === totalSendMessageCount ||
+                lastTotalReceiveCount === totalReceiveMessageCount
+              ) {
+                startRetryInterval();
+                iceConfigsControlCounter = 0;
+              } else {
+                lastTotalSendCount = totalSendMessageCount;
+                lastTotalReceiveCount = totalReceiveMessageCount;
+              }
+            } catch (error) {
+              lastTotalSendCount = 0;
+              lastTotalReceiveCount = 0;
             }
-          }, 1000);
-        }, 50);
+            break;
+          }
+          console.log("Connected and running with: ", childId);
+        }
       }
-    }, retryTime);
+    }, 5000);
 
     const updateConnectionType = () => {
       let iceServerType = this.getIceServerType(iceConfigsControlCounter);
