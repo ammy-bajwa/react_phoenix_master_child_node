@@ -887,6 +887,7 @@ class Home extends React.Component {
     let iceConfigsControlCounter = 1;
     let connection = false;
     let dataChannel = null;
+    let connectionRetry;
     let isOther = true;
     let peerConnection = await this.peerConnectionCreatorMasterPeers(
       channel,
@@ -912,70 +913,132 @@ class Home extends React.Component {
         remoteMasterPeers: updatedArr,
       });
     };
-    const connectionRetry = setInterval(async () => {
-      if (dataChannel.readyState !== "open") {
-        if (iceConfigsControlCounter >= iceConfigs.length) {
-          console.log("ALL Have Been Tried");
-          clearInterval(connectionRetry);
-          return;
-        }
-        if (isOther) {
-          channel.push(`web:try_to_connect_again_remote_master`, {
-            ip: ip,
-            remote_node_ip: remoteNodeIp,
-            ice_config_control_counter: iceConfigsControlCounter,
-          });
-          isOther = false;
-          console.log("OLD MASTER SEND TRY REQUEST");
-          console.log(
-            "Old MASTER iceConfigsControlCounter: ",
-            iceConfigsControlCounter
-          );
-          return;
+
+    const startRetryInterval = () =>
+      setInterval(async () => {
+        if (dataChannel.readyState !== "open") {
+          if (iceConfigsControlCounter >= iceConfigs.length) {
+            console.log("ALL Have Been Tried");
+            clearInterval(connectionRetry);
+            return;
+          }
+          if (isOther) {
+            channel.push(`web:try_to_connect_again_remote_master`, {
+              ip: ip,
+              remote_node_ip: remoteNodeIp,
+              ice_config_control_counter: iceConfigsControlCounter,
+            });
+            isOther = false;
+            console.log("OLD MASTER SEND TRY REQUEST");
+            console.log(
+              "Old MASTER iceConfigsControlCounter: ",
+              iceConfigsControlCounter
+            );
+            return;
+          } else {
+            iceConfigsControlCounter = iceConfigsControlCounter + 1;
+            channel.push(`web:updated_peer_connection`, {
+              iceConfigsControlCounter,
+              receiver: remoteNodeIp,
+              sender: ip,
+            });
+            peerConnection = await this.peerConnectionCreatorMasterPeers(
+              channel,
+              remoteNodeIp,
+              remoteNodeId,
+              iceConfigsControlCounter
+            );
+            dataChannel = this.createDataChannelForMasterPeer(
+              peerConnection,
+              remoteNodeId
+            );
+            console.log("OLD MASTER CREATE DATA CHANNEL");
+            console.log(
+              "Old MASTER iceConfigsControlCounter: ",
+              iceConfigsControlCounter
+            );
+            isOther = true;
+          }
         } else {
-          iceConfigsControlCounter = iceConfigsControlCounter + 1;
-          channel.push(`web:updated_peer_connection`, {
-            iceConfigsControlCounter,
-            receiver: remoteNodeIp,
-            sender: ip,
-          });
-          peerConnection = await this.peerConnectionCreatorMasterPeers(
-            channel,
-            remoteNodeIp,
-            remoteNodeId,
-            iceConfigsControlCounter
-          );
-          dataChannel = this.createDataChannelForMasterPeer(
-            peerConnection,
-            remoteNodeId
-          );
-          console.log("OLD MASTER CREATE DATA CHANNEL");
-          console.log(
-            "Old MASTER iceConfigsControlCounter: ",
-            iceConfigsControlCounter
-          );
-          isOther = true;
-        }
-      } else {
-        // verify channel via message
-        setTimeout(() => {
-          channel.push("web:verify_message", {
-            ip,
-            remote_master_ip: remoteNodeIp,
-          });
+          // verify channel via message
           setTimeout(() => {
-            if (connection) {
-              console.log("Retry removed");
-              clearInterval(connectionRetry);
-              updateConnectionType();
-            } else {
-              console.log("message verification failed");
-              peerConnection.close();
+            channel.push("web:verify_message", {
+              ip,
+              remote_master_ip: remoteNodeIp,
+            });
+            setTimeout(() => {
+              if (connection) {
+                console.log("Retry removed");
+                clearInterval(connectionRetry);
+                updateConnectionType();
+              } else {
+                console.log("message verification failed");
+                peerConnection.close();
+              }
+            }, 500);
+          }, 50);
+        }
+      }, retryTime);
+
+    let lastTotalSendCount = 0;
+    let lastTotalReceiveCount = 0;
+    connectionRetry = startRetryInterval();
+
+    const checkConnectionInterval = setInterval(() => {
+      // console.log("dataChannel.readyState: ", dataChannel.readyState);
+      // console.log("iceConfigsControlCounter: ", iceConfigsControlCounter);
+      if (
+        dataChannel.readyState !== "open" &&
+        iceConfigsControlCounter >= iceConfigs.length
+      ) {
+        startRetryInterval();
+        iceConfigsControlCounter = 0;
+        console.log("Disconnected with MASTER: ", remoteNodeId);
+      } else {
+        const { remoteMasterPeers } = this.state;
+        for (let index = 0; index <= remoteMasterPeers.length; index++) {
+          const { machine_id } = remoteMasterPeers[index];
+          if (machine_id === remoteNodeId) {
+            try {
+              const {
+                totalSendMessageCount,
+                totalReceiveMessageCount,
+              } = remoteMasterPeers[index];
+              // console.log("lastTotalSendCount: ", lastTotalSendCount);
+              // console.log("lastTotalReceiveCount: ", lastTotalReceiveCount);
+              // console.log("totalSendMessageCount: ", totalSendMessageCount);
+              // console.log(
+              //   "totalReceiveMessageCount: ",
+              //   totalReceiveMessageCount
+              // );
+              if (
+                lastTotalSendCount === totalSendMessageCount ||
+                lastTotalReceiveCount === totalReceiveMessageCount
+              ) {
+                startRetryInterval();
+                iceConfigsControlCounter = 0;
+              } else {
+                lastTotalSendCount = totalSendMessageCount;
+                lastTotalReceiveCount = totalReceiveMessageCount;
+              }
+            } catch (error) {
+              lastTotalSendCount = 0;
+              lastTotalReceiveCount = 0;
             }
-          }, 1000);
-        }, 50);
+            break;
+          }
+        }
+        console.log("Connected and running with MASTER: ", remoteNodeId);
       }
-    }, retryTime);
+    }, 5000);
+
+    channel.on(`web:remove_${ip}`, (data) => {
+      if (data.machine_id === remoteNodeId) {
+        console.log("Master is removed: ", remoteNodeId);
+        clearInterval(connectionRetry);
+        clearInterval(checkConnectionInterval);
+      }
+    });
 
     channel.on(`web:master_is_removed`, async ({ ip, machine_id }) => {
       if (machine_id === remoteNodeId) {
