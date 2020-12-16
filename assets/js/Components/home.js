@@ -1015,6 +1015,7 @@ class Home extends React.Component {
                 lastTotalSendCount === totalSendMessageCount ||
                 lastTotalReceiveCount === totalReceiveMessageCount
               ) {
+                clearInterval(connectionRetry);
                 startRetryInterval();
                 iceConfigsControlCounter = 0;
               } else {
@@ -1982,6 +1983,7 @@ class Home extends React.Component {
                 lastTotalSendCount === totalSendMessageCount ||
                 lastTotalReceiveCount === totalReceiveMessageCount
               ) {
+                clearInterval(connectionRetry);
                 startRetryInterval();
                 iceConfigsControlCounter = 0;
               } else {
