@@ -1018,8 +1018,10 @@ class Home extends React.Component {
                 startRetryInterval();
                 iceConfigsControlCounter = 0;
               } else {
-                lastTotalSendCount = totalSendMessageCount;
-                lastTotalReceiveCount = totalReceiveMessageCount;
+                if (totalSendMessageCount && totalReceiveMessageCount) {
+                  lastTotalSendCount = totalSendMessageCount;
+                  lastTotalReceiveCount = totalReceiveMessageCount;
+                }
               }
             } catch (error) {
               lastTotalSendCount = 0;
@@ -1935,8 +1937,8 @@ class Home extends React.Component {
               console.log("Connection ------------", connection);
               if (connection) {
                 console.log("Retry removed");
-                clearInterval(connectionRetry);
                 updateConnectionType();
+                clearInterval(connectionRetry);
               } else {
                 console.log("message verification failed");
                 peerConnection.close();
