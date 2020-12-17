@@ -14,8 +14,8 @@ import {
 import { configureChannel } from "../socket";
 
 const momentFormat = "YYYY/MM/DD__HH:mm:ss";
-const messageSendTime = 600;
-const messageVerifyTime = 1000;
+const messageSendTime = 100;
+const messageVerifyTime = 500;
 const retryTime = 5000;
 const dataChannelOptions = {
   ordered: true, // do not guarantee order
@@ -657,7 +657,7 @@ class Home extends React.Component {
             });
           }
         },
-        isFirst ? messageVerifyTime + 500 : messageVerifyTime
+        isFirst ? messageVerifyTime + 1000 : messageVerifyTime
       );
       isFirst = false;
       try {
@@ -809,7 +809,7 @@ class Home extends React.Component {
             });
           }
         },
-        isFirst ? messageVerifyTime + 500 : messageVerifyTime
+        isFirst ? messageVerifyTime + 1000 : messageVerifyTime
       );
       isFirst = false;
       const updatedPeers = remoteMasterPeers.map((node) => {
@@ -1727,7 +1727,7 @@ class Home extends React.Component {
             });
           }
         },
-        isFirst ? messageVerifyTime + 500 : messageVerifyTime
+        isFirst ? messageVerifyTime + 1000 : messageVerifyTime
       );
       isFirst = false;
     };
@@ -1861,7 +1861,7 @@ class Home extends React.Component {
             });
           }
         },
-        isFirst ? messageVerifyTime + 500 : messageVerifyTime
+        isFirst ? messageVerifyTime + 1000 : messageVerifyTime
       );
       isFirst = false;
       const updatedPeers = lanPeers.map((node) => {
