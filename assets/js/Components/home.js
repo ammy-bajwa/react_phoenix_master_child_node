@@ -14,9 +14,9 @@ import {
 import { configureChannel } from "../socket";
 
 const momentFormat = "YYYY/MM/DD__HH:mm:ss";
-const messageSendTime = 400;
-const messageVerifyTime = 800;
-const retryTime = 4000;
+const messageSendTime = 600;
+const messageVerifyTime = 1000;
+const retryTime = 5000;
 const dataChannelOptions = {
   ordered: true, // do not guarantee order
   maxPacketLifeTime: 300, // in milliseconds
@@ -888,6 +888,7 @@ class Home extends React.Component {
     let connection = false;
     let dataChannel = null;
     let connectionRetry;
+    let connectionCheckingInterval;
     let isOther = true;
     let peerConnection = await this.peerConnectionCreatorMasterPeers(
       channel,
@@ -971,11 +972,13 @@ class Home extends React.Component {
                 console.log("Retry removed");
                 clearInterval(connectionRetry);
                 updateConnectionType();
+                connectionCheckingInterval = checkConnectionInterval();
               } else {
                 console.log("message verification failed");
+                dataChannel.close();
                 peerConnection.close();
               }
-            }, 500);
+            }, 700);
           }, 50);
         }
       }, retryTime);
@@ -984,74 +987,75 @@ class Home extends React.Component {
     let lastTotalReceiveCount = 0;
     connectionRetry = startRetryInterval();
 
-    const checkConnectionInterval = setInterval(() => {
-      // console.log("dataChannel.readyState: ", dataChannel.readyState);
-      // console.log("iceConfigsControlCounter: ", iceConfigsControlCounter);
-      if (
-        dataChannel.readyState !== "open" &&
-        iceConfigsControlCounter >= iceConfigs.length
-      ) {
-        try {
-          dataChannel.close();
-          peerConnection.close();
-        } catch (error) {
-          console.log("Error in closing connections");
-        }
-        startRetryInterval();
-        iceConfigsControlCounter = 0;
-        console.log("Disconnected with MASTER: ", remoteNodeId);
-      } else {
-        const { remoteMasterPeers } = this.state;
-        for (let index = 0; index <= remoteMasterPeers.length; index++) {
-          const { machine_id } = remoteMasterPeers[index];
-          if (machine_id === remoteNodeId) {
-            try {
-              const {
-                totalSendMessageCount,
-                totalReceiveMessageCount,
-              } = remoteMasterPeers[index];
-              // console.log("lastTotalSendCount: ", lastTotalSendCount);
-              // console.log("lastTotalReceiveCount: ", lastTotalReceiveCount);
-              // console.log("totalSendMessageCount: ", totalSendMessageCount);
-              // console.log(
-              //   "totalReceiveMessageCount: ",
-              //   totalReceiveMessageCount
-              // );
-              if (
-                lastTotalSendCount === totalSendMessageCount ||
-                lastTotalReceiveCount === totalReceiveMessageCount
-              ) {
-                try {
-                  dataChannel.close();
-                  peerConnection.close();
-                } catch (error) {
-                  console.log("Error in closing connections");
-                }
-                clearInterval(connectionRetry);
-                startRetryInterval();
-                iceConfigsControlCounter = 0;
-              } else {
-                if (totalSendMessageCount && totalReceiveMessageCount) {
-                  lastTotalSendCount = totalSendMessageCount;
-                  lastTotalReceiveCount = totalReceiveMessageCount;
-                }
-              }
-            } catch (error) {
-              lastTotalSendCount = 0;
-              lastTotalReceiveCount = 0;
-            }
-            break;
+    const checkConnectionInterval = () =>
+      setInterval(() => {
+        // console.log("dataChannel.readyState: ", dataChannel.readyState);
+        // console.log("iceConfigsControlCounter: ", iceConfigsControlCounter);
+        if (
+          dataChannel.readyState !== "open" &&
+          iceConfigsControlCounter >= iceConfigs.length
+        ) {
+          try {
+            dataChannel.close();
+            peerConnection.close();
+          } catch (error) {
+            console.log("Error in closing connections");
           }
+          startRetryInterval();
+          iceConfigsControlCounter = 0;
+          console.log("Disconnected with MASTER: ", remoteNodeId);
+        } else {
+          const { remoteMasterPeers } = this.state;
+          for (let index = 0; index <= remoteMasterPeers.length; index++) {
+            const { machine_id } = remoteMasterPeers[index];
+            if (machine_id === remoteNodeId) {
+              try {
+                const {
+                  totalSendMessageCount,
+                  totalReceiveMessageCount,
+                } = remoteMasterPeers[index];
+                // console.log("lastTotalSendCount: ", lastTotalSendCount);
+                // console.log("lastTotalReceiveCount: ", lastTotalReceiveCount);
+                // console.log("totalSendMessageCount: ", totalSendMessageCount);
+                // console.log(
+                //   "totalReceiveMessageCount: ",
+                //   totalReceiveMessageCount
+                // );
+                if (
+                  lastTotalSendCount === totalSendMessageCount ||
+                  lastTotalReceiveCount === totalReceiveMessageCount
+                ) {
+                  try {
+                    dataChannel.close();
+                    peerConnection.close();
+                  } catch (error) {
+                    console.log("Error in closing connections");
+                  }
+                  clearInterval(connectionRetry);
+                  startRetryInterval();
+                  iceConfigsControlCounter = 0;
+                } else {
+                  if (totalSendMessageCount && totalReceiveMessageCount) {
+                    lastTotalSendCount = totalSendMessageCount;
+                    lastTotalReceiveCount = totalReceiveMessageCount;
+                  }
+                }
+              } catch (error) {
+                lastTotalSendCount = 0;
+                lastTotalReceiveCount = 0;
+              }
+              break;
+            }
+          }
+          console.log("Connected and running with MASTER: ", remoteNodeId);
         }
-        console.log("Connected and running with MASTER: ", remoteNodeId);
-      }
-    }, 5000);
+      }, 5000);
 
     channel.on(`web:remove_${ip}`, (data) => {
       if (data.machine_id === remoteNodeId) {
         console.log("Master is removed: ", remoteNodeId);
         clearInterval(connectionRetry);
-        clearInterval(checkConnectionInterval);
+        clearInterval(connectionCheckingInterval);
       }
     });
 
@@ -1079,13 +1083,21 @@ class Home extends React.Component {
       ({ ip: currentIp, remote_master_ip }) => {
         const { messagesFromMastersPeers } = this.state;
         console.log("messagesFromMastersPeers: ", messagesFromMastersPeers);
-        messagesFromMastersPeers.map(({ message }) => {
-          console.log("====================Message---------: ", message);
+        for (let index = 0; index <= messagesFromMastersPeers.length; index++) {
+          const { message } = messagesFromMastersPeers[index];
           if (message.split("_")[0] === remoteNodeId) {
             console.log("Verified------------");
             connection = true;
+            break;
           }
-        });
+        }
+        // messagesFromMastersPeers.map(({ message }) => {
+        //   console.log("====================Message---------: ", message);
+        //   if (message.split("_")[0] === remoteNodeId) {
+        //     console.log("Verified------------");
+        //     connection = true;
+        //   }
+        // });
       }
     );
     channel.on(
