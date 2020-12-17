@@ -1971,6 +1971,12 @@ class Home extends React.Component {
         dataChannel.readyState !== "open" &&
         iceConfigsControlCounter >= iceConfigs.length
       ) {
+        try {
+          dataChannel.close();
+          peerConnection.close();
+        } catch (error) {
+          console.log("Error in closing connections");
+        }
         startRetryInterval();
         iceConfigsControlCounter = 0;
         console.log("Disconnected with: ", childId);
@@ -1995,6 +2001,12 @@ class Home extends React.Component {
                 lastTotalSendCount === totalSendMessageCount ||
                 lastTotalReceiveCount === totalReceiveMessageCount
               ) {
+                try {
+                  dataChannel.close();
+                  peerConnection.close();
+                } catch (error) {
+                  console.log("Error in closing connections");
+                }
                 clearInterval(connectionRetry);
                 startRetryInterval();
                 iceConfigsControlCounter = 0;
