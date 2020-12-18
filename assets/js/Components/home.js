@@ -301,11 +301,11 @@ class Home extends React.Component {
         });
       })
       .receive("error", ({ reason }) => {
-        alert("Something wrong with socket");
+        console.log("Something wrong with socket");
         console.log("failed join", reason);
       })
       .receive("timeout", () => {
-        alert("Networking issue. Still waiting....");
+        console.log("Networking issue. Still waiting....");
       });
   }
 
@@ -506,7 +506,7 @@ class Home extends React.Component {
             console.log("NEW MASTER Set Offer And Send Answer: ", remoteNodeIp);
           },
           function (error) {
-            alert("oops...error");
+            console.log("oops...error");
           }
         );
       }
@@ -1151,7 +1151,7 @@ class Home extends React.Component {
             );
           },
           function (error) {
-            alert("oops...error");
+            console.log("oops...error");
           }
         );
       }
@@ -1364,7 +1364,7 @@ class Home extends React.Component {
             });
           },
           function (error) {
-            alert("oops...error");
+            console.log("oops...error");
           }
         );
       }
@@ -2108,7 +2108,7 @@ class Home extends React.Component {
             console.log("ANSWER IS SENDED TO CHILD");
           },
           function (error) {
-            alert("oops...error");
+            console.log("oops...error", error);
           }
         );
       }
