@@ -591,7 +591,6 @@ class Home extends React.Component {
     };
     let verifyCount = 0;
     let totalVerified = 0;
-    let isFirst = true;
     dataChannel.onmessage = (event) => {
       const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
       const updatedPeers = remoteMasterPeers.map((node) => {
@@ -614,7 +613,7 @@ class Home extends React.Component {
           ({ message }) => message !== textToSearch
         );
         verifyCount++;
-        if (filteredMessages.length !== messagesFromMastersPeers.length) {
+        if (filteredMessages.length < messagesFromMastersPeers.length) {
           const updatedPeers = remoteMasterPeers.map((node) => {
             if (node.machine_id === remoteNodeId) {
               if (node.totalVerifiedMessages !== undefined) {
@@ -656,7 +655,6 @@ class Home extends React.Component {
           });
         }
       }, messageVerifyTime);
-      isFirst = false;
       try {
         const parsedMessage = JSON.parse(event.data);
         this.setState({
@@ -750,7 +748,6 @@ class Home extends React.Component {
     };
     let verifyCount = 0;
     let totalVerified = 0;
-    let isFirst = true;
     dataChannel.onmessage = (event) => {
       const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
       setTimeout(() => {
@@ -761,7 +758,7 @@ class Home extends React.Component {
           ({ message }) => message !== textToSearch
         );
         verifyCount++;
-        if (filteredMessages.length !== messagesFromMastersPeers.length) {
+        if (filteredMessages.length < messagesFromMastersPeers.length) {
           const updatedPeers = remoteMasterPeers.map((node) => {
             if (node.machine_id === remoteNodeId) {
               if (node.totalVerifiedMessages !== undefined) {
@@ -805,7 +802,6 @@ class Home extends React.Component {
           });
         }
       }, messageVerifyTime);
-      isFirst = false;
       const updatedPeers = remoteMasterPeers.map((node) => {
         if (node.machine_id === remoteNodeId) {
           if (node.totalReceiveMessageCount !== undefined) {
