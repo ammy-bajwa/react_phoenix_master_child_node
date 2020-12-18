@@ -974,7 +974,8 @@ class Home extends React.Component {
                 updateConnectionType();
                 connectionCheckingInterval = checkConnectionInterval();
               } else {
-                console.log("message verification failed");
+                console.log("Message verification failed");
+                clearInterval(connectionCheckingInterval);
                 dataChannel.close();
                 peerConnection.close();
               }
@@ -1001,6 +1002,7 @@ class Home extends React.Component {
           } catch (error) {
             console.log("Error in closing connections");
           }
+          clearInterval(connectionRetry);
           startRetryInterval();
           iceConfigsControlCounter = 0;
           console.log("Disconnected with MASTER: ", remoteNodeId);
