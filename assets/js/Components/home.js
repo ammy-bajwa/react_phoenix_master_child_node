@@ -663,7 +663,6 @@ class Home extends React.Component {
         const filteredMessages = messagesFromMastersPeers.filter(
           ({ message }) => message !== textToSearch
         );
-        verifyCount++;
         if (filteredMessages.length < messagesFromMastersPeers.length) {
           const updatedPeers = remoteMasterPeers.map((node) => {
             if (node.machine_id === remoteNodeId) {
@@ -680,6 +679,7 @@ class Home extends React.Component {
             }
             return node;
           });
+          verifyCount++;
           totalVerified++;
           this.setState({
             messagesFromMastersPeers: filteredMessages,
