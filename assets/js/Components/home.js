@@ -1008,6 +1008,7 @@ class Home extends React.Component {
         ) {
           cleanConnection();
           clearInterval(connectionRetry);
+          clearInterval(checkConnectionInterval);
           startRetryInterval();
           iceConfigsControlCounter = 0;
           console.log("Disconnected with MASTER: ", remoteNodeId);
@@ -1034,6 +1035,7 @@ class Home extends React.Component {
                 ) {
                   cleanConnection();
                   clearInterval(connectionRetry);
+                  clearInterval(checkConnectionInterval);
                   startRetryInterval();
                   iceConfigsControlCounter = 0;
                 } else {
@@ -1888,13 +1890,25 @@ class Home extends React.Component {
       childId,
       iceConfigsControlCounter
     );
+    const cleanConnection = () => {
+      try {
+        dataChannel.close();
+        peerConnection.close();
+      } catch (error) {
+        console.error(error);
+      }
+    };
 
     const startRetryInterval = () =>
       setInterval(async () => {
         if (dataChannel.readyState !== "open") {
           if (iceConfigsControlCounter >= iceConfigs.length) {
-            console.log("ALL Have Been Tried");
-            clearInterval(connectionRetry);
+            console.log("ALL Have Been Tried And Reset");
+            // clearInterval(connectionRetry);
+            cleanConnection();
+            clearInterval(checkConnectionInterval);
+            isOther = true;
+            iceConfigsControlCounter = 0;
             return;
           }
           if (isOther) {
@@ -1918,6 +1932,7 @@ class Home extends React.Component {
               sender: masterId,
               receiver: childId,
             });
+            cleanConnection();
             peerConnection = await this.lanPeerConnectionCreator(
               channel,
               ip,
@@ -1951,7 +1966,7 @@ class Home extends React.Component {
                 clearInterval(connectionRetry);
               } else {
                 console.log("message verification failed");
-                peerConnection.close();
+                cleanConnection();
               }
             }, 500);
           }, 50);
@@ -1968,12 +1983,7 @@ class Home extends React.Component {
         dataChannel.readyState !== "open" &&
         iceConfigsControlCounter >= iceConfigs.length
       ) {
-        try {
-          dataChannel.close();
-          peerConnection.close();
-        } catch (error) {
-          console.log("Error in closing connections");
-        }
+        cleanConnection();
         startRetryInterval();
         iceConfigsControlCounter = 0;
         console.log("Disconnected with: ", childId);
@@ -1998,15 +2008,11 @@ class Home extends React.Component {
                 lastTotalSendCount === totalSendMessageCount ||
                 lastTotalReceiveCount === totalReceiveMessageCount
               ) {
-                try {
-                  dataChannel.close();
-                  peerConnection.close();
-                } catch (error) {
-                  console.log("Error in closing connections");
-                }
+                iceConfigsControlCounter = 0;
+                cleanConnection();
+                clearInterval(checkConnectionInterval);
                 clearInterval(connectionRetry);
                 startRetryInterval();
-                iceConfigsControlCounter = 0;
               } else {
                 lastTotalSendCount = totalSendMessageCount;
                 lastTotalReceiveCount = totalReceiveMessageCount;
@@ -2020,7 +2026,7 @@ class Home extends React.Component {
         }
         console.log("Connected and running with: ", childId);
       }
-    }, 5000);
+    }, retryTime);
 
     const updateConnectionType = () => {
       let iceServerType = this.getIceServerType(iceConfigsControlCounter);
