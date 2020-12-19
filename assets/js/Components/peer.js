@@ -1,6 +1,9 @@
 import React, { Component } from "react";
 
-export const TableRow = ({ peer }) => {
+export const TableRow = ({ messages, peer, index, type }) => {
+  const myMessages = messages.filter(
+    ({ message }) => message.split("_")[0] === peer.machine_id
+  );
   return (
     <tr>
       <td>{peer.connectionType || "Connecting........."}</td>
@@ -16,6 +19,58 @@ export const TableRow = ({ peer }) => {
       <td>{peer.currentMessage || "0"}</td>
       <td>{peer.totalVerifiedMessages || "0"}</td>
       <td>{peer.totalUnverifiedMessages || "0"}</td>
+      <td>
+        <button
+          type="button"
+          className="btn btn-light"
+          data-toggle="modal"
+          data-target={`#modelNumber_${type}_${index}`}
+        >
+          Messages
+        </button>
+
+        <div
+          className="modal fade"
+          id={`modelNumber_${type}_${index}`}
+          tabIndex="-1"
+          role="dialog"
+          aria-labelledby="exampleModalLongTitle"
+          aria-hidden="true"
+        >
+          <div className="modal-dialog" role="document">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title" id="exampleModalLongTitle">
+                  {peer.machine_id || "No Id...."}
+                </h5>
+                <button
+                  type="button"
+                  className="close"
+                  data-dismiss="modal"
+                  aria-label="Close"
+                >
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div className="modal-body mh-50 text-dark">
+                {myMessages.length > 0 &&
+                  myMessages.map(({ message }, index) => (
+                    <p key={index}>{message}</p>
+                  ))}
+              </div>
+              {/* <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  data-dismiss="modal"
+                >
+                  Close
+                </button>
+              </div> */}
+            </div>
+          </div>
+        </div>
+      </td>
     </tr>
   );
 };

@@ -1,7 +1,12 @@
 import React from "react";
 import { TableRow } from "./peer";
 
-export const Table = ({ remotePeers, lanPeers }) => {
+export const Table = ({
+  remotePeers,
+  lanPeers,
+  masterPeersMessages,
+  lanPeersMessages,
+}) => {
   return (
     <table className="table table-striped table-dark table-bordered table-hover">
       <thead>
@@ -23,9 +28,25 @@ export const Table = ({ remotePeers, lanPeers }) => {
       </thead>
       <tbody>
         {remotePeers.length > 0 &&
-          remotePeers.map((node, i) => <TableRow peer={node} key={i} />)}
+          remotePeers.map((node, i) => (
+            <TableRow
+              peer={node}
+              key={i}
+              index={i}
+              messages={masterPeersMessages}
+              type="MASTER"
+            />
+          ))}
         {lanPeers.length > 0 &&
-          lanPeers.map((node, i) => <TableRow peer={node} key={i} />)}
+          lanPeers.map((node, i) => (
+            <TableRow
+              peer={node}
+              key={i}
+              index={i}
+              messages={lanPeersMessages}
+              type="CHILD"
+            />
+          ))}
       </tbody>
     </table>
   );

@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 
-export const RenderLanPeers = ({ lanPeers, ip }) => {
+export const RenderLanPeers = ({ lanPeers, ip, messages }) => {
   const lanPeerContainerStyle = {
     border: "2px solid black",
     padding: "3px",
@@ -81,6 +81,8 @@ export const RenderLanPeers = ({ lanPeers, ip }) => {
             </div>
           </div>
         ))}
+      {messages.length > 0 &&
+        messages.map(({ message }, index) => <p key={index}>{message}</p>)}
     </div>
   );
 };

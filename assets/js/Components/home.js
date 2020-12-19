@@ -15,11 +15,11 @@ import { configureChannel } from "../socket";
 
 const momentFormat = "YYYY/MM/DD__HH:mm:ss";
 const messageSendTime = 200;
-const messageVerifyTime = 500;
+const messageVerifyTime = 600;
 const retryTime = 5000;
 const dataChannelOptions = {
-  ordered: true, // do not guarantee order
-  maxPacketLifeTime: 300, // in milliseconds
+  // ordered: true, // do not guarantee order
+  // maxPacketLifeTime: 300, // in milliseconds
 };
 
 class Home extends React.Component {
@@ -2246,8 +2246,8 @@ class Home extends React.Component {
       lanPeers,
       remoteMasterPeers,
       machineId,
-      // messagesFromMastersPeers,
-      // messageFromLanPeers,
+      messagesFromMastersPeers,
+      messageFromLanPeers,
       // messagesFromChildsPeers,
     } = this.state;
     const style =
@@ -2301,7 +2301,12 @@ class Home extends React.Component {
                 color: "white",
               }}
             >
-              <Table remotePeers={remoteMasterPeers} lanPeers={lanPeers} />
+              <Table
+                remotePeers={remoteMasterPeers}
+                lanPeers={lanPeers}
+                masterPeersMessages={messagesFromMastersPeers}
+                lanPeersMessages={messageFromLanPeers}
+              />
             </div>
           </div>
         )}
@@ -2322,7 +2327,11 @@ class Home extends React.Component {
             >
               Send To Master
             </button>
-            <RenderLanPeers lanPeers={lanPeers} ip={ip} />
+            <RenderLanPeers
+              lanPeers={lanPeers}
+              ip={ip}
+              messages={messageFromLanPeers}
+            />
           </div>
         )}
       </div>
