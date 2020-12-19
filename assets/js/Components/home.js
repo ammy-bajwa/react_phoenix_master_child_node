@@ -14,8 +14,8 @@ import {
 import { configureChannel } from "../socket";
 
 const momentFormat = "YYYY/MM/DD__HH:mm:ss";
-const messageSendTime = 400;
-const messageVerifyTime = 800;
+const messageSendTime = 500;
+const messageVerifyTime = 1500;
 const retryTime = 5000;
 const dataChannelOptions = {
   ordered: true, // do not guarantee order
@@ -570,18 +570,22 @@ class Home extends React.Component {
     );
     let messageInterval = null;
     let timeInterval = null;
+    let verifyCount = 0;
+    let totalVerified = 0;
     dataChannel.onopen = async () => {
       console.log("Data Channel is open on 521");
+      verifyCount = 0;
+      totalVerified = 0;
       const {
         remoteMasterPeersWebRtcConnections,
         remoteMasterPeers,
         machineId,
       } = this.state;
       dataChannel.send(machineId);
-      let verifyCount = 0;
+      let verifyCountSender = 0;
       messageInterval = setInterval(() => {
-        dataChannel.send(`${machineId}_${verifyCount}`);
-        verifyCount = verifyCount + 1;
+        dataChannel.send(`${machineId}_${verifyCountSender}`);
+        verifyCountSender = verifyCountSender + 1;
         const { remoteMasterPeers } = this.state;
         const updatedPeers = remoteMasterPeers.map((node) => {
           if (node.machine_id === remoteNodeId) {
@@ -638,8 +642,6 @@ class Home extends React.Component {
       clearInterval(messageInterval);
       clearInterval(timeInterval);
     };
-    let verifyCount = 0;
-    let totalVerified = 0;
     dataChannel.onmessage = (event) => {
       const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
       const updatedPeers = remoteMasterPeers.map((node) => {
@@ -771,14 +773,18 @@ class Home extends React.Component {
     const dataChannel = event.channel;
     let messageInterval = null;
     let timeInterval = null;
+    let verifyCount = 0;
+    let totalVerified = 0;
     dataChannel.onopen = async (event) => {
       console.log("Datachannel is open on 682");
+      verifyCount = 0;
+      totalVerified = 0;
       const { remoteMasterPeers, machineId, masterDataChannel } = this.state;
       dataChannel.send(machineId);
-      let verifyCount = 0;
+      let verifyCountSender = 0;
       messageInterval = setInterval(() => {
-        dataChannel.send(`${machineId}_${verifyCount}`);
-        verifyCount = verifyCount + 1;
+        dataChannel.send(`${machineId}_${verifyCountSender}`);
+        verifyCountSender = verifyCountSender + 1;
         const { remoteMasterPeers } = this.state;
         const remoteUpdatedPeers = remoteMasterPeers.map((node) => {
           if (node.machine_id === remoteNodeId) {
@@ -836,8 +842,6 @@ class Home extends React.Component {
       clearInterval(messageInterval);
       clearInterval(timeInterval);
     };
-    let verifyCount = 0;
-    let totalVerified = 0;
     dataChannel.onmessage = (event) => {
       const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
       setTimeout(() => {
