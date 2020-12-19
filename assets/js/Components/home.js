@@ -14,8 +14,8 @@ import {
 import { configureChannel } from "../socket";
 
 const momentFormat = "YYYY/MM/DD__HH:mm:ss";
-const messageSendTime = 500;
-const messageVerifyTime = 1000;
+const messageSendTime = 200;
+const messageVerifyTime = 500;
 const retryTime = 5000;
 const dataChannelOptions = {
   ordered: true, // do not guarantee order
@@ -400,6 +400,14 @@ class Home extends React.Component {
       });
     };
 
+    const cleanConnection = () => {
+      try {
+        peerConnection.close();
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
     channel.on(
       `web:verify_message_${ip}_${remoteNodeIp}`,
       ({ ip, remote_master_ip }) => {
@@ -429,6 +437,7 @@ class Home extends React.Component {
       `web:update_my_peer_connection_${ip}_${remoteNodeIp}`,
       async ({ counter }) => {
         console.log("Updated peerconnection: ", counter);
+        cleanConnection();
         peerConnection = await this.peerConnectionCreatorMasterPeers(
           channel,
           remoteNodeIp,
@@ -905,12 +914,23 @@ class Home extends React.Component {
       });
     };
 
+    const cleanConnection = () => {
+      try {
+        peerConnection.close();
+        dataChannel.close();
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
     const startRetryInterval = () =>
       setInterval(async () => {
         if (dataChannel.readyState !== "open") {
           if (iceConfigsControlCounter >= iceConfigs.length) {
-            console.log("ALL Have Been Tried");
-            clearInterval(connectionRetry);
+            console.log("ALL Have Been Tried And Resetting");
+            // clearInterval(connectionRetry);
+            iceConfigsControlCounter = 1;
+            isOther = true;
             return;
           }
           if (isOther) {
@@ -933,6 +953,7 @@ class Home extends React.Component {
               receiver: remoteNodeIp,
               sender: ip,
             });
+            cleanConnection();
             peerConnection = await this.peerConnectionCreatorMasterPeers(
               channel,
               remoteNodeIp,
@@ -966,10 +987,9 @@ class Home extends React.Component {
               } else {
                 console.log("Message verification failed");
                 clearInterval(connectionCheckingInterval);
-                dataChannel.close();
-                peerConnection.close();
+                cleanConnection();
               }
-            }, 700);
+            }, 800);
           }, 50);
         }
       }, retryTime);
@@ -986,12 +1006,7 @@ class Home extends React.Component {
           dataChannel.readyState !== "open" &&
           iceConfigsControlCounter >= iceConfigs.length
         ) {
-          try {
-            dataChannel.close();
-            peerConnection.close();
-          } catch (error) {
-            console.log("Error in closing connections");
-          }
+          cleanConnection();
           clearInterval(connectionRetry);
           startRetryInterval();
           iceConfigsControlCounter = 0;
@@ -1017,12 +1032,7 @@ class Home extends React.Component {
                   lastTotalSendCount === totalSendMessageCount ||
                   lastTotalReceiveCount === totalReceiveMessageCount
                 ) {
-                  try {
-                    dataChannel.close();
-                    peerConnection.close();
-                  } catch (error) {
-                    console.log("Error in closing connections");
-                  }
+                  cleanConnection();
                   clearInterval(connectionRetry);
                   startRetryInterval();
                   iceConfigsControlCounter = 0;
@@ -1056,6 +1066,7 @@ class Home extends React.Component {
         console.log("Clearing interval");
         clearInterval(connectionRetry);
         iceConfigsControlCounter = 0;
+        cleanConnection();
         peerConnection = await this.peerConnectionCreatorMasterPeers(
           channel,
           remoteNodeIp,
