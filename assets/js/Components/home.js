@@ -18,7 +18,7 @@ const messageSendTime = 400;
 const messageVerifyTime = 800;
 const retryTime = 5000;
 const dataChannelOptions = {
-  // ordered: true, // do not guarantee order
+  ordered: true, // do not guarantee order
   // maxPacketLifeTime: 300, // in milliseconds
 };
 
@@ -524,6 +524,46 @@ class Home extends React.Component {
   };
 
   createDataChannelForMasterPeer = (peerConnection, remoteNodeId) => {
+    const checkVerificationAgain = (missingCount) =>
+      setTimeout(() => {
+        const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
+        const textToSearch = `${remoteNodeId}_${missingCount}`;
+        const filteredMessages = messagesFromMastersPeers.filter(
+          ({ message }) => message !== textToSearch
+        );
+        verifyCount++;
+        if (filteredMessages.length < messagesFromMastersPeers.length) {
+          const updatedPeers = remoteMasterPeers.map((node) => {
+            if (node.machine_id === remoteNodeId) {
+              if (
+                node.totalVerifiedMessages !== undefined &&
+                node.totalUnverifiedMessages !== undefined
+              ) {
+                node.totalVerifiedMessages =
+                  parseInt(node.totalVerifiedMessages) + 1;
+                node.totalUnverifiedMessages =
+                  parseInt(node.totalUnverifiedMessages) - 1;
+              } else {
+                node.totalVerifiedMessages = totalVerified;
+              }
+              node.currentMessage = `${verifyCount}__${remoteNodeId.slice(
+                0,
+                5
+              )}`;
+            }
+            return node;
+          });
+          totalVerified++;
+          this.setState({
+            messagesFromMastersPeers: filteredMessages,
+            remoteMasterPeers: updatedPeers,
+          });
+        } else {
+          console.log(
+            `Second verification is also failed: ${remoteNodeId} +++++++ ${missingCount}`
+          );
+        }
+      }, 1000);
     const dataChannel = peerConnection.createDataChannel(
       "MyDataChannel",
       dataChannelOptions
@@ -656,6 +696,7 @@ class Home extends React.Component {
                 0,
                 5
               )}`;
+              checkVerificationAgain(verifyCount);
             }
             return node;
           });
@@ -687,6 +728,46 @@ class Home extends React.Component {
   };
 
   onDataChannelForMasterPeer = (event, remoteNodeId) => {
+    const checkVerificationAgain = (missingCount) =>
+      setTimeout(() => {
+        const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
+        const textToSearch = `${remoteNodeId}_${missingCount}`;
+        const filteredMessages = messagesFromMastersPeers.filter(
+          ({ message }) => message !== textToSearch
+        );
+        verifyCount++;
+        if (filteredMessages.length < messagesFromMastersPeers.length) {
+          const updatedPeers = remoteMasterPeers.map((node) => {
+            if (node.machine_id === remoteNodeId) {
+              if (
+                node.totalVerifiedMessages !== undefined &&
+                node.totalUnverifiedMessages !== undefined
+              ) {
+                node.totalVerifiedMessages =
+                  parseInt(node.totalVerifiedMessages) + 1;
+                node.totalUnverifiedMessages =
+                  parseInt(node.totalUnverifiedMessages) - 1;
+              } else {
+                node.totalVerifiedMessages = totalVerified;
+              }
+              node.currentMessage = `${verifyCount}__${remoteNodeId.slice(
+                0,
+                5
+              )}`;
+            }
+            return node;
+          });
+          totalVerified++;
+          this.setState({
+            messagesFromMastersPeers: filteredMessages,
+            remoteMasterPeers: updatedPeers,
+          });
+        } else {
+          console.log(
+            `Second verification is also failed: ${remoteNodeId} +++++++ ${missingCount}`
+          );
+        }
+      }, 1000);
     const dataChannel = event.channel;
     let messageInterval = null;
     let timeInterval = null;
@@ -803,6 +884,7 @@ class Home extends React.Component {
                 0,
                 5
               )}`;
+              checkVerificationAgain(verifyCount);
             }
             return node;
           });
@@ -926,6 +1008,7 @@ class Home extends React.Component {
     const startRetryInterval = () =>
       setInterval(async () => {
         if (dataChannel.readyState !== "open") {
+          clearInterval(connectionCheckingInterval);
           if (iceConfigsControlCounter >= iceConfigs.length) {
             console.log("ALL Have Been Tried And Resetting");
             // clearInterval(connectionRetry);
@@ -982,6 +1065,7 @@ class Home extends React.Component {
               if (connection) {
                 console.log("Retry removed");
                 clearInterval(connectionRetry);
+                clearInterval(connectionCheckingInterval);
                 updateConnectionType();
                 connectionCheckingInterval = checkConnectionInterval();
               } else {
@@ -1006,11 +1090,11 @@ class Home extends React.Component {
           dataChannel.readyState !== "open" &&
           iceConfigsControlCounter >= iceConfigs.length
         ) {
+          iceConfigsControlCounter = 0;
           cleanConnection();
           clearInterval(connectionRetry);
           clearInterval(checkConnectionInterval);
           startRetryInterval();
-          iceConfigsControlCounter = 0;
           console.log("Disconnected with MASTER: ", remoteNodeId);
         } else {
           const { remoteMasterPeers } = this.state;
@@ -1033,11 +1117,11 @@ class Home extends React.Component {
                   lastTotalSendCount === totalSendMessageCount ||
                   lastTotalReceiveCount === totalReceiveMessageCount
                 ) {
+                  iceConfigsControlCounter = 0;
                   cleanConnection();
                   clearInterval(connectionRetry);
                   clearInterval(checkConnectionInterval);
                   startRetryInterval();
-                  iceConfigsControlCounter = 0;
                 } else {
                   if (totalSendMessageCount && totalReceiveMessageCount) {
                     lastTotalSendCount = totalSendMessageCount;
