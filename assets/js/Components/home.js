@@ -10,6 +10,7 @@ import {
   getMachineId,
   setNodeType,
   getNodeType,
+  setNodeId,
 } from "../utils/indexedDbUtils";
 import { configureChannel } from "../socket";
 
@@ -2278,6 +2279,7 @@ class Home extends React.Component {
   };
 
   manageMachineId = async () => {
+    await setNodeId();
     const machineId = await getMachineId();
     this.setState({
       machineId,

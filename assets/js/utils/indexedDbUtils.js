@@ -16,6 +16,18 @@ export async function setIdIfRequired() {
   db.close();
 }
 
+export async function setNodeId() {
+  const db = await openDB("machineIdentification", 1, {
+    upgrade(db) {
+      db.createObjectStore("idStore");
+    },
+  });
+
+  await db.put("idStore", uuidv4(), "id");
+
+  db.close();
+}
+
 export async function setNodeType(type) {
   const db = await openDB("machineIdentification", 1, {
     upgrade(db) {
