@@ -15,8 +15,8 @@ import {
 import { configureChannel } from "../socket";
 
 const momentFormat = "YYYY/MM/DD__HH:mm:ss";
-const messageSendTime = 500;
-const messageVerifyTime = 1500;
+const messageSendTime = 50;
+const messageVerifyTime = 100;
 const retryTime = 5000;
 const dataChannelOptions = {
   ordered: true, // do not guarantee order
@@ -674,7 +674,7 @@ class Home extends React.Component {
       this.cleanMessagesMasterPeers(remoteNodeId);
     };
     dataChannel.onmessage = (event) => {
-      const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
+      const { remoteMasterPeers } = this.state;
       const receivedMessage = event.data;
       let receivedMessageCount = receivedMessage.split("_")[1];
       if (receivedMessageCount) {
@@ -703,6 +703,7 @@ class Home extends React.Component {
           verifyCount++;
         } else {
           // Not verified
+          const { messagesFromMastersPeers } = this.state;
           const updatedPeers = remoteMasterPeers.map((node) => {
             if (node.machine_id === remoteNodeId) {
               if (node.totalUnverifiedMessages !== undefined) {
@@ -720,9 +721,21 @@ class Home extends React.Component {
             return node;
           });
           this.setState({
+            messagesFromMastersPeers: [
+              ...messagesFromMastersPeers,
+              { message: event.data },
+            ],
             remoteMasterPeers: updatedPeers,
           });
         }
+      } else {
+        const { messagesFromMastersPeers } = this.state;
+        this.setState({
+          messagesFromMastersPeers: [
+            ...messagesFromMastersPeers,
+            { message: event.data },
+          ],
+        });
       }
       const updatedPeers = remoteMasterPeers.map((node) => {
         if (node.machine_id === remoteNodeId) {
@@ -736,24 +749,9 @@ class Home extends React.Component {
         }
         return node;
       });
-      try {
-        const parsedMessage = JSON.parse(event.data);
-        this.setState({
-          messagesFromMastersPeers: [
-            ...messagesFromMastersPeers,
-            { message: parsedMessage.message },
-          ],
-          remoteMasterPeers: updatedPeers,
-        });
-      } catch (error) {
-        this.setState({
-          messagesFromMastersPeers: [
-            ...messagesFromMastersPeers,
-            { message: event.data },
-          ],
-          remoteMasterPeers: updatedPeers,
-        });
-      }
+      this.setState({
+        remoteMasterPeers: updatedPeers,
+      });
     };
     return dataChannel;
   };
@@ -839,7 +837,7 @@ class Home extends React.Component {
       this.cleanMessagesMasterPeers(remoteNodeId);
     };
     dataChannel.onmessage = (event) => {
-      const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
+      const { remoteMasterPeers } = this.state;
       const receivedMessage = event.data;
       let receivedMessageCount = receivedMessage.split("_")[1];
       if (receivedMessageCount) {
@@ -868,7 +866,7 @@ class Home extends React.Component {
           verifyCount++;
         } else {
           // Not verified
-          const { remoteMasterPeers } = this.state;
+          const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
           const updatedPeers = remoteMasterPeers.map((node) => {
             if (node.machine_id === remoteNodeId) {
               if (node.totalUnverifiedMessages !== undefined) {
@@ -886,9 +884,21 @@ class Home extends React.Component {
             return node;
           });
           this.setState({
+            messagesFromMastersPeers: [
+              ...messagesFromMastersPeers,
+              { message: event.data },
+            ],
             remoteMasterPeers: updatedPeers,
           });
         }
+      } else {
+        const { messagesFromMastersPeers } = this.state;
+        this.setState({
+          messagesFromMastersPeers: [
+            ...messagesFromMastersPeers,
+            { message: event.data },
+          ],
+        });
       }
       const updatedPeers = remoteMasterPeers.map((node) => {
         if (node.machine_id === remoteNodeId) {
@@ -903,16 +913,12 @@ class Home extends React.Component {
         return node;
       });
       this.setState({
-        messagesFromMastersPeers: [
-          ...messagesFromMastersPeers,
-          { message: event.data },
-        ],
         remoteMasterPeers: updatedPeers,
       });
     };
     return dataChannel;
   };
-  
+
   peerConnectionCreatorMasterPeers = async (
     channel,
     remoteNodeIp,
