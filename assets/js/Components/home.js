@@ -524,6 +524,16 @@ class Home extends React.Component {
     return { peerConnection };
   };
 
+  cleanMessagesMasterPeers = (masterPeerId) => {
+    const { messagesFromMastersPeers } = this.state;
+    const updatedMessages = messagesFromMastersPeers.filter(
+      ({ message }) => message.split("_")[0] !== masterPeerId
+    );
+    this.setState({
+      messagesFromMastersPeers: updatedMessages,
+    });
+  };
+
   createDataChannelForMasterPeer = (peerConnection, remoteNodeId) => {
     const checkVerificationAgain = (missingCount) =>
       setTimeout(() => {
@@ -587,6 +597,10 @@ class Home extends React.Component {
       messageInterval = setInterval(() => {
         dataChannel.send(`${machineId}_${verifyCountSender}`);
         verifyCountSender = verifyCountSender + 1;
+        // Sending message that always unverified
+        if (verifyCountSender === 4) {
+          dataChannel.send(`${machineId}_${45644}`);
+        }
         const { remoteMasterPeers } = this.state;
         const updatedPeers = remoteMasterPeers.map((node) => {
           if (node.machine_id === remoteNodeId) {
@@ -594,7 +608,7 @@ class Home extends React.Component {
               node.totalSendMessageCount =
                 parseInt(node.totalSendMessageCount) + 1;
             } else {
-              node.totalSendMessageCount = 0;
+              node.totalSendMessageCount = 1;
             }
             node.lastMessageSendTime = moment().format(momentFormat);
           }
@@ -638,33 +652,20 @@ class Home extends React.Component {
         });
       }, 1000);
     };
-    dataChannel.onerror = function (error) {
+    dataChannel.onerror = (error) => {
       console.log("Error: ", error, " 569");
       clearInterval(messageInterval);
       clearInterval(timeInterval);
+      this.cleanMessagesMasterPeers(remoteNodeId);
     };
     dataChannel.onmessage = (event) => {
       const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
-      const updatedPeers = remoteMasterPeers.map((node) => {
-        if (node.machine_id === remoteNodeId) {
-          if (node.totalReceiveMessageCount !== undefined) {
-            node.totalReceiveMessageCount =
-              parseInt(node.totalReceiveMessageCount) + 1;
-          } else {
-            node.totalReceiveMessageCount = 0;
-          }
-          node.lastMessageReceiveTime = moment().format(momentFormat);
-        }
-        return node;
-      });
-
-      setTimeout(() => {
-        const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
-        const textToSearch = `${remoteNodeId}_${verifyCount}`;
-        const filteredMessages = messagesFromMastersPeers.filter(
-          ({ message }) => message !== textToSearch
-        );
-        if (filteredMessages.length < messagesFromMastersPeers.length) {
+      const receivedMessage = event.data;
+      let receivedMessageCount = receivedMessage.split("_")[1];
+      if (receivedMessageCount) {
+        receivedMessageCount = parseInt(receivedMessageCount);
+        if (receivedMessageCount === verifyCount) {
+          // Message is verified
           const updatedPeers = remoteMasterPeers.map((node) => {
             if (node.machine_id === remoteNodeId) {
               if (node.totalVerifiedMessages !== undefined) {
@@ -680,26 +681,25 @@ class Home extends React.Component {
             }
             return node;
           });
-          verifyCount++;
           totalVerified++;
           this.setState({
-            messagesFromMastersPeers: filteredMessages,
             remoteMasterPeers: updatedPeers,
           });
+          verifyCount++;
         } else {
+          // Not verified
           const updatedPeers = remoteMasterPeers.map((node) => {
             if (node.machine_id === remoteNodeId) {
               if (node.totalUnverifiedMessages !== undefined) {
                 node.totalUnverifiedMessages =
                   parseInt(node.totalUnverifiedMessages) + 1;
               } else {
-                node.totalUnverifiedMessages = 0;
+                node.totalUnverifiedMessages = 1;
               }
               node.currentMessage = `${verifyCount}__${remoteNodeId.slice(
                 0,
                 5
               )}`;
-              checkVerificationAgain(verifyCount);
             }
             return node;
           });
@@ -707,7 +707,70 @@ class Home extends React.Component {
             remoteMasterPeers: updatedPeers,
           });
         }
-      }, messageVerifyTime);
+      }
+      const updatedPeers = remoteMasterPeers.map((node) => {
+        if (node.machine_id === remoteNodeId) {
+          if (node.totalReceiveMessageCount !== undefined) {
+            node.totalReceiveMessageCount =
+              parseInt(node.totalReceiveMessageCount) + 1;
+          } else {
+            node.totalReceiveMessageCount = 0;
+          }
+          node.lastMessageReceiveTime = moment().format(momentFormat);
+        }
+        return node;
+      });
+
+      // setTimeout(() => {
+      //   const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
+      //   const textToSearch = `${remoteNodeId}_${verifyCount}`;
+      //   const filteredMessages = messagesFromMastersPeers.filter(
+      //     ({ message }) => message !== textToSearch
+      //   );
+      //   if (filteredMessages.length < messagesFromMastersPeers.length) {
+      // const updatedPeers = remoteMasterPeers.map((node) => {
+      //   if (node.machine_id === remoteNodeId) {
+      //     if (node.totalVerifiedMessages !== undefined) {
+      //       node.totalVerifiedMessages =
+      //         parseInt(node.totalVerifiedMessages) + 1;
+      //     } else {
+      //       node.totalVerifiedMessages = totalVerified;
+      //     }
+      //     node.currentMessage = `${verifyCount}__${remoteNodeId.slice(
+      //       0,
+      //       5
+      //     )}`;
+      //   }
+      //   return node;
+      // });
+      // verifyCount++;
+      // totalVerified++;
+      // this.setState({
+      //   messagesFromMastersPeers: filteredMessages,
+      //   remoteMasterPeers: updatedPeers,
+      // });
+      //   } else {
+      // const updatedPeers = remoteMasterPeers.map((node) => {
+      //   if (node.machine_id === remoteNodeId) {
+      //     if (node.totalUnverifiedMessages !== undefined) {
+      //       node.totalUnverifiedMessages =
+      //         parseInt(node.totalUnverifiedMessages) + 1;
+      //     } else {
+      //       node.totalUnverifiedMessages = 0;
+      //     }
+      //     node.currentMessage = `${verifyCount}__${remoteNodeId.slice(
+      //       0,
+      //       5
+      //     )}`;
+      //     checkVerificationAgain(verifyCount);
+      //   }
+      //   return node;
+      // });
+      // this.setState({
+      //   remoteMasterPeers: updatedPeers,
+      // });
+      //   }
+      // }, messageVerifyTime);
       try {
         const parsedMessage = JSON.parse(event.data);
         this.setState({
@@ -786,6 +849,10 @@ class Home extends React.Component {
       messageInterval = setInterval(() => {
         dataChannel.send(`${machineId}_${verifyCountSender}`);
         verifyCountSender = verifyCountSender + 1;
+        // Sending message that always unverified
+        if (verifyCountSender === 4) {
+          dataChannel.send(`${machineId}_${4444}`);
+        }
         const { remoteMasterPeers } = this.state;
         const remoteUpdatedPeers = remoteMasterPeers.map((node) => {
           if (node.machine_id === remoteNodeId) {
@@ -842,18 +909,69 @@ class Home extends React.Component {
       console.log("Error:", error, " 750");
       clearInterval(messageInterval);
       clearInterval(timeInterval);
+      this.cleanMessagesMasterPeers(remoteNodeId);
     };
     dataChannel.onmessage = (event) => {
       const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
-      setTimeout(() => {
-        const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
+      // setTimeout(() => {
+      //   const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
 
-        const textToSearch = `${remoteNodeId}_${verifyCount}`;
-        const filteredMessages = messagesFromMastersPeers.filter(
-          ({ message }) => message !== textToSearch
-        );
-        verifyCount++;
-        if (filteredMessages.length < messagesFromMastersPeers.length) {
+      //   const textToSearch = `${remoteNodeId}_${verifyCount}`;
+      //   const filteredMessages = messagesFromMastersPeers.filter(
+      //     ({ message }) => message !== textToSearch
+      //   );
+      //   verifyCount++;
+      //   if (filteredMessages.length < messagesFromMastersPeers.length) {
+      //     const updatedPeers = remoteMasterPeers.map((node) => {
+      //       if (node.machine_id === remoteNodeId) {
+      //         if (node.totalVerifiedMessages !== undefined) {
+      //           node.totalVerifiedMessages =
+      //             parseInt(node.totalVerifiedMessages) + 1;
+      //         } else {
+      //           node.totalVerifiedMessages = totalVerified;
+      //         }
+      //         node.currentMessage = `${verifyCount}__${remoteNodeId.slice(
+      //           0,
+      //           5
+      //         )}`;
+      //       }
+
+      //       return node;
+      //     });
+      //     totalVerified++;
+      //     this.setState({
+      //       messagesFromMastersPeers: filteredMessages,
+      //       remoteMasterPeers: updatedPeers,
+      //     });
+      //   } else {
+      //     const updatedPeers = remoteMasterPeers.map((node) => {
+      //       if (node.machine_id === remoteNodeId) {
+      //         if (node.totalUnverifiedMessages !== undefined) {
+      //           node.totalUnverifiedMessages =
+      //             parseInt(node.totalUnverifiedMessages) + 1;
+      //         } else {
+      //           node.totalUnverifiedMessages = 0;
+      //         }
+
+      //         node.currentMessage = `${verifyCount}__${remoteNodeId.slice(
+      //           0,
+      //           5
+      //         )}`;
+      //         checkVerificationAgain(verifyCount);
+      //       }
+      //       return node;
+      //     });
+      //     this.setState({
+      //       remoteMasterPeers: updatedPeers,
+      //     });
+      //   }
+      // }, messageVerifyTime);
+      const receivedMessage = event.data;
+      let receivedMessageCount = receivedMessage.split("_")[1];
+      if (receivedMessageCount) {
+        receivedMessageCount = parseInt(receivedMessageCount);
+        if (receivedMessageCount === verifyCount) {
+          // Message is verified
           const updatedPeers = remoteMasterPeers.map((node) => {
             if (node.machine_id === remoteNodeId) {
               if (node.totalVerifiedMessages !== undefined) {
@@ -867,29 +985,28 @@ class Home extends React.Component {
                 5
               )}`;
             }
-
             return node;
           });
           totalVerified++;
           this.setState({
-            messagesFromMastersPeers: filteredMessages,
             remoteMasterPeers: updatedPeers,
           });
+          verifyCount++;
         } else {
+          // Not verified
+          const { remoteMasterPeers } = this.state;
           const updatedPeers = remoteMasterPeers.map((node) => {
             if (node.machine_id === remoteNodeId) {
               if (node.totalUnverifiedMessages !== undefined) {
                 node.totalUnverifiedMessages =
                   parseInt(node.totalUnverifiedMessages) + 1;
               } else {
-                node.totalUnverifiedMessages = 0;
+                node.totalUnverifiedMessages = 1;
               }
-
               node.currentMessage = `${verifyCount}__${remoteNodeId.slice(
                 0,
                 5
               )}`;
-              checkVerificationAgain(verifyCount);
             }
             return node;
           });
@@ -897,7 +1014,7 @@ class Home extends React.Component {
             remoteMasterPeers: updatedPeers,
           });
         }
-      }, messageVerifyTime);
+      }
       const updatedPeers = remoteMasterPeers.map((node) => {
         if (node.machine_id === remoteNodeId) {
           if (node.totalReceiveMessageCount !== undefined) {
