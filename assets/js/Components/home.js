@@ -736,57 +736,6 @@ class Home extends React.Component {
         }
         return node;
       });
-
-      // setTimeout(() => {
-      //   const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
-      //   const textToSearch = `${remoteNodeId}_${verifyCount}`;
-      //   const filteredMessages = messagesFromMastersPeers.filter(
-      //     ({ message }) => message !== textToSearch
-      //   );
-      //   if (filteredMessages.length < messagesFromMastersPeers.length) {
-      // const updatedPeers = remoteMasterPeers.map((node) => {
-      //   if (node.machine_id === remoteNodeId) {
-      //     if (node.totalVerifiedMessages !== undefined) {
-      //       node.totalVerifiedMessages =
-      //         parseInt(node.totalVerifiedMessages) + 1;
-      //     } else {
-      //       node.totalVerifiedMessages = totalVerified;
-      //     }
-      //     node.currentMessage = `${verifyCount}__${remoteNodeId.slice(
-      //       0,
-      //       5
-      //     )}`;
-      //   }
-      //   return node;
-      // });
-      // verifyCount++;
-      // totalVerified++;
-      // this.setState({
-      //   messagesFromMastersPeers: filteredMessages,
-      //   remoteMasterPeers: updatedPeers,
-      // });
-      //   } else {
-      // const updatedPeers = remoteMasterPeers.map((node) => {
-      //   if (node.machine_id === remoteNodeId) {
-      //     if (node.totalUnverifiedMessages !== undefined) {
-      //       node.totalUnverifiedMessages =
-      //         parseInt(node.totalUnverifiedMessages) + 1;
-      //     } else {
-      //       node.totalUnverifiedMessages = 0;
-      //     }
-      //     node.currentMessage = `${verifyCount}__${remoteNodeId.slice(
-      //       0,
-      //       5
-      //     )}`;
-      //     checkVerificationAgain(verifyCount);
-      //   }
-      //   return node;
-      // });
-      // this.setState({
-      //   remoteMasterPeers: updatedPeers,
-      // });
-      //   }
-      // }, messageVerifyTime);
       try {
         const parsedMessage = JSON.parse(event.data);
         this.setState({
@@ -963,7 +912,7 @@ class Home extends React.Component {
     };
     return dataChannel;
   };
-
+  
   peerConnectionCreatorMasterPeers = async (
     channel,
     remoteNodeIp,
