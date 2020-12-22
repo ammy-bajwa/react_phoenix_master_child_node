@@ -19,6 +19,7 @@ export const TableRow = ({ messages, peer, index, type }) => {
       <td>{peer.currentMessage || "0"}</td>
       <td>{peer.totalVerifiedMessages || "0"}</td>
       <td>{peer.totalUnverifiedMessages || "0"}</td>
+      <td>{peer.lateVerified || "0"}</td>
       <td>
         <button
           type="button"

@@ -24,6 +24,8 @@ export const Table = ({
           <th scope="col">Current Message</th>
           <th scope="col">Received Verification</th>
           <th scope="col">Not Received</th>
+          <th scope="col">Late Verified</th>
+          <th scope="col">Show Messages</th>
         </tr>
       </thead>
       <tbody>
