@@ -18,8 +18,8 @@ export const TableRow = ({ messages, peer, index, type }) => {
       <td>{peer.totalReceiveMessageCount || "0"}</td>
       <td>{peer.currentMessage || "0"}</td>
       <td>{peer.totalVerifiedMessages || "0"}</td>
-      <td>{peer.totalUnverifiedMessages || "0"}</td>
-      <td>{peer.lateVerified || "0"}</td>
+      <td>{(peer.notReceived && peer.notReceived.length) || "0"}</td>
+      <td>{(peer.delayedReceived && peer.delayedReceived.length) || "0"}</td>
       <td>
         <button
           type="button"
@@ -57,6 +57,26 @@ export const TableRow = ({ messages, peer, index, type }) => {
                 {myMessages.length > 0 &&
                   myMessages.map(({ message }, index) => (
                     <p key={index}>{message}</p>
+                  ))}
+
+                <hr />
+                <h3>Not Received Messages</h3>
+                {peer.notReceived &&
+                  peer.notReceived.map(({ counter, timeStamp }, index) => (
+                    <p key={index}>
+                      <b>Counter: </b>
+                      {counter} : {timeStamp}
+                    </p>
+                  ))}
+
+                <hr />
+                <h3>Delayed Received Messages</h3>
+                {peer.delayedReceived &&
+                  peer.delayedReceived.map(({ counter, timeStamp }, index) => (
+                    <p key={index}>
+                      <b>Counter: </b>
+                      {counter} : {timeStamp}
+                    </p>
                   ))}
               </div>
               {/* <div className="modal-footer">

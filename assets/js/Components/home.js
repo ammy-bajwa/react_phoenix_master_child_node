@@ -615,7 +615,7 @@ class Home extends React.Component {
         // check if the counter mod 4 is zero
         // zero then then add counter to not_send_arr
         // not zero then normally send the counter
-        console.log("+++++++++++++++++++++++++++++++++++++++");
+        // console.log("+++++++++++++++++++++++++++++++++++++++");
         if (verifyCountSender % 12 !== 0) {
           if (verifyCountSender % 4 !== 0) {
             dataChannel.send(`${machineId}_${verifyCountSender}`);
@@ -696,10 +696,15 @@ class Home extends React.Component {
         });
       }, 1000);
     };
+
+    let notReceived = [];
+    let delayedReceived = [];
     dataChannel.onerror = (error) => {
       console.log("Error: ", error, " 669");
       verifyCount = 1;
       totalVerified = 0;
+      notReceived = [];
+      delayedReceived = [];
       clearInterval(messageInterval);
       clearInterval(timeInterval);
       this.cleanMessagesMasterPeers(remoteNodeId);
@@ -708,6 +713,7 @@ class Home extends React.Component {
       const { remoteMasterPeers } = this.state;
       const receivedMessage = event.data;
       let receivedMessageCount = receivedMessage.split("_")[1];
+      // console.log("receivedMessageCount: ", receivedMessageCount);
       if (receivedMessageCount) {
         receivedMessageCount = parseInt(receivedMessageCount);
         if (receivedMessageCount === verifyCount) {
@@ -732,18 +738,23 @@ class Home extends React.Component {
             remoteMasterPeers: updatedPeers,
           });
           verifyCount++;
-        } else {
-          // Not verified
-          const { messagesFromMastersPeers } = this.state;
+        } else if (receivedMessageCount > verifyCount) {
+          // Here we will store all numbers that are
+          for (let index = verifyCount; index < receivedMessageCount; index++) {
+            notReceived.push({
+              counter: index,
+              timeStamp: moment().format(momentFormat),
+            });
+          }
+          verifyCount = receivedMessageCount + 1;
           const updatedPeers = remoteMasterPeers.map((node) => {
             if (node.machine_id === remoteNodeId) {
-              if (node.totalUnverifiedMessages !== undefined) {
-                node.totalUnverifiedMessages =
-                  parseInt(node.totalUnverifiedMessages) + 1;
+              if (node.totalVerifiedMessages !== undefined) {
+                node.totalVerifiedMessages =
+                  parseInt(node.totalVerifiedMessages) + 1;
               } else {
-                node.totalUnverifiedMessages = 1;
+                node.totalVerifiedMessages = totalVerified;
               }
-              this.checkVerificationAgain(remoteNodeId, receivedMessageCount);
               node.currentMessage = `${verifyCount}__${remoteNodeId.slice(
                 0,
                 5
@@ -751,13 +762,50 @@ class Home extends React.Component {
             }
             return node;
           });
+          totalVerified++;
           this.setState({
-            messagesFromMastersPeers: [
-              ...messagesFromMastersPeers,
-              { message: event.data },
-            ],
             remoteMasterPeers: updatedPeers,
           });
+        } else if (receivedMessageCount < verifyCount) {
+          for (let index = 0; index < notReceived.length; index++) {
+            const { counter } = notReceived[index];
+            if (counter === receivedMessageCount) {
+              notReceived.splice(index, 1);
+              delayedReceived.push({
+                counter,
+                timeStamp: moment().format(momentFormat),
+              });
+            }
+          }
+        } else {
+          console.log(
+            "THIS SHOULD NOT HAPPEN______________-------------------"
+          );
+          // Not verified
+          // const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
+          // const updatedPeers = remoteMasterPeers.map((node) => {
+          //   if (node.machine_id === remoteNodeId) {
+          //     if (node.totalUnverifiedMessages !== undefined) {
+          //       node.totalUnverifiedMessages =
+          //         parseInt(node.totalUnverifiedMessages) + 1;
+          //     } else {
+          //       node.totalUnverifiedMessages = 1;
+          //     }
+          //     this.checkVerificationAgain(remoteNodeId, receivedMessageCount);
+          //     node.currentMessage = `${verifyCount}__${remoteNodeId.slice(
+          //       0,
+          //       5
+          //     )}`;
+          //   }
+          //   return node;
+          // });
+          // this.setState({
+          //   messagesFromMastersPeers: [
+          //     ...messagesFromMastersPeers,
+          //     { message: event.data },
+          //   ],
+          //   remoteMasterPeers: updatedPeers,
+          // });
         }
       } else {
         const { messagesFromMastersPeers } = this.state;
@@ -777,6 +825,8 @@ class Home extends React.Component {
             node.totalReceiveMessageCount = 0;
           }
           node.lastMessageReceiveTime = moment().format(momentFormat);
+          node.notReceived = notReceived;
+          node.delayedReceived = delayedReceived;
         }
         return node;
       });
@@ -797,15 +847,37 @@ class Home extends React.Component {
       console.log("Datachannel is open on 682");
       verifyCount = 1;
       totalVerified = 0;
+      let notSendArr = [];
+      let delaySendArr = [];
       const { remoteMasterPeers, machineId, masterDataChannel } = this.state;
       dataChannel.send(machineId);
       let verifyCountSender = 1;
       messageInterval = setInterval(() => {
-        dataChannel.send(`${machineId}_${verifyCountSender}`);
-        verifyCountSender = verifyCountSender + 1;
-        // Sending message that always unverified
-        if (verifyCountSender === 4) {
-          dataChannel.send(`${machineId}_${4444}`);
+        if (verifyCountSender % 12 !== 0) {
+          if (verifyCountSender % 4 !== 0) {
+            dataChannel.send(`${machineId}_${verifyCountSender}`);
+          } else {
+            notSendArr.push({
+              counter: verifyCountSender,
+              timeStamp: moment().format(momentFormat),
+            });
+          }
+          verifyCountSender = verifyCountSender + 1;
+        } else {
+          // If counter mode 12 is zero then send all counters in not_send_arr and add counter to the not_send_arr
+          notSendArr.forEach(({ counter }) => {
+            dataChannel.send(`${machineId}_${counter}`);
+            delaySendArr.push({
+              counter: counter,
+              timeStamp: moment().format(momentFormat),
+            });
+          });
+          notSendArr = [];
+          notSendArr.push({
+            counter: verifyCountSender,
+            timeStamp: moment().format(momentFormat),
+          });
+          verifyCountSender = verifyCountSender + 1;
         }
         const { remoteMasterPeers } = this.state;
         const remoteUpdatedPeers = remoteMasterPeers.map((node) => {
@@ -859,10 +931,14 @@ class Home extends React.Component {
         remoteMasterPeersWebRtcConnections: updatedArr,
       });
     };
+    let notReceived = [];
+    let delayedReceived = [];
     dataChannel.onerror = (error) => {
       console.log("Error:", error, " 750");
       verifyCount = 1;
       totalVerified = 0;
+      notReceived = [];
+      delayedReceived = [];
       clearInterval(messageInterval);
       clearInterval(timeInterval);
       this.cleanMessagesMasterPeers(remoteNodeId);
@@ -873,8 +949,18 @@ class Home extends React.Component {
       let receivedMessageCount = receivedMessage.split("_")[1];
       if (receivedMessageCount) {
         receivedMessageCount = parseInt(receivedMessageCount);
-        console.log("receivedMessageCount: ", receivedMessageCount);
-        // console.log("verifyCount: ", verifyCount);
+        // console.log("receivedMessageCount: ", receivedMessageCount);
+        // If received_counter is equal to verify_count
+        // verify_count will increase
+        // count will be consider verified
+        // If received_counter is less than to verify_count
+        // check the counter in not received arr
+        // add the counter in the delayed received arr
+        // verify_count = received_counter + 1
+        // If received_counter is greater than to verify_count
+        // add counter in verified
+        // add all missing counts from verify_count to received_counter in not received
+        // verify_count = received_counter + 1
         if (receivedMessageCount === verifyCount) {
           // Message is verified
           const updatedPeers = remoteMasterPeers.map((node) => {
@@ -897,18 +983,23 @@ class Home extends React.Component {
             remoteMasterPeers: updatedPeers,
           });
           verifyCount++;
-        } else {
-          // Not verified
-          const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
+        } else if (receivedMessageCount > verifyCount) {
+          // Here we will store all numbers that are
+          for (let index = verifyCount; index < receivedMessageCount; index++) {
+            notReceived.push({
+              counter: index,
+              timeStamp: moment().format(momentFormat),
+            });
+          }
+          verifyCount = receivedMessageCount + 1;
           const updatedPeers = remoteMasterPeers.map((node) => {
             if (node.machine_id === remoteNodeId) {
-              if (node.totalUnverifiedMessages !== undefined) {
-                node.totalUnverifiedMessages =
-                  parseInt(node.totalUnverifiedMessages) + 1;
+              if (node.totalVerifiedMessages !== undefined) {
+                node.totalVerifiedMessages =
+                  parseInt(node.totalVerifiedMessages) + 1;
               } else {
-                node.totalUnverifiedMessages = 1;
+                node.totalVerifiedMessages = totalVerified;
               }
-              this.checkVerificationAgain(remoteNodeId, receivedMessageCount);
               node.currentMessage = `${verifyCount}__${remoteNodeId.slice(
                 0,
                 5
@@ -916,13 +1007,50 @@ class Home extends React.Component {
             }
             return node;
           });
+          totalVerified++;
           this.setState({
-            messagesFromMastersPeers: [
-              ...messagesFromMastersPeers,
-              { message: event.data },
-            ],
             remoteMasterPeers: updatedPeers,
           });
+        } else if (receivedMessageCount < verifyCount) {
+          for (let index = 0; index < notReceived.length; index++) {
+            const { counter } = notReceived[index];
+            if (counter === receivedMessageCount) {
+              notReceived.splice(index, 1);
+              delayedReceived.push({
+                counter,
+                timeStamp: moment().format(momentFormat),
+              });
+            }
+          }
+        } else {
+          console.log(
+            "THIS SHOULD NOT HAPPEN______________-------------------"
+          );
+          // Not verified
+          // const { messagesFromMastersPeers, remoteMasterPeers } = this.state;
+          // const updatedPeers = remoteMasterPeers.map((node) => {
+          //   if (node.machine_id === remoteNodeId) {
+          //     if (node.totalUnverifiedMessages !== undefined) {
+          //       node.totalUnverifiedMessages =
+          //         parseInt(node.totalUnverifiedMessages) + 1;
+          //     } else {
+          //       node.totalUnverifiedMessages = 1;
+          //     }
+          //     this.checkVerificationAgain(remoteNodeId, receivedMessageCount);
+          //     node.currentMessage = `${verifyCount}__${remoteNodeId.slice(
+          //       0,
+          //       5
+          //     )}`;
+          //   }
+          //   return node;
+          // });
+          // this.setState({
+          //   messagesFromMastersPeers: [
+          //     ...messagesFromMastersPeers,
+          //     { message: event.data },
+          //   ],
+          //   remoteMasterPeers: updatedPeers,
+          // });
         }
       } else {
         const { messagesFromMastersPeers } = this.state;
@@ -942,6 +1070,8 @@ class Home extends React.Component {
             node.totalReceiveMessageCount = 0;
           }
           node.lastMessageReceiveTime = moment().format(momentFormat);
+          node.notReceived = notReceived;
+          node.delayedReceived = delayedReceived;
         }
         return node;
       });
