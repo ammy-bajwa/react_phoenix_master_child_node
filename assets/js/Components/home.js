@@ -14,9 +14,9 @@ import {
 } from "../utils/indexedDbUtils";
 import { configureChannel } from "../socket";
 
-const momentFormat = "YYYY/MM/DD__HH:mm:ss";
-const messageSendTime = 50;
-const messageVerifyTime = 100;
+const momentFormat = "YYYY/MM/DD HH:mm:ss";
+const messageSendTime = 500;
+const messageVerifyTime = 1000;
 const retryTime = 5000;
 const dataChannelOptions = {
   ordered: true, // do not guarantee order
@@ -598,22 +598,51 @@ class Home extends React.Component {
     let totalVerified = 0;
     dataChannel.onopen = async () => {
       console.log("Data Channel is open on 521");
-      verifyCount = 0;
+      verifyCount = 1;
       totalVerified = 0;
+      let notSendArr = [];
+      let delaySendArr = [];
       const {
         remoteMasterPeersWebRtcConnections,
         remoteMasterPeers,
         machineId,
       } = this.state;
       dataChannel.send(machineId);
-      let verifyCountSender = 0;
+      let verifyCountSender = 1;
       messageInterval = setInterval(() => {
-        dataChannel.send(`${machineId}_${verifyCountSender}`);
-        verifyCountSender = verifyCountSender + 1;
-        // Sending message that always unverified
-        if (verifyCountSender === 4) {
-          dataChannel.send(`${machineId}_${45644}`);
+        // If counter mode 12 is zero then send all counters in not_send_arr and add counter to the not_send_arr
+        // if counter mode 12 is not zero
+        // check if the counter mod 4 is zero
+        // zero then then add counter to not_send_arr
+        // not zero then normally send the counter
+        console.log("+++++++++++++++++++++++++++++++++++++++");
+        if (verifyCountSender % 12 !== 0) {
+          if (verifyCountSender % 4 !== 0) {
+            dataChannel.send(`${machineId}_${verifyCountSender}`);
+          } else {
+            notSendArr.push({
+              counter: verifyCountSender,
+              timeStamp: moment().format(momentFormat),
+            });
+          }
+          verifyCountSender = verifyCountSender + 1;
+        } else {
+          // If counter mode 12 is zero then send all counters in not_send_arr and add counter to the not_send_arr
+          notSendArr.forEach(({ counter }) => {
+            dataChannel.send(`${machineId}_${counter}`);
+            delaySendArr.push({
+              counter: counter,
+              timeStamp: moment().format(momentFormat),
+            });
+          });
+          notSendArr = [];
+          notSendArr.push({
+            counter: verifyCountSender,
+            timeStamp: moment().format(momentFormat),
+          });
+          verifyCountSender = verifyCountSender + 1;
         }
+
         const { remoteMasterPeers } = this.state;
         const updatedPeers = remoteMasterPeers.map((node) => {
           if (node.machine_id === remoteNodeId) {
@@ -624,6 +653,8 @@ class Home extends React.Component {
               node.totalSendMessageCount = 1;
             }
             node.lastMessageSendTime = moment().format(momentFormat);
+            node.notSendArr = notSendArr;
+            node.delaySendArr = delaySendArr;
           }
           return node;
         });
@@ -667,7 +698,7 @@ class Home extends React.Component {
     };
     dataChannel.onerror = (error) => {
       console.log("Error: ", error, " 669");
-      verifyCount = 0;
+      verifyCount = 1;
       totalVerified = 0;
       clearInterval(messageInterval);
       clearInterval(timeInterval);
@@ -760,15 +791,15 @@ class Home extends React.Component {
     const dataChannel = event.channel;
     let messageInterval = null;
     let timeInterval = null;
-    let verifyCount = 0;
+    let verifyCount = 1;
     let totalVerified = 0;
     dataChannel.onopen = async (event) => {
       console.log("Datachannel is open on 682");
-      verifyCount = 0;
+      verifyCount = 1;
       totalVerified = 0;
       const { remoteMasterPeers, machineId, masterDataChannel } = this.state;
       dataChannel.send(machineId);
-      let verifyCountSender = 0;
+      let verifyCountSender = 1;
       messageInterval = setInterval(() => {
         dataChannel.send(`${machineId}_${verifyCountSender}`);
         verifyCountSender = verifyCountSender + 1;
@@ -830,7 +861,7 @@ class Home extends React.Component {
     };
     dataChannel.onerror = (error) => {
       console.log("Error:", error, " 750");
-      verifyCount = 0;
+      verifyCount = 1;
       totalVerified = 0;
       clearInterval(messageInterval);
       clearInterval(timeInterval);
@@ -842,6 +873,8 @@ class Home extends React.Component {
       let receivedMessageCount = receivedMessage.split("_")[1];
       if (receivedMessageCount) {
         receivedMessageCount = parseInt(receivedMessageCount);
+        console.log("receivedMessageCount: ", receivedMessageCount);
+        // console.log("verifyCount: ", verifyCount);
         if (receivedMessageCount === verifyCount) {
           // Message is verified
           const updatedPeers = remoteMasterPeers.map((node) => {
