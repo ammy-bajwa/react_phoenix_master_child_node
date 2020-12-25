@@ -589,9 +589,13 @@ class Home extends React.Component {
       }
     }, 1000);
   };
-  createDataChannelForMasterPeer = (peerConnection, remoteNodeId) => {
+  createDataChannelForMasterPeer = (
+    peerConnection,
+    remoteNodeId,
+    dataChannelName
+  ) => {
     const dataChannel = peerConnection.createDataChannel(
-      "MyDataChannel",
+      dataChannelName,
       dataChannelOptions
     );
     const channelId = uuidv4();
@@ -600,7 +604,7 @@ class Home extends React.Component {
     let verifyCount = 0;
     let totalVerified = 0;
     dataChannel.onopen = async () => {
-      console.log("Data Channel is open on 521");
+      console.log(dataChannelName + " Data Channel is open on 607");
       verifyCount = 1;
       totalVerified = 0;
       let notSendArr = [];
@@ -681,7 +685,7 @@ class Home extends React.Component {
             id: channelId,
             dataChannel,
           };
-          if (node.peerDataChannel && node.peerDataChannel.length) {
+          if (node.peerDataChannel && node.peerDataChannel.length >= 0) {
             node.peerDataChannel = [...node.peerDataChannel, dataChannelObj];
           } else {
             node.peerDataChannel = [dataChannelObj];
@@ -866,6 +870,7 @@ class Home extends React.Component {
 
   onDataChannelForMasterPeer = (event, remoteNodeId) => {
     const dataChannel = event.channel;
+    const channelId = uuidv4();
     let messageInterval = null;
     let timeInterval = null;
     let verifyCount = 1;
@@ -876,7 +881,11 @@ class Home extends React.Component {
       totalVerified = 0;
       let notSendArr = [];
       let delaySendArr = [];
-      const { remoteMasterPeers, machineId, masterDataChannel } = this.state;
+      const {
+        remoteMasterPeers,
+        machineId,
+        remoteMasterPeersWebRtcConnections,
+      } = this.state;
       dataChannel.send(machineId);
       let verifyCountSender = 1;
       messageInterval = setInterval(() => {
@@ -946,16 +955,36 @@ class Home extends React.Component {
           remoteMasterPeers: remoteUpdatedPeers,
         });
       }, 1000);
-      const { remoteMasterPeersWebRtcConnections } = this.state;
-      const updatedArr = remoteMasterPeersWebRtcConnections.map((node) => {
-        if (node.machine_id === remoteNodeId) {
-          console.log("OLD MASTER Updating datachannel on 600");
-          node.peerDataChannel = dataChannel;
+      // const updatedArr = remoteMasterPeersWebRtcConnections.map((node) => {
+      //   if (node.machine_id === remoteNodeId) {
+      //     console.log("OLD MASTER Updating datachannel on 600");
+      //     node.peerDataChannel = dataChannel;
+      //   }
+      //   return node;
+      // });
+      // this.setState({
+      //   remoteMasterPeersWebRtcConnections: updatedArr,
+      // });
+
+      const updatedArrDataChannels = remoteMasterPeersWebRtcConnections.map(
+        (node) => {
+          if (node.machine_id === remoteNodeId) {
+            console.log("OLD MASTER Updating datachannel on 559");
+            const dataChannelObj = {
+              id: channelId,
+              dataChannel,
+            };
+            if (node.peerDataChannel && node.peerDataChannel.length >= 0) {
+              node.peerDataChannel = [...node.peerDataChannel, dataChannelObj];
+            } else {
+              node.peerDataChannel = [dataChannelObj];
+            }
+          }
+          return node;
         }
-        return node;
-      });
+      );
       this.setState({
-        remoteMasterPeersWebRtcConnections: updatedArr,
+        remoteMasterPeersWebRtcConnections: updatedArrDataChannels,
       });
     };
     let notReceived = [];
@@ -1119,17 +1148,17 @@ class Home extends React.Component {
     const peerConnection = new RTCPeerConnection(
       iceConfigs[iceConfigsControlCounter]
     );
-    peerConnection.onnegotiationneeded = async () => {
-      console.log("NEGOTIATION MASTER");
-      const offerForPeerMaster = await peerConnection.createOffer();
-      await peerConnection.setLocalDescription(offerForPeerMaster);
-      channel.push(`web:send_offer_to_peer_master`, {
-        offer_for_peer_master: JSON.stringify(offerForPeerMaster),
-        ip: ip,
-        remote_master_ip: remoteNodeIp,
-      });
-      console.log("MASTER SEND OFFER");
-    };
+    // peerConnection.onnegotiationneeded = async () => {
+    //   console.log("NEGOTIATION MASTER");
+    //   const offerForPeerMaster = await peerConnection.createOffer();
+    //   await peerConnection.setLocalDescription(offerForPeerMaster);
+    //   channel.push(`web:send_offer_to_peer_master`, {
+    //     offer_for_peer_master: JSON.stringify(offerForPeerMaster),
+    //     ip: ip,
+    //     remote_master_ip: remoteNodeIp,
+    //   });
+    //   console.log("MASTER SEND OFFER");
+    // };
     peerConnection.ondatachannel = async (event) => {
       console.log("Event: ", event.channel);
       const dataChannel = await this.onDataChannelForMasterPeer(
@@ -1152,7 +1181,27 @@ class Home extends React.Component {
     return peerConnection;
   };
 
-  createDCSendOfferToOtherMasterPeers = (peerConnection, dataChannelName) => {};
+  createDCSendOfferToOtherMasterPeers = async (
+    channel,
+    peerConnection,
+    remoteNodeId,
+    remoteNodeIp
+  ) => {
+    const { ip } = this.state;
+    this.createDataChannelForMasterPeer(peerConnection, remoteNodeId, "dc_1");
+    this.createDataChannelForMasterPeer(peerConnection, remoteNodeId, "dc_2");
+    this.createDataChannelForMasterPeer(peerConnection, remoteNodeId, "dc_3");
+    this.createDataChannelForMasterPeer(peerConnection, remoteNodeId, "dc_4");
+    this.createDataChannelForMasterPeer(peerConnection, remoteNodeId, "dc_4");
+    this.createDataChannelForMasterPeer(peerConnection, remoteNodeId, "dc_5");
+    const offerForPeerMaster = await peerConnection.createOffer();
+    await peerConnection.setLocalDescription(offerForPeerMaster);
+    channel.push(`web:send_offer_to_peer_master`, {
+      offer_for_peer_master: JSON.stringify(offerForPeerMaster),
+      ip: ip,
+      remote_master_ip: remoteNodeIp,
+    });
+  };
 
   createConnectionForNewMaster = async (
     channel,
@@ -1172,9 +1221,11 @@ class Home extends React.Component {
       remoteNodeId,
       iceConfigsControlCounter
     );
-    dataChannel = this.createDataChannelForMasterPeer(
+    this.createDCSendOfferToOtherMasterPeers(
+      channel,
       peerConnection,
-      remoteNodeId
+      remoteNodeId,
+      remoteNodeIp
     );
     const updateConnectionType = () => {
       let iceServerType = this.getIceServerType(iceConfigsControlCounter);
@@ -1275,7 +1326,7 @@ class Home extends React.Component {
 
     let lastTotalSendCount = 0;
     let lastTotalReceiveCount = 0;
-    connectionRetry = startRetryInterval();
+    // connectionRetry = startRetryInterval();
 
     const checkConnectionInterval = () =>
       setInterval(() => {
