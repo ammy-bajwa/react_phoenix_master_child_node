@@ -4,6 +4,8 @@ Remote Peers
 
 	createDataChannelForMasterPeer
 	onDataChannelForMasterPeer
+
+	createDCSendOfferToOtherMasterPeers
 	
 Lan Peers
 	offer sender lanPeerConnectionForChildFromMaster

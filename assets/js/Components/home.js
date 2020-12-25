@@ -1,6 +1,8 @@
 import React from "react";
 import moment from "moment";
 
+import { v4 as uuidv4 } from "uuid";
+
 import { RenderLanPeers } from "./lanPeer";
 import { Table } from "./table";
 
@@ -592,6 +594,7 @@ class Home extends React.Component {
       "MyDataChannel",
       dataChannelOptions
     );
+    const channelId = uuidv4();
     let messageInterval = null;
     let timeInterval = null;
     let verifyCount = 0;
@@ -674,7 +677,15 @@ class Home extends React.Component {
       const updatedArr = remoteMasterPeersWebRtcConnections.map((node) => {
         if (node.machine_id === remoteNodeId) {
           console.log("OLD MASTER Updating datachannel on 559");
-          node.peerDataChannel = dataChannel;
+          const dataChannelObj = {
+            id: channelId,
+            dataChannel,
+          };
+          if (node.peerDataChannel && node.peerDataChannel.length) {
+            node.peerDataChannel = [...node.peerDataChannel, dataChannelObj];
+          } else {
+            node.peerDataChannel = [dataChannelObj];
+          }
         }
         return node;
       });
@@ -701,6 +712,22 @@ class Home extends React.Component {
     let delayedReceived = [];
     dataChannel.onerror = (error) => {
       console.log("Error: ", error, " 669");
+      const { remoteMasterPeersWebRtcConnections } = this.state;
+      const updatedArr = remoteMasterPeersWebRtcConnections.map((node) => {
+        if (node.machine_id === remoteNodeId) {
+          if (node.peerDataChannel && node.peerDataChannel.length) {
+            node.peerDataChannel = node.peerDataChannel.filter(
+              (dcObj) => dcObj.id !== channelId
+            );
+          } else {
+            node.peerDataChannel = [];
+          }
+        }
+        return node;
+      });
+      this.setState({
+        remoteMasterPeersWebRtcConnections: updatedArr,
+      });
       verifyCount = 1;
       totalVerified = 0;
       notReceived = [];
@@ -1124,6 +1151,8 @@ class Home extends React.Component {
 
     return peerConnection;
   };
+
+  createDCSendOfferToOtherMasterPeers = (peerConnection, dataChannelName) => {};
 
   createConnectionForNewMaster = async (
     channel,
