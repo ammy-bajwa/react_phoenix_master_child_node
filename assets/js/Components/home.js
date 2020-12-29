@@ -45,23 +45,15 @@ class Home extends React.Component {
       {
         iceServers: [
           {
-            urls: ["stun:avm4962.com:3478"],
+            urls: [
+              "stun:avm4962.com:3478",
+              "stun:avm4962.com:5349",
+              "stun:ss-turn1.xirsys.com",
+            ],
           },
         ],
       },
-      //2
-      {
-        iceServers: [
-          {
-            urls: ["stun:avm4962.com:5349"],
-          },
-        ],
-      },
-      //3
-      {
-        iceServers: [{ urls: ["stun:ss-turn1.xirsys.com"] }],
-      },
-      //4
+      // 2
       {
         iceServers: [
           {
@@ -72,7 +64,7 @@ class Home extends React.Component {
           },
         ],
       },
-      //5
+      // 3
       {
         iceServers: [
           {
@@ -83,7 +75,7 @@ class Home extends React.Component {
           },
         ],
       },
-      //6
+      // 4
       {
         iceServers: [
           {
@@ -94,7 +86,7 @@ class Home extends React.Component {
           },
         ],
       },
-      //7
+      // 5
       {
         iceServers: [
           {
@@ -105,7 +97,7 @@ class Home extends React.Component {
           },
         ],
       },
-      //8
+      // 6
       {
         iceServers: [
           {
@@ -116,7 +108,7 @@ class Home extends React.Component {
           },
         ],
       },
-      //9
+      // 7
       {
         iceServers: [
           {
@@ -127,7 +119,7 @@ class Home extends React.Component {
           },
         ],
       },
-      //10
+      // 8
       {
         iceServers: [
           {
@@ -141,7 +133,7 @@ class Home extends React.Component {
           },
         ],
       },
-      //11
+      // 9
       {
         iceServers: [
           {
@@ -152,7 +144,7 @@ class Home extends React.Component {
           },
         ],
       },
-      //12
+      // 10
       {
         iceServers: [
           {
@@ -163,7 +155,7 @@ class Home extends React.Component {
           },
         ],
       },
-      // 13
+      // 11
       {
         iceServers: [
           {
@@ -174,7 +166,7 @@ class Home extends React.Component {
           },
         ],
       },
-      //14
+      // 12
       {
         iceServers: [
           {
@@ -185,7 +177,7 @@ class Home extends React.Component {
           },
         ],
       },
-      //15
+      // 13
       {
         iceServers: [
           {
@@ -196,7 +188,7 @@ class Home extends React.Component {
           },
         ],
       },
-      //16
+      // 14
       {
         iceServers: [
           {
@@ -207,7 +199,7 @@ class Home extends React.Component {
           },
         ],
       },
-      // 17
+      // 15
       {
         iceServers: [
           {
@@ -224,7 +216,7 @@ class Home extends React.Component {
           },
         ],
       },
-      // 18
+      // 16
       {
         iceServers: [
           {
@@ -333,41 +325,37 @@ class Home extends React.Component {
       case 0:
         return "0-Null_ICE_SERVER";
       case 1:
-        return "1-AVM_STUN_3478";
+        return "1-ALL STUN";
       case 2:
-        return "2-AVM_STUN_5349";
+        return "2-AVM_TURN_UDP_3478";
       case 3:
-        return "3-XIRSYS_STUN";
+        return "3-AVM_TURN_UDP_5349";
       case 4:
-        return "4-AVM_TURN_UDP_3478";
+        return "4-AVM_TURN_TCP_3478";
       case 5:
-        return "5-AVM_TURN_UDP_5349";
+        return "5-AVM_TURN_TCP_5349";
       case 6:
-        return "6-AVM_TURN_TCP_3478";
+        return "6-AVM_TURN_3478";
       case 7:
-        return "7-AVM_TURN_TCP_5349";
+        return "7-AVM_TURN_5349";
       case 8:
-        return "8-AVM_TURN_3478";
+        return "8-AVM_TURN_:3478_UDP:5349_TCP";
       case 9:
-        return "9-AVM_TURN_5349";
+        return "9-XIRSYS_TURN_UDP_80";
       case 10:
-        return "10-AVM_TURN_:3478_UDP:5349_TCP";
+        return "10-XIRSYS_TURN_UDP_3478";
       case 11:
-        return "11-XIRSYS_TURN_UDP_80";
+        return "11-XIRSYS_TURN_TCP_80";
       case 12:
-        return "12-XIRSYS_TURN_UDP_3478";
+        return "12-XIRSYS_TURN_TCP_3478";
       case 13:
-        return "13-XIRSYS_TURN_TCP_80";
+        return "13-XIRSYS_TURN_TCP_443";
       case 14:
-        return "14-XIRSYS_TURN_TCP_3478";
+        return "14-XIRSYS_TURN_TCP_5349";
       case 15:
-        return "15-XIRSYS_TURN_TCP_443";
+        return "15-AVM_TURN_UDP_3475_TCP_5349";
       case 16:
-        return "16-XIRSYS_TURN_TCP_5349";
-      case 17:
-        return "17-AVM_TURN_UDP_3475_TCP_5349";
-      case 18:
-        return "18-AVM_XIRSYS_STUN_TURN_UDP_TCP_ALL";
+        return "16-AVM_XIRSYS_STUN_TURN_UDP_TCP_ALL";
       default:
         return "None";
     }
@@ -1210,6 +1198,7 @@ class Home extends React.Component {
   ) => {
     const { iceConfigs, ip } = this.state;
     let iceConfigsControlCounter = 1;
+    let stunRetryCount = 0;
     let connection = false;
     let dataChannel = null;
     let connectionRetry;
@@ -1253,7 +1242,18 @@ class Home extends React.Component {
 
     const startRetryInterval = () =>
       setInterval(async () => {
-        if (dataChannel.readyState !== "open") {
+        try {
+          const { remoteMasterPeersWebRtcConnections } = this.state;
+          remoteMasterPeersWebRtcConnections.forEach((remoteNode) => {
+            if (remoteNode.machine_id === remoteNodeId) {
+              dataChannel = remoteNode.peerDataChannel[0].dataChannel;
+              console.log("remoteNode ", remoteNode);
+            }
+          });
+        } catch (error) {
+          dataChannel = null;
+        }
+        if (dataChannel.readyState && dataChannel.readyState !== "open") {
           clearInterval(connectionCheckingInterval);
           if (iceConfigsControlCounter >= iceConfigs.length) {
             console.log("ALL Have Been Tried And Resetting");
@@ -1313,7 +1313,7 @@ class Home extends React.Component {
                 clearInterval(connectionRetry);
                 clearInterval(connectionCheckingInterval);
                 updateConnectionType();
-                connectionCheckingInterval = checkConnectionInterval();
+                // connectionCheckingInterval = checkConnectionInterval();
               } else {
                 console.log("Message verification failed");
                 clearInterval(connectionCheckingInterval);
@@ -1326,7 +1326,7 @@ class Home extends React.Component {
 
     let lastTotalSendCount = 0;
     let lastTotalReceiveCount = 0;
-    // connectionRetry = startRetryInterval();
+    connectionRetry = startRetryInterval();
 
     const checkConnectionInterval = () =>
       setInterval(() => {
