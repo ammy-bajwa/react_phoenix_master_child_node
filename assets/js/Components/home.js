@@ -1253,7 +1253,13 @@ class Home extends React.Component {
         } catch (error) {
           dataChannel = null;
         }
-        if (dataChannel.readyState && dataChannel.readyState !== "open") {
+        let readyState = "";
+        try {
+          readyState = dataChannel.readyState;
+        } catch (error) {
+          readyState = "";
+        }
+        if (readyState !== "open") {
           clearInterval(connectionCheckingInterval);
           if (iceConfigsControlCounter >= iceConfigs.length) {
             console.log("ALL Have Been Tried And Resetting");
@@ -1269,6 +1275,7 @@ class Home extends React.Component {
               ice_config_control_counter: iceConfigsControlCounter,
             });
             isOther = false;
+            stunRetryCount = stunRetryCount + 1;
             console.log("OLD MASTER SEND TRY REQUEST");
             console.log(
               "Old MASTER iceConfigsControlCounter: ",
@@ -1276,23 +1283,28 @@ class Home extends React.Component {
             );
             return;
           } else {
-            iceConfigsControlCounter = iceConfigsControlCounter + 1;
-            channel.push(`web:updated_peer_connection`, {
-              iceConfigsControlCounter,
-              receiver: remoteNodeIp,
-              sender: ip,
-            });
-            cleanConnection();
-            peerConnection = await this.peerConnectionCreatorMasterPeers(
+            stunRetryCount = stunRetryCount + 1;
+            if (stunRetryCount > 3) {
+              iceConfigsControlCounter = iceConfigsControlCounter + 1;
+              channel.push(`web:updated_peer_connection`, {
+                iceConfigsControlCounter,
+                receiver: remoteNodeIp,
+                sender: ip,
+              });
+              peerConnection = await this.peerConnectionCreatorMasterPeers(
+                channel,
+                remoteNodeIp,
+                remoteNodeId,
+                iceConfigsControlCounter
+              );
+            }
+            this.createDCSendOfferToOtherMasterPeers(
               channel,
-              remoteNodeIp,
-              remoteNodeId,
-              iceConfigsControlCounter
-            );
-            dataChannel = this.createDataChannelForMasterPeer(
               peerConnection,
-              remoteNodeId
+              remoteNodeId,
+              remoteNodeIp
             );
+            // cleanConnection();
             console.log("OLD MASTER CREATE DATA CHANNEL");
             console.log(
               "Old MASTER iceConfigsControlCounter: ",
@@ -1300,6 +1312,7 @@ class Home extends React.Component {
             );
             isOther = true;
           }
+          console.log("stunRetryCount: ", stunRetryCount);
         } else {
           // verify channel via message
           setTimeout(() => {
