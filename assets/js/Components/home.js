@@ -1198,6 +1198,9 @@ class Home extends React.Component {
   ) => {
     const { iceConfigs, ip } = this.state;
     let iceConfigsControlCounter = 1;
+    let otherMasterPeerLayer = 1;
+    let isFirstLayerTrying = true;
+    let isOtherLayerTrying = false;
     let stunRetryCount = 0;
     let connection = false;
     let dataChannel = null;
@@ -1269,12 +1272,53 @@ class Home extends React.Component {
             return;
           }
           if (isOther) {
-            channel.push(`web:try_to_connect_again_remote_master`, {
-              ip: ip,
-              remote_node_ip: remoteNodeIp,
-              ice_config_control_counter: iceConfigsControlCounter,
-            });
-            isOther = false;
+            if (isFirstLayerTrying) {
+              channel.push(`web:try_to_connect_again_remote_master`, {
+                ip: ip,
+                remote_node_ip: remoteNodeIp,
+                ice_config_control_counter: iceConfigsControlCounter,
+              });
+              isFirstLayerTrying = false;
+              isOtherLayerTrying = true;
+            } else {
+              if (isOtherLayerTrying) {
+                console.log("--------------------------");
+                channel.push(`web:try_to_connect_again_remote_master`, {
+                  ip: ip,
+                  remote_node_ip: remoteNodeIp,
+                  ice_config_control_counter: iceConfigsControlCounter,
+                });
+                isOtherLayerTrying = false;
+                return;
+              }
+              if (otherMasterPeerLayer <= iceConfigs.length) {
+                channel.push(`web:updated_peer_connection`, {
+                  iceConfigsControlCounter: otherMasterPeerLayer,
+                  receiver: remoteNodeIp,
+                  sender: ip,
+                });
+                peerConnection = await this.peerConnectionCreatorMasterPeers(
+                  channel,
+                  remoteNodeIp,
+                  remoteNodeId,
+                  iceConfigsControlCounter
+                );
+                this.createDCSendOfferToOtherMasterPeers(
+                  channel,
+                  peerConnection,
+                  remoteNodeId,
+                  remoteNodeIp
+                );
+                otherMasterPeerLayer = otherMasterPeerLayer + 1;
+                isOtherLayerTrying = true;
+              } else {
+                otherMasterPeerLayer = 1;
+                isOther = false;
+                isFirstLayerTrying = true;
+              }
+            }
+            console.log("otherMasterPeerLayer: ", otherMasterPeerLayer);
+
             stunRetryCount = stunRetryCount + 1;
             console.log("OLD MASTER SEND TRY REQUEST");
             console.log(
