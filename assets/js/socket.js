@@ -12,9 +12,6 @@ export async function configureChannel() {
   socket.onOpen = function (event) {
     console.log("Socket is Open ");
   };
-  socket.onClose = () => {
-    alert("Socket is closed");
-  };
   const channel = socket.channel("web:peer", { ip, machine_id: machine_id });
 
   return { channel, socket };
