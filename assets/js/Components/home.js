@@ -258,7 +258,16 @@ class Home extends React.Component {
   // }
 
   async componentDidMount() {
-    const { channel, socket } = await configureChannel();
+    let { channel, socket } = await configureChannel();
+    this.setupSocketAndChannel(channel);
+    socket.onClose = () => {
+      alert("Socket is closed");
+      socket.connect();
+      this.setupSocketAndChannel(channel);
+    };
+  }
+
+  setupSocketAndChannel = async (channel) => {
     const componentThis = this;
     await this.setupIp();
     await this.manageMachineId();
@@ -302,7 +311,7 @@ class Home extends React.Component {
       .receive("timeout", () => {
         console.log("Networking issue. Still waiting....");
       });
-  }
+  };
 
   setupRemotePeerConnections = async (channel) => {
     const { remoteMasterPeers } = this.state;
