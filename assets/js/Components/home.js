@@ -17,8 +17,8 @@ import {
 import { configureChannel } from "../socket";
 
 const momentFormat = "YYYY/MM/DD HH:mm:ss";
-const messageSendTime = 500;
-const messageVerifyTime = 1000;
+const messageSendTime = 100;
+const messageVerifyTime = 400;
 const retryTime = 5000;
 const dataChannelOptions = {
   ordered: true, // do not guarantee order
@@ -258,7 +258,16 @@ class Home extends React.Component {
   // }
 
   async componentDidMount() {
-    const { channel, socket } = await configureChannel();
+    let { channel, socket } = await configureChannel();
+    this.setupSocketAndChannel(channel);
+    socket.onClose = () => {
+      alert("Socket is closed");
+      socket.connect();
+      this.setupSocketAndChannel(channel);
+    };
+  }
+
+  setupSocketAndChannel = async (channel) => {
     const componentThis = this;
     await this.setupIp();
     await this.manageMachineId();
@@ -302,7 +311,7 @@ class Home extends React.Component {
       .receive("timeout", () => {
         console.log("Networking issue. Still waiting....");
       });
-  }
+  };
 
   setupRemotePeerConnections = async (channel) => {
     const { remoteMasterPeers } = this.state;
