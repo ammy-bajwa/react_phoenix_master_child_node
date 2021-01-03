@@ -8,6 +8,7 @@ export async function configureChannel() {
   await setIdIfRequired();
   const machine_id = await getMachineId();
   const socket = new Socket("/socket");
+
   socket.connect();
   socket.onOpen = function (event) {
     console.log("Socket is Open ");

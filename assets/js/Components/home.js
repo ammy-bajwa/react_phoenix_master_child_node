@@ -260,8 +260,13 @@ class Home extends React.Component {
   async componentDidMount() {
     let { channel, socket } = await configureChannel();
     this.setupSocketAndChannel(channel);
+    socket.onError = () => {
+      alert("Socket Has Error");
+      socket.connect();
+      this.setupSocketAndChannel(channel);
+    };
     socket.onClose = () => {
-      alert("Socket is closed");
+      alert("Socket Has Closed");
       socket.connect();
       this.setupSocketAndChannel(channel);
     };
