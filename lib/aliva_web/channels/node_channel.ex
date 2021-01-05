@@ -335,7 +335,6 @@ defmodule AlivaWeb.NodeChannel do
     {:noreply, socket}
   end
 
-
   def handle_in(
         "web:verification_received_lan_peer",
         %{
@@ -362,6 +361,14 @@ defmodule AlivaWeb.NodeChannel do
       candidate: candidate
     })
 
+    {:noreply, socket}
+  end
+
+  def handle_in(
+        "web:heart_beat",
+        %{},
+        socket
+      ) do
     {:noreply, socket}
   end
 

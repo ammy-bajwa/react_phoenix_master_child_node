@@ -28,6 +28,7 @@ const dataChannelOptions = {
 class Home extends React.Component {
   state = {
     ip: "",
+    heartBeatInterval: null,
     machineId: "",
     type: "",
     lanPeers: [],
@@ -257,6 +258,11 @@ class Home extends React.Component {
   //   await setNodeType("");
   // }
 
+  componentWillUnmount() {
+    const { heartBeatInterval } = this.setState;
+    clearInterval(heartBeatInterval);
+  }
+
   async componentDidMount() {
     let { channel, socket } = await configureChannel();
     this.setupSocketAndChannel(channel);
@@ -280,6 +286,12 @@ class Home extends React.Component {
       .join()
       .receive("ok", async ({ remote_masters_peers, lan_peers, type }) => {
         // Receiving null here if request is from same browser
+        const heartBeatInterval = setInterval(() => {
+          channel.push("web:heart_beat", {});
+        }, 4000);
+        this.setState({
+          heartBeatInterval,
+        });
         if (!lan_peers) {
           channel.leave();
           alert("Already a connection is established in other tab");
