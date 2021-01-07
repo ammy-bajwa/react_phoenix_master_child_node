@@ -4,3 +4,5 @@ export const getMyIp = async function () {
   ).json();
   return ip;
 };
+
+

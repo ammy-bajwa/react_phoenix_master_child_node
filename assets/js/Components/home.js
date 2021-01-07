@@ -7,16 +7,10 @@ import { RenderLanPeers } from "./lanPeer";
 import { Table } from "./table";
 
 import { getMyIp } from "../utils/index";
-import {
-  setIdIfRequired,
-  getMachineId,
-  setNodeType,
-  getNodeType,
-  setNodeId,
-} from "../utils/indexedDbUtils";
+import { iceConfigServers } from "../utils/iceServersArr";
+import { getMachineId, setNodeType, setNodeId } from "../utils/indexedDbUtils";
 import { configureChannel } from "../socket";
 
-const momentFormat = "YYYY/MM/DD HH:mm:ss";
 const messageSendTime = 500;
 const messageVerifyTime = 1000;
 const retryTime = 5000;
@@ -27,6 +21,7 @@ const dataChannelOptions = {
 
 class Home extends React.Component {
   state = {
+    momentFormat: "YYYY/MM/DD HH:mm:ss",
     ip: "",
     heartBeatInterval: null,
     machineId: "",
@@ -39,216 +34,7 @@ class Home extends React.Component {
     masterDataChannel: false,
     messagesFromMastersPeers: [],
     messageFromLanPeers: [],
-    iceConfigs: [
-      // 0
-      { iceServers: [] },
-      // 1
-      {
-        iceServers: [
-          {
-            urls: [
-              "stun:avm4962.com:3478",
-              "stun:avm4962.com:5349",
-              "stun:ss-turn1.xirsys.com",
-            ],
-          },
-        ],
-      },
-      // 2
-      {
-        iceServers: [
-          {
-            username: "TuR9Us3r",
-            credential:
-              "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
-            urls: ["turn:avm4962.com:3478?transport=udp"],
-          },
-        ],
-      },
-      // 3
-      {
-        iceServers: [
-          {
-            username: "TuR9Us3r",
-            credential:
-              "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
-            urls: ["turn:avm4962.com:5349?transport=udp"],
-          },
-        ],
-      },
-      // 4
-      {
-        iceServers: [
-          {
-            username: "TuR9Us3r",
-            credential:
-              "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
-            urls: ["turn:avm4962.com:3478?transport=tcp"],
-          },
-        ],
-      },
-      // 5
-      {
-        iceServers: [
-          {
-            username: "TuR9Us3r",
-            credential:
-              "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
-            urls: ["turn:avm4962.com:5349?transport=tcp"],
-          },
-        ],
-      },
-      // 6
-      {
-        iceServers: [
-          {
-            username: "TuR9Us3r",
-            credential:
-              "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
-            urls: ["turn:avm4962.com:3478"],
-          },
-        ],
-      },
-      // 7
-      {
-        iceServers: [
-          {
-            username: "TuR9Us3r",
-            credential:
-              "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
-            urls: ["turn:avm4962.com:5349"],
-          },
-        ],
-      },
-      // 8
-      {
-        iceServers: [
-          {
-            username: "TuR9Us3r",
-            credential:
-              "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
-            urls: [
-              "turn:avm4962.com:3478?transport=udp",
-              "turn:avm4962.com:5349?transport=tcp",
-            ],
-          },
-        ],
-      },
-      // 9
-      {
-        iceServers: [
-          {
-            username:
-              "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
-            credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
-            urls: ["turn:ss-turn1.xirsys.com:80?transport=udp"],
-          },
-        ],
-      },
-      // 10
-      {
-        iceServers: [
-          {
-            username:
-              "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
-            credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
-            urls: ["turn:ss-turn1.xirsys.com:3478?transport=udp"],
-          },
-        ],
-      },
-      // 11
-      {
-        iceServers: [
-          {
-            username:
-              "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
-            credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
-            urls: ["turn:ss-turn1.xirsys.com:80?transport=tcp"],
-          },
-        ],
-      },
-      // 12
-      {
-        iceServers: [
-          {
-            username:
-              "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
-            credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
-            urls: ["turn:ss-turn1.xirsys.com:3478?transport=tcp"],
-          },
-        ],
-      },
-      // 13
-      {
-        iceServers: [
-          {
-            username:
-              "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
-            credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
-            urls: ["turns:ss-turn1.xirsys.com:443?transport=tcp"],
-          },
-        ],
-      },
-      // 14
-      {
-        iceServers: [
-          {
-            username:
-              "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
-            credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
-            urls: ["turns:ss-turn1.xirsys.com:5349?transport=tcp"],
-          },
-        ],
-      },
-      // 15
-      {
-        iceServers: [
-          {
-            urls: ["stun:avm4962.com:3478", "stun:avm4962.com:5349"],
-          },
-          {
-            username: "TuR9Us3r",
-            credential:
-              "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
-            urls: [
-              "turn:avm4962.com:3478?transport=udp",
-              "turn:avm4962.com:5349?transport=tcp",
-            ],
-          },
-        ],
-      },
-      // 16
-      {
-        iceServers: [
-          {
-            urls: ["stun:avm4962.com:3478", "stun:avm4962.com:5349"],
-          },
-          { urls: ["stun:ss-turn1.xirsys.com"] },
-          {
-            username: "TuR9Us3r",
-            credential:
-              "T!W779M?Vh#5ewJcT=L4v6NcUE*=4+-*fcy+gLAS$^WJgg+wq%?ca^Br@D%Q2MVpyV2sqTcHmUAdP2z4#=S8FAb*3LKGT%W^4R%h5Tdw%D*zvvdWTzSA@ytvEH!G#^99QmW3*5ps^jv@aLdNSfyYKBUS@CJ#hxSp5PRnzP+_YDcJHN&ng2Q_g6Z!+j_3RD%vc@P4g%tFuAuX_dz_+AQNe$$$%w7A4sW?CDr87ca^rjFBGV??JR$!tCSnZdAJa6P8",
-            urls: [
-              "turn:avm4962.com:3478?transport=udp",
-              "turn:avm4962.com:5349?transport=tcp",
-            ],
-          },
-          {
-            username:
-              "ZyUlEkJOyQDmJFZ0nkKcAKmrrNayVm-rutt8RNHa1EQe_NQADY6Rk4sM2zVstYo_AAAAAF9xt7VhbGl2YXRlY2g=",
-            credential: "820f7cf4-0173-11eb-ad8b-0242ac140004",
-            urls: [
-              "turn:ss-turn1.xirsys.com:80?transport=udp",
-              "turn:ss-turn1.xirsys.com:3478?transport=udp",
-              "turn:ss-turn1.xirsys.com:80?transport=tcp",
-              "turn:ss-turn1.xirsys.com:3478?transport=tcp",
-              "turns:ss-turn1.xirsys.com:443?transport=tcp",
-              "turns:ss-turn1.xirsys.com:5349?transport=tcp",
-            ],
-          },
-        ],
-      },
-    ],
+    iceConfigs: [...iceConfigServers],
   };
   constructor(props) {
     super(props);
@@ -627,6 +413,7 @@ class Home extends React.Component {
         remoteMasterPeersWebRtcConnections,
         remoteMasterPeers,
         machineId,
+        momentFormat,
       } = this.state;
       dataChannel.send(machineId);
       let verifyCountSender = 1;
@@ -663,7 +450,6 @@ class Home extends React.Component {
           });
           verifyCountSender = verifyCountSender + 1;
         }
-
         const { remoteMasterPeers } = this.state;
         const updatedPeers = remoteMasterPeers.map((node) => {
           if (node.machine_id === remoteNodeId) {
@@ -755,7 +541,7 @@ class Home extends React.Component {
       this.cleanMessagesMasterPeers(remoteNodeId);
     };
     dataChannel.onmessage = (event) => {
-      const { remoteMasterPeers } = this.state;
+      const { remoteMasterPeers, momentFormat } = this.state;
       const receivedMessage = event.data;
       let receivedMessageCount = receivedMessage.split("_")[1];
       // console.log("receivedMessageCount: ", receivedMessageCount);
@@ -899,6 +685,7 @@ class Home extends React.Component {
         remoteMasterPeers,
         machineId,
         remoteMasterPeersWebRtcConnections,
+        momentFormat,
       } = this.state;
       dataChannel.send(machineId);
       let verifyCountSender = 1;
@@ -969,16 +756,6 @@ class Home extends React.Component {
           remoteMasterPeers: remoteUpdatedPeers,
         });
       }, 1000);
-      // const updatedArr = remoteMasterPeersWebRtcConnections.map((node) => {
-      //   if (node.machine_id === remoteNodeId) {
-      //     console.log("OLD MASTER Updating datachannel on 600");
-      //     node.peerDataChannel = dataChannel;
-      //   }
-      //   return node;
-      // });
-      // this.setState({
-      //   remoteMasterPeersWebRtcConnections: updatedArr,
-      // });
 
       const updatedArrDataChannels = remoteMasterPeersWebRtcConnections.map(
         (node) => {
@@ -1014,7 +791,7 @@ class Home extends React.Component {
       this.cleanMessagesMasterPeers(remoteNodeId);
     };
     dataChannel.onmessage = (event) => {
-      const { remoteMasterPeers } = this.state;
+      const { remoteMasterPeers, momentFormat } = this.state;
       const receivedMessage = event.data;
       let receivedMessageCount = receivedMessage.split("_")[1];
       if (receivedMessageCount) {
@@ -1162,17 +939,6 @@ class Home extends React.Component {
     const peerConnection = new RTCPeerConnection(
       iceConfigs[iceConfigsControlCounter]
     );
-    // peerConnection.onnegotiationneeded = async () => {
-    //   console.log("NEGOTIATION MASTER");
-    //   const offerForPeerMaster = await peerConnection.createOffer();
-    //   await peerConnection.setLocalDescription(offerForPeerMaster);
-    //   channel.push(`web:send_offer_to_peer_master`, {
-    //     offer_for_peer_master: JSON.stringify(offerForPeerMaster),
-    //     ip: ip,
-    //     remote_master_ip: remoteNodeIp,
-    //   });
-    //   console.log("MASTER SEND OFFER");
-    // };
     peerConnection.ondatachannel = async (event) => {
       console.log("Event: ", event.channel);
       const dataChannel = await this.onDataChannelForMasterPeer(
@@ -1509,13 +1275,6 @@ class Home extends React.Component {
             break;
           }
         }
-        // messagesFromMastersPeers.map(({ message }) => {
-        //   console.log("====================Message---------: ", message);
-        //   if (message.split("_")[0] === remoteNodeId) {
-        //     console.log("Verified------------");
-        //     connection = true;
-        //   }
-        // });
       }
     );
     channel.on(
@@ -2011,7 +1770,12 @@ class Home extends React.Component {
     let timeInterval = null;
     dataChannel.onopen = () => {
       console.log("LanPeer Data Channel Is Open");
-      const { lanPeersWebRtcConnections, lanPeers, machineId } = this.state;
+      const {
+        lanPeersWebRtcConnections,
+        lanPeers,
+        machineId,
+        momentFormat,
+      } = this.state;
       dataChannel.send(machineId);
       let verifyCount = 0;
       messageInterval = setInterval(() => {
@@ -2078,7 +1842,7 @@ class Home extends React.Component {
     let totalVerified = 0;
     let isFirst = true;
     dataChannel.onmessage = (event) => {
-      const { messageFromLanPeers, lanPeers } = this.state;
+      const { messageFromLanPeers, lanPeers, momentFormat } = this.state;
       const updatedPeers = lanPeers.map((node) => {
         if (node.machine_id === lanPeerId) {
           if (node.totalReceiveMessageCount !== undefined) {
@@ -2149,7 +1913,12 @@ class Home extends React.Component {
     let timeInterval = null;
     console.log("ondatachannel: ", dataChannel);
     dataChannel.onopen = (event) => {
-      const { lanPeersWebRtcConnections, lanPeers, machineId } = this.state;
+      const {
+        lanPeersWebRtcConnections,
+        lanPeers,
+        machineId,
+        momentFormat,
+      } = this.state;
       dataChannel.send(machineId);
       let verifyCount = 0;
       messageInterval = setInterval(() => {
@@ -2219,7 +1988,7 @@ class Home extends React.Component {
     let verifyCount = 0;
     let isFirst = true;
     dataChannel.onmessage = (event) => {
-      const { messageFromLanPeers, lanPeers } = this.state;
+      const { messageFromLanPeers, lanPeers, momentFormat } = this.state;
       setTimeout(() => {
         const { messageFromLanPeers, lanPeers } = this.state;
         const filteredMessages = messageFromLanPeers.filter(
