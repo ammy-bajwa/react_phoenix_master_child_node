@@ -4,6 +4,7 @@ import moment from "moment";
 import { v4 as uuidv4 } from "uuid";
 
 import { RenderLanPeers } from "./lanPeer";
+import { startHeartBeatInterval } from "./helper/intervals";
 import { Table } from "./table";
 
 import { getMyIp } from "../utils/index";
@@ -67,9 +68,7 @@ class Home extends React.Component {
       .join()
       .receive("ok", async ({ remote_masters_peers, lan_peers, type }) => {
         // Receiving null here if request is from same browser
-        const heartBeatInterval = setInterval(() => {
-          channel.push("web:heart_beat", {});
-        }, 4000);
+        const heartBeatInterval = startHeartBeatInterval(channel);
         this.setState({
           heartBeatInterval,
         });
