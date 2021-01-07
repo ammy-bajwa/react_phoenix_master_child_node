@@ -39,10 +39,6 @@ class Home extends React.Component {
     super(props);
   }
 
-  // async componentWillUnmount() {
-  //   await setNodeType("");
-  // }
-
   componentWillUnmount() {
     const { heartBeatInterval } = this.setState;
     clearInterval(heartBeatInterval);
