@@ -11,17 +11,16 @@ import { iceConfigServers } from "../utils/iceServersArr";
 import { getMachineId, setNodeType, setNodeId } from "../utils/indexedDbUtils";
 import { configureChannel } from "../socket";
 
-const messageSendTime = 500;
-const messageVerifyTime = 1000;
-const retryTime = 5000;
-const dataChannelOptions = {
-  ordered: true, // do not guarantee order
-  // maxPacketLifeTime: 300, // in milliseconds
-};
-
 class Home extends React.Component {
   state = {
     momentFormat: "YYYY/MM/DD HH:mm:ss",
+    messageSendTime: 500,
+    messageVerifyTime: 1000,
+    retryTime: 5000,
+    dataChannelOptions: {
+      ordered: true, // do not guarantee order
+      // maxPacketLifeTime: 300, // in milliseconds
+    },
     ip: "",
     heartBeatInterval: null,
     machineId: "",
@@ -394,6 +393,7 @@ class Home extends React.Component {
     remoteNodeId,
     dataChannelName
   ) => {
+    const { dataChannelOptions } = this.state;
     const dataChannel = peerConnection.createDataChannel(
       dataChannelName,
       dataChannelOptions
@@ -414,6 +414,7 @@ class Home extends React.Component {
         remoteMasterPeers,
         machineId,
         momentFormat,
+        messageSendTime,
       } = this.state;
       dataChannel.send(machineId);
       let verifyCountSender = 1;
@@ -686,6 +687,7 @@ class Home extends React.Component {
         machineId,
         remoteMasterPeersWebRtcConnections,
         momentFormat,
+        messageSendTime,
       } = this.state;
       dataChannel.send(machineId);
       let verifyCountSender = 1;
@@ -988,7 +990,7 @@ class Home extends React.Component {
     remoteNodeIp,
     remoteNodeId
   ) => {
-    const { iceConfigs, ip } = this.state;
+    const { iceConfigs, ip, retryTime } = this.state;
     let iceConfigsControlCounter = 1;
     let otherMasterPeerLayer = 1;
     let isFirstLayerTrying = true;
@@ -1762,6 +1764,7 @@ class Home extends React.Component {
   };
 
   lanPeerCreateDataChannel = (peerConnection, lanPeerId) => {
+    const { dataChannelOptions } = this.state;
     const dataChannel = peerConnection.createDataChannel(
       "MyDataChannel",
       dataChannelOptions
@@ -1775,6 +1778,7 @@ class Home extends React.Component {
         lanPeers,
         machineId,
         momentFormat,
+        messageSendTime,
       } = this.state;
       dataChannel.send(machineId);
       let verifyCount = 0;
@@ -1842,7 +1846,12 @@ class Home extends React.Component {
     let totalVerified = 0;
     let isFirst = true;
     dataChannel.onmessage = (event) => {
-      const { messageFromLanPeers, lanPeers, momentFormat } = this.state;
+      const {
+        messageFromLanPeers,
+        lanPeers,
+        momentFormat,
+        messageVerifyTime,
+      } = this.state;
       const updatedPeers = lanPeers.map((node) => {
         if (node.machine_id === lanPeerId) {
           if (node.totalReceiveMessageCount !== undefined) {
@@ -1918,6 +1927,7 @@ class Home extends React.Component {
         lanPeers,
         machineId,
         momentFormat,
+        messageSendTime,
       } = this.state;
       dataChannel.send(machineId);
       let verifyCount = 0;
@@ -1988,7 +1998,12 @@ class Home extends React.Component {
     let verifyCount = 0;
     let isFirst = true;
     dataChannel.onmessage = (event) => {
-      const { messageFromLanPeers, lanPeers, momentFormat } = this.state;
+      const {
+        messageFromLanPeers,
+        lanPeers,
+        momentFormat,
+        messageVerifyTime,
+      } = this.state;
       setTimeout(() => {
         const { messageFromLanPeers, lanPeers } = this.state;
         const filteredMessages = messageFromLanPeers.filter(
@@ -2059,7 +2074,7 @@ class Home extends React.Component {
     masterId,
     childId
   ) => {
-    const { iceConfigs, ip } = this.state;
+    const { iceConfigs, ip, retryTime } = this.state;
     let iceConfigsControlCounter = 0;
     let connection = false;
     let dataChannel = null;
