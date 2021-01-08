@@ -8,7 +8,7 @@ import { startHeartBeatInterval } from "./helper/intervals";
 import { Table } from "./table";
 
 import { getMyIp } from "../utils/index";
-import { iceConfigServers } from "../utils/iceServersArr";
+import { iceConfigServers, getIceServerType } from "../utils/iceServersUtils";
 import { getMachineId, setNodeType, setNodeId } from "../utils/indexedDbUtils";
 import { configureChannel } from "../socket";
 
@@ -126,47 +126,6 @@ class Home extends React.Component {
     });
   };
 
-  getIceServerType = (controlVariable) => {
-    switch (controlVariable) {
-      case 0:
-        return "0-Null_ICE_SERVER";
-      case 1:
-        return "1-ALL STUN";
-      case 2:
-        return "2-AVM_TURN_UDP_3478";
-      case 3:
-        return "3-AVM_TURN_UDP_5349";
-      case 4:
-        return "4-AVM_TURN_TCP_3478";
-      case 5:
-        return "5-AVM_TURN_TCP_5349";
-      case 6:
-        return "6-AVM_TURN_3478";
-      case 7:
-        return "7-AVM_TURN_5349";
-      case 8:
-        return "8-AVM_TURN_:3478_UDP:5349_TCP";
-      case 9:
-        return "9-XIRSYS_TURN_UDP_80";
-      case 10:
-        return "10-XIRSYS_TURN_UDP_3478";
-      case 11:
-        return "11-XIRSYS_TURN_TCP_80";
-      case 12:
-        return "12-XIRSYS_TURN_TCP_3478";
-      case 13:
-        return "13-XIRSYS_TURN_TCP_443";
-      case 14:
-        return "14-XIRSYS_TURN_TCP_5349";
-      case 15:
-        return "15-AVM_TURN_UDP_3475_TCP_5349";
-      case 16:
-        return "16-AVM_XIRSYS_STUN_TURN_UDP_TCP_ALL";
-      default:
-        return "None";
-    }
-  };
-
   remotePeerConnectionForMaster = async (
     channel,
     remoteNodeIp,
@@ -183,7 +142,7 @@ class Home extends React.Component {
     );
 
     const updateConnectionType = () => {
-      let iceServerType = this.getIceServerType(iceConfigsControlCounter);
+      let iceServerType = getIceServerType(iceConfigsControlCounter);
       const { remoteMasterPeers } = this.state;
       const updatedArr = remoteMasterPeers.map((node) => {
         if (node.machine_id === remoteNodeId) {
@@ -1009,7 +968,7 @@ class Home extends React.Component {
       remoteNodeIp
     );
     const updateConnectionType = () => {
-      let iceServerType = this.getIceServerType(iceConfigsControlCounter);
+      let iceServerType = getIceServerType(iceConfigsControlCounter);
       const { remoteMasterPeers } = this.state;
       const updatedArr = remoteMasterPeers.map((node) => {
         if (node.machine_id === remoteNodeId) {
@@ -1424,7 +1383,7 @@ class Home extends React.Component {
     );
 
     const updateConnectionType = () => {
-      let iceServerType = this.getIceServerType(iceConfigsControlCounter);
+      let iceServerType = getIceServerType(iceConfigsControlCounter);
       const { lanPeers } = this.state;
       const updatedArr = lanPeers.map((node) => {
         if (node.machine_id === masterId) {
@@ -2221,7 +2180,7 @@ class Home extends React.Component {
     }, retryTime);
 
     const updateConnectionType = () => {
-      let iceServerType = this.getIceServerType(iceConfigsControlCounter);
+      let iceServerType = getIceServerType(iceConfigsControlCounter);
       const { lanPeers } = this.state;
       const updatedArr = lanPeers.map((node) => {
         if (node.machine_id === childId) {
