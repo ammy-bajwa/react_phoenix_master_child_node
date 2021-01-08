@@ -5,4 +5,12 @@ export const getMyIp = async function () {
   return ip;
 };
 
-
+export const cleanPeerConnection = (peerConnection) => {
+  try {
+    peerConnection.close();
+    return true;
+  } catch (error) {
+    console.error(error);
+    return error;
+  }
+};

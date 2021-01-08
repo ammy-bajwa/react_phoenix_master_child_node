@@ -7,7 +7,7 @@ import { RenderLanPeers } from "./lanPeer";
 import { startHeartBeatInterval } from "./helper/intervals";
 import { Table } from "./table";
 
-import { getMyIp } from "../utils/index";
+import { getMyIp, cleanPeerConnection } from "../utils/index";
 import { iceConfigServers, getIceServerType } from "../utils/iceServersUtils";
 import { getMachineId, setNodeType, setNodeId } from "../utils/indexedDbUtils";
 import { configureChannel } from "../socket";
@@ -156,14 +156,6 @@ class Home extends React.Component {
       });
     };
 
-    const cleanConnection = () => {
-      try {
-        peerConnection.close();
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
     channel.on(
       `web:verify_message_${ip}_${remoteNodeIp}`,
       ({ ip, remote_master_ip }) => {
@@ -193,7 +185,7 @@ class Home extends React.Component {
       `web:update_my_peer_connection_${ip}_${remoteNodeIp}`,
       async ({ counter }) => {
         console.log("Updated peerconnection: ", counter);
-        cleanConnection();
+        cleanPeerConnection(peerConnection);
         peerConnection = await this.peerConnectionCreatorMasterPeers(
           channel,
           remoteNodeIp,
