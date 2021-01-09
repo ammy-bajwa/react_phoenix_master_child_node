@@ -3,6 +3,8 @@ import moment from "moment";
 
 import { v4 as uuidv4 } from "uuid";
 
+import FileUploadMaster from "./fileUploadMaster";
+
 import { RenderLanPeers } from "./lanPeer";
 import { startHeartBeatInterval } from "./helper/intervals";
 import { Table } from "./table";
@@ -2416,6 +2418,7 @@ class Home extends React.Component {
 
         {type === "MASTER" && (
           <div>
+            <FileUploadMaster />
             <input
               type="text"
               onChange={this.handleMessage}
