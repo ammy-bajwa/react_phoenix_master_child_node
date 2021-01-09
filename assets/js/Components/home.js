@@ -2394,6 +2394,7 @@ class Home extends React.Component {
       machineId,
       messagesFromMastersPeers,
       messageFromLanPeers,
+      remoteMasterPeersWebRtcConnections,
       // messagesFromChildsPeers,
     } = this.state;
     const style =
@@ -2418,7 +2419,11 @@ class Home extends React.Component {
 
         {type === "MASTER" && (
           <div>
-            <FileUploadMaster />
+            <FileUploadMaster
+              remoteMasterPeersWebRtcConnections={
+                remoteMasterPeersWebRtcConnections
+              }
+            />
             <input
               type="text"
               onChange={this.handleMessage}
