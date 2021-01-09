@@ -3,19 +3,22 @@ import { RenderFileNames } from "./renderFileNames";
 
 class FileUploadMaster extends React.Component {
   state = {
+    filesArr: [],
     fileNamesArr: [],
   };
   handleChange = (event) => {
     const inputElement = document.getElementById("masterFileUpload");
     if (inputElement.files && inputElement.files.length > 0) {
       let fileNamesArr = [];
+      let filesArr = [];
       for (const key in inputElement.files) {
         if (Object.hasOwnProperty.call(inputElement.files, key)) {
-          const { name } = inputElement.files[key];
-          fileNamesArr.push(name);
+          const file = inputElement.files[key];
+          fileNamesArr.push(file.name);
+          filesArr.push(file);
         }
       }
-      this.setState({ fileNamesArr });
+      this.setState({ fileNamesArr, filesArr });
     }
   };
   render() {
