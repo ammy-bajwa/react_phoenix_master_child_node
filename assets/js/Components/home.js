@@ -15,8 +15,8 @@ import { configureChannel } from "../socket";
 class Home extends React.Component {
   state = {
     momentFormat: "YYYY/MM/DD HH:mm:ss",
-    messageSendTime: 500,
-    messageVerifyTime: 1000,
+    messageSendTime: 2000,
+    messageVerifyTime: 3000,
     retryTime: 5000,
     dataChannelOptions: {
       ordered: true, // do not guarantee order
