@@ -73,6 +73,23 @@ class FileUploadMaster extends React.Component {
     return await updateIndexPromise;
   };
 
+  chunkAndUpdateIndex = async (
+    fileName,
+    file,
+    size,
+    startSliceIndex,
+    endSliceIndex
+  ) => {
+    const fileChunkToSend = await this.getChunkOfFile(
+      file,
+      startSliceIndex,
+      endSliceIndex,
+      size
+    );
+    await this.updateSliceIndexes(fileName);
+    console.log("fileChunkToSend: ", fileChunkToSend);
+  };
+
   createAndSendChunksOfFile = async ({
     fileName,
     file,
@@ -83,14 +100,13 @@ class FileUploadMaster extends React.Component {
     const { chunkSize } = this.state;
     let counter = startSliceIndex;
     while (counter < size) {
-      const fileChunkToSend = await this.getChunkOfFile(
+      await this.chunkAndUpdateIndex(
+        fileName,
         file,
+        size,
         startSliceIndex,
-        endSliceIndex,
-        size
+        endSliceIndex
       );
-      await this.updateSliceIndexes(fileName);
-      console.log("fileChunkToSend: ", fileChunkToSend);
       counter = counter + chunkSize;
       console.log(this.state.files[fileName]);
     }
