@@ -5,47 +5,62 @@ import { RenderFileNames } from "./renderFileNames";
 class FileUploadMaster extends React.Component {
   state = {
     filesArr: [],
+    files: {},
     filesBufferArr: [],
     fileNamesArr: [],
-    chunkSize: 16 * 1024,
-    startSliceIndex: 0,
-    endSliceIndex: 0,
+    chunkSize: 64000, // Bytes
   };
   handleChange = (event) => {
+    const { chunkSize } = this.state;
     const inputElement = document.getElementById("masterFileUpload");
     if (inputElement.files && inputElement.files.length > 0) {
       let fileNamesArr = [];
-      let filesArr = [];
+      let files = {};
       for (const key in inputElement.files) {
         if (Object.hasOwnProperty.call(inputElement.files, key)) {
           const file = inputElement.files[key];
           fileNamesArr.push(file.name);
-          filesArr.push(file);
+          const fileObj = {
+            fileName: file.name,
+            file,
+            size: file.size,
+            startSliceIndex: 0,
+            endSliceIndex: chunkSize,
+          };
+          files[file.name] = fileObj;
+          this.setState({
+            files,
+          });
         }
       }
-      this.setState({ fileNamesArr, filesArr });
+      this.setState({ fileNamesArr });
     } else {
       console.log("No file selected");
     }
   };
 
-  handleFilesToMasters = (event) => {
-    const { filesArr, chunkSize, startSliceIndex, endSliceIndex } = this.state;
+  handleFilesToMasters = async (event) => {
+    const { filesArr, chunkSize } = this.state;
     if (filesArr.length > 0) {
       let filesBufferArr = [];
-      filesArr.forEach((file) => {
-        const reader = new FileReader();
-        const slicedFilePart = file.slice(1, 400) 
-        console.log(file.size)
-        reader.addEventListener("load", (event) => {
-          let fileArrBuffer = event.target.result;
-          console.log(fileArrBuffer.byteLength);
-          filesBufferArr.push({ name: file.name, fileArrBuffer });
-          this.setState({
-            filesBufferArr,
-          });
+      filesArr.forEach(({ file, size, startSliceIndex, endSliceIndex }) => {
+        const sendFilePromise = new Promise((resolve, reject) => {
+          while (startSliceIndex < size) {
+            const slicedFilePart = file.slice(startSliceIndex, endSliceIndex);
+            startSliceIndex = startSliceIndex + chunkSize;
+            endSliceIndex = endSliceIndex + chunkSize;
+            const reader = new FileReader();
+            reader.addEventListener("load", (event) => {
+              let fileArrBuffer = event.target.result;
+              console.log(fileArrBuffer.byteLength);
+              this.setState({
+                filesBufferArr,
+              });
+            });
+            console.log(file.size);
+            reader.readAsArrayBuffer(slicedFilePart);
+          }
         });
-        reader.readAsArrayBuffer(slicedFilePart);
       });
     }
     console.log("filesArr: ", filesArr);
