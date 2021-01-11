@@ -1,10 +1,9 @@
-import React from "react";
+import React, { Children } from "react";
 
 import { RenderFileNames } from "./renderFileNames";
 
 class FileUploadMaster extends React.Component {
   state = {
-    filesArr: [],
     files: {},
     filesBufferArr: [],
     fileNamesArr: [],
@@ -39,31 +38,75 @@ class FileUploadMaster extends React.Component {
     }
   };
 
-  handleFilesToMasters = async (event) => {
-    const { filesArr, chunkSize } = this.state;
-    if (filesArr.length > 0) {
-      let filesBufferArr = [];
-      filesArr.forEach(({ file, size, startSliceIndex, endSliceIndex }) => {
-        const sendFilePromise = new Promise((resolve, reject) => {
-          while (startSliceIndex < size) {
-            const slicedFilePart = file.slice(startSliceIndex, endSliceIndex);
-            startSliceIndex = startSliceIndex + chunkSize;
-            endSliceIndex = endSliceIndex + chunkSize;
-            const reader = new FileReader();
-            reader.addEventListener("load", (event) => {
-              let fileArrBuffer = event.target.result;
-              console.log(fileArrBuffer.byteLength);
-              this.setState({
-                filesBufferArr,
-              });
-            });
-            console.log(file.size);
-            reader.readAsArrayBuffer(slicedFilePart);
-          }
-        });
+  getChunkOfFile = async (file, startSliceIndex, endSliceIndex) => {
+    const fileChunkPromise = new Promise((resolve, reject) => {
+      const slicedFilePart = file.slice(startSliceIndex, endSliceIndex);
+      const fileReader = new FileReader();
+      fileReader.addEventListener("load", (event) => {
+        const fileChunk = event.target.result;
+        resolve(fileChunk);
       });
+      fileReader.readAsArrayBuffer(slicedFilePart);
+    });
+    console.log(file.size);
+    return await fileChunkPromise;
+  };
+
+  updateSliceIndexes = async (fileName) => {
+    const { chunkSize, files } = this.state;
+    const updateIndexPromise = new Promise((resolve, reject) => {
+      files[fileName].startSliceIndex =
+        files[fileName].startSliceIndex + chunkSize;
+      files[fileName].endSliceIndex = files[fileName].endSliceIndex + chunkSize;
+      console.log("fileUpdates", files[fileName].startSliceIndex);
+      // debugger;
+      this.setState(
+        {
+          files,
+        },
+        () => {
+          resolve(`indexes updated for ${fileName}`);
+        }
+      );
+    });
+
+    return await updateIndexPromise;
+  };
+
+  createAndSendChunksOfFile = async ({
+    fileName,
+    file,
+    size,
+    startSliceIndex,
+    endSliceIndex,
+  }) => {
+    const { chunkSize } = this.state;
+    let counter = startSliceIndex;
+    while (counter < size) {
+      const fileChunkToSend = await this.getChunkOfFile(
+        file,
+        startSliceIndex,
+        endSliceIndex,
+        size
+      );
+      await this.updateSliceIndexes(fileName);
+      console.log("fileChunkToSend: ", fileChunkToSend);
+      counter = counter + chunkSize;
+      console.log(this.state.files[fileName]);
     }
-    console.log("filesArr: ", filesArr);
+    console.log("While loop end");
+  };
+
+  handleFilesToMasters = async (event) => {
+    const { files } = this.state;
+    if (Object.keys(files).length > 0) {
+      for (const key in files) {
+        if (Object.hasOwnProperty.call(files, key)) {
+          const fileObj = files[key];
+          await this.createAndSendChunksOfFile(fileObj);
+        }
+      }
+    }
   };
   render() {
     const { fileNamesArr } = this.state;
