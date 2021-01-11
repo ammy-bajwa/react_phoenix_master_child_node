@@ -9,10 +9,20 @@ class FileUploadMaster extends React.Component {
     filesBufferArr: [],
     fileNamesArr: [],
     remoteMasterPeersWebRtcConnections: [],
+    dataChannelOptions: {
+      ordered: true, // do not guarantee order
+      // maxPacketLifeTime: 300, // in milliseconds
+    },
   };
   componentDidMount() {
     const { remoteMasterPeersWebRtcConnections } = this.props;
     this.setState({ remoteMasterPeersWebRtcConnections });
+  }
+  componentWillReceiveProps(nextProps) {
+    this.setState({
+      remoteMasterPeersWebRtcConnections:
+        nextProps.remoteMasterPeersWebRtcConnections,
+    });
   }
   handleChange = (event) => {
     const { chunkSize } = this.state;
@@ -43,7 +53,7 @@ class FileUploadMaster extends React.Component {
     }
   };
 
-  getChunkOfFile = async (fileName, file, size) => {
+  getChunkOfFile = async (fileName, file) => {
     const { files } = this.state;
     const fileChunkPromise = new Promise((resolve, reject) => {
       const slicedFilePart = file.slice(
@@ -54,10 +64,7 @@ class FileUploadMaster extends React.Component {
       fileReader.addEventListener("load", (event) => {
         let fileChunk = event.target.result;
         resolve(fileChunk);
-        console.log("slicedFilePart: ", fileChunk);
       });
-      console.log("startSliceIndex: ", files[fileName].startSliceIndex);
-      console.log("endSliceIndex: ", files[fileName].endSliceIndex);
       fileReader.readAsArrayBuffer(slicedFilePart);
     });
     return await fileChunkPromise;
@@ -82,22 +89,92 @@ class FileUploadMaster extends React.Component {
     return await updateIndexPromise;
   };
 
-  sendChunk = (fileChunk) => {
-    // Get datachannel
-    // If does not exist create one and send chunk
+  createFileDataChannel = async (peerConnection, fileName) => {
+    const { dataChannelOptions } = this.state;
+    const dataChannelPromise = new Promise((resolve, reject) => {
+      const dataChannel = peerConnection.createDataChannel(
+        fileName,
+        dataChannelOptions
+      );
+
+      dataChannel.onopen = () => {
+        console.log(`${fileName} datachannel is open`);
+        resolve({ dataChannel, peerConnection });
+      };
+      dataChannel.onerror = () => {
+        console.log(`${fileName} datachannel has error`);
+        reject(dataChannel);
+      };
+    });
+    try {
+      return await dataChannelPromise;
+    } catch (error) {
+      console.error(error);
+      return error;
+    }
   };
 
-  chunkAndUpdateIndex = async (fileName, file, size) => {
-    let fileChunkToSend = await this.getChunkOfFile(fileName, file, size);
-    this.sendChunk(fileChunkToSend);
+  setupDataChannel = async (fileName) => {
+    const { remoteMasterPeersWebRtcConnections } = this.state;
+    // If does not exist create one and send chunk
+    const setupDataChannelPromise = new Promise(async (resolve, reject) => {
+      const updatedRemoteMasterPeers = remoteMasterPeersWebRtcConnections.map(
+        async (remoteMasterNodeObj) => {
+          // Checking if file data channel already exists
+          let isFileDataChannelExists = false;
+          if (remoteMasterNodeObj.filesDataChannels) {
+            if (remoteMasterNodeObj.filesDataChannels[fileName]) {
+              isFileDataChannelExists = true;
+            }
+          }
+          if (isFileDataChannelExists) {
+            console.log("this should execute");
+            console.log(remoteMasterNodeObj.filesDataChannels[fileName]);
+          } else {
+            console.log("remoteMasterNodeObj: ", remoteMasterNodeObj);
+            const {
+              dataChannel,
+              peerConnection,
+            } = await this.createFileDataChannel(
+              remoteMasterNodeObj.peerConnection,
+              fileName
+            );
+            console.log(dataChannel, peerConnection);
+            const fileDataChannelObj = {
+              dataChannel,
+              fileName,
+            };
+            if (!remoteMasterNodeObj.filesDataChannels) {
+              remoteMasterNodeObj.filesDataChannels = {};
+            }
+            remoteMasterNodeObj.filesDataChannels[
+              fileName
+            ] = fileDataChannelObj;
+            remoteMasterNodeObj.peerConnection = peerConnection;
+          }
+          return remoteMasterNodeObj;
+        }
+      );
+      const resolvingPromises = await Promise.all(updatedRemoteMasterPeers);
+      console.log(resolvingPromises);
+      this.setState({
+        remoteMasterPeersWebRtcConnections: resolvingPromises,
+      });
+    });
+    return await setupDataChannelPromise;
+  };
+
+  chunkAndUpdateIndex = async (fileName, file) => {
+    let fileChunkToSend = await this.getChunkOfFile(fileName, file);
     await this.updateSliceIndexes(fileName);
   };
 
   createAndSendChunksOfFile = async ({ fileName, file, size }) => {
     const { chunkSize } = this.state;
     let counter = 0;
+    this.setupDataChannel(fileName);
     while (counter < size) {
-      await this.chunkAndUpdateIndex(fileName, file, size);
+      await this.chunkAndUpdateIndex(fileName, file);
       counter = counter + chunkSize;
       console.log(counter);
     }
