@@ -43,12 +43,11 @@ class FileUploadMaster extends React.Component {
       const slicedFilePart = file.slice(startSliceIndex, endSliceIndex);
       const fileReader = new FileReader();
       fileReader.addEventListener("load", (event) => {
-        const fileChunk = event.target.result;
-        resolve(fileChunk);
+        // let fileChunk = event.target.result;
+        resolve(event.target.result);
       });
       fileReader.readAsArrayBuffer(slicedFilePart);
     });
-    console.log(file.size);
     return await fileChunkPromise;
   };
 
@@ -80,7 +79,7 @@ class FileUploadMaster extends React.Component {
     startSliceIndex,
     endSliceIndex
   ) => {
-    const fileChunkToSend = await this.getChunkOfFile(
+    let fileChunkToSend = await this.getChunkOfFile(
       file,
       startSliceIndex,
       endSliceIndex,
