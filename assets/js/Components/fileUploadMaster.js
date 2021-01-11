@@ -5,8 +5,11 @@ import { RenderFileNames } from "./renderFileNames";
 class FileUploadMaster extends React.Component {
   state = {
     filesArr: [],
+    filesBufferArr: [],
     fileNamesArr: [],
     chunkSize: 16 * 1024,
+    startSliceIndex: 0,
+    endSliceIndex: 0,
   };
   handleChange = (event) => {
     const inputElement = document.getElementById("masterFileUpload");
@@ -27,40 +30,22 @@ class FileUploadMaster extends React.Component {
   };
 
   handleFilesToMasters = (event) => {
-    const { filesArr, chunkSize } = this.state;
+    const { filesArr, chunkSize, startSliceIndex, endSliceIndex } = this.state;
     if (filesArr.length > 0) {
+      let filesBufferArr = [];
       filesArr.forEach((file) => {
         const reader = new FileReader();
+        const slicedFilePart = file.slice(1, 400) 
+        console.log(file.size)
         reader.addEventListener("load", (event) => {
           let fileArrBuffer = event.target.result;
-          const chunksPromise = new Promise((resolve, reject) => {
-            // Keep chunking, and sending the chunks to the other peer
-            try {
-              while (fileArrBuffer.byteLength) {
-                const chunk = fileArrBuffer.slice(0, chunkSize);
-                fileArrBuffer = fileArrBuffer.slice(
-                  chunkSize,
-                  fileArrBuffer.byteLength
-                );
-
-                // Off goes the chunk!
-                // dataChannel.send(chunk);
-                console.log("chunk: ", chunk);
-                resolve({ allOk: true });
-              }
-            } catch (error) {
-              reject({ allOk: false });
-            }
+          console.log(fileArrBuffer.byteLength);
+          filesBufferArr.push({ name: file.name, fileArrBuffer });
+          this.setState({
+            filesBufferArr,
           });
-          chunksPromise
-            .then(() => {
-              console.log("All chunks sended");
-            })
-            .catch(() => {
-              console.error("Error in sending file: ".file.name);
-            });
         });
-        reader.readAsArrayBuffer(file);
+        reader.readAsArrayBuffer(slicedFilePart);
       });
     }
     console.log("filesArr: ", filesArr);
