@@ -43,14 +43,21 @@ class FileUploadMaster extends React.Component {
     }
   };
 
-  getChunkOfFile = async (file, startSliceIndex, endSliceIndex) => {
+  getChunkOfFile = async (fileName, file, size) => {
+    const { files } = this.state;
     const fileChunkPromise = new Promise((resolve, reject) => {
-      const slicedFilePart = file.slice(startSliceIndex, endSliceIndex);
+      const slicedFilePart = file.slice(
+        files[fileName].startSliceIndex,
+        files[fileName].endSliceIndex
+      );
       const fileReader = new FileReader();
       fileReader.addEventListener("load", (event) => {
         let fileChunk = event.target.result;
         resolve(fileChunk);
+        console.log("slicedFilePart: ", fileChunk);
       });
+      console.log("startSliceIndex: ", files[fileName].startSliceIndex);
+      console.log("endSliceIndex: ", files[fileName].endSliceIndex);
       fileReader.readAsArrayBuffer(slicedFilePart);
     });
     return await fileChunkPromise;
@@ -80,40 +87,17 @@ class FileUploadMaster extends React.Component {
     // If does not exist create one and send chunk
   };
 
-  chunkAndUpdateIndex = async (
-    fileName,
-    file,
-    size,
-    startSliceIndex,
-    endSliceIndex
-  ) => {
-    let fileChunkToSend = await this.getChunkOfFile(
-      file,
-      startSliceIndex,
-      endSliceIndex,
-      size
-    );
+  chunkAndUpdateIndex = async (fileName, file, size) => {
+    let fileChunkToSend = await this.getChunkOfFile(fileName, file, size);
     this.sendChunk(fileChunkToSend);
     await this.updateSliceIndexes(fileName);
   };
 
-  createAndSendChunksOfFile = async ({
-    fileName,
-    file,
-    size,
-    startSliceIndex,
-    endSliceIndex,
-  }) => {
+  createAndSendChunksOfFile = async ({ fileName, file, size }) => {
     const { chunkSize } = this.state;
-    let counter = startSliceIndex;
+    let counter = 0;
     while (counter < size) {
-      await this.chunkAndUpdateIndex(
-        fileName,
-        file,
-        size,
-        startSliceIndex,
-        endSliceIndex
-      );
+      await this.chunkAndUpdateIndex(fileName, file, size);
       counter = counter + chunkSize;
       console.log(counter);
     }
