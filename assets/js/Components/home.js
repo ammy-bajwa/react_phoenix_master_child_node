@@ -439,6 +439,7 @@ class Home extends React.Component {
           } else {
             node.peerDataChannel = [dataChannelObj];
           }
+          node.peerConnection = peerConnection;
         }
         return node;
       });
@@ -617,7 +618,7 @@ class Home extends React.Component {
     return dataChannel;
   };
 
-  onDataChannelForMasterPeer = (event, remoteNodeId) => {
+  onDataChannelForMasterPeer = (event, remoteNodeId, peerConnection) => {
     const dataChannel = event.channel;
     const channelId = uuidv4();
     let messageInterval = null;
@@ -720,6 +721,7 @@ class Home extends React.Component {
             } else {
               node.peerDataChannel = [dataChannelObj];
             }
+            node.peerConnection = peerConnection;
           }
           return node;
         }
@@ -893,7 +895,8 @@ class Home extends React.Component {
       console.log("Event: ", event.channel);
       const dataChannel = await this.onDataChannelForMasterPeer(
         event,
-        remoteNodeId
+        remoteNodeId,
+        peerConnection
       );
     };
     peerConnection.onicecandidate = (event) => {

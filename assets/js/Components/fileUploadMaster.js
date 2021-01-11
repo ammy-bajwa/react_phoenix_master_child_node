@@ -4,11 +4,16 @@ import { RenderFileNames } from "./renderFileNames";
 
 class FileUploadMaster extends React.Component {
   state = {
+    chunkSize: 64000, // Bytes
     files: {},
     filesBufferArr: [],
     fileNamesArr: [],
-    chunkSize: 64000, // Bytes
+    remoteMasterPeersWebRtcConnections: [],
   };
+  componentDidMount() {
+    const { remoteMasterPeersWebRtcConnections } = this.props;
+    this.setState({ remoteMasterPeersWebRtcConnections });
+  }
   handleChange = (event) => {
     const { chunkSize } = this.state;
     const inputElement = document.getElementById("masterFileUpload");
@@ -43,8 +48,8 @@ class FileUploadMaster extends React.Component {
       const slicedFilePart = file.slice(startSliceIndex, endSliceIndex);
       const fileReader = new FileReader();
       fileReader.addEventListener("load", (event) => {
-        // let fileChunk = event.target.result;
-        resolve(event.target.result);
+        let fileChunk = event.target.result;
+        resolve(fileChunk);
       });
       fileReader.readAsArrayBuffer(slicedFilePart);
     });
@@ -70,6 +75,11 @@ class FileUploadMaster extends React.Component {
     return await updateIndexPromise;
   };
 
+  sendChunk = (fileChunk) => {
+    // Get datachannel
+    // If does not exist create one and send chunk
+  };
+
   chunkAndUpdateIndex = async (
     fileName,
     file,
@@ -83,6 +93,7 @@ class FileUploadMaster extends React.Component {
       endSliceIndex,
       size
     );
+    this.sendChunk(fileChunkToSend);
     await this.updateSliceIndexes(fileName);
   };
 
