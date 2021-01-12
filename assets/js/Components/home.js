@@ -749,7 +749,7 @@ class Home extends React.Component {
     };
     dataChannel.onmessage = (event) => {
       if (dataChannelName.split("__")[0] === "file") {
-        console.log("file_chunk_received: ", event.data);
+        console.log("file_chunk_received: ", JSON.parse(event.data));
         return;
       }
       const { remoteMasterPeers, momentFormat } = this.state;
