@@ -172,7 +172,8 @@ class FileUploadMaster extends React.Component {
   createAndSendChunksOfFile = async ({ fileName, file, size }) => {
     const { chunkSize } = this.state;
     let counter = 0;
-    this.setupDataChannel(fileName);
+    const fileDataChannelName = `file__${fileName}`;
+    this.setupDataChannel(fileDataChannelName);
     while (counter < size) {
       await this.chunkAndUpdateIndex(fileName, file);
       counter = counter + chunkSize;

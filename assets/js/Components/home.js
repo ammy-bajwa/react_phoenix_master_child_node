@@ -620,12 +620,17 @@ class Home extends React.Component {
 
   onDataChannelForMasterPeer = (event, remoteNodeId, peerConnection) => {
     const dataChannel = event.channel;
+    const dataChannelName = dataChannel.label;
     const channelId = uuidv4();
     let messageInterval = null;
     let timeInterval = null;
     let verifyCount = 1;
     let totalVerified = 0;
-    dataChannel.onopen = async (event) => {
+    dataChannel.onopen = async () => {
+      console.log(dataChannel.label);
+      if (dataChannelName.split("__")[0] === "file") {
+        return;
+      }
       console.log("Datachannel is open on 682");
       verifyCount = 1;
       totalVerified = 0;
@@ -743,6 +748,10 @@ class Home extends React.Component {
       this.cleanMessagesMasterPeers(remoteNodeId);
     };
     dataChannel.onmessage = (event) => {
+      if (dataChannelName.split("__")[0] === "file") {
+        console.log("file_chunk_received: ", event.data);
+        return;
+      }
       const { remoteMasterPeers, momentFormat } = this.state;
       const receivedMessage = event.data;
       let receivedMessageCount = receivedMessage.split("_")[1];
