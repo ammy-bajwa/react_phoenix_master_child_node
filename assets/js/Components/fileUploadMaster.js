@@ -1,5 +1,4 @@
 import React from "react";
-import * as arrayBufferUtils from "base64-arraybuffer";
 
 import { RenderFileNames } from "./renderFileNames";
 
@@ -68,9 +67,10 @@ class FileUploadMaster extends React.Component {
         const fileReader = new FileReader();
         fileReader.addEventListener("load", (event) => {
           let fileChunk = event.target.result;
+          console.log("fileChunk: ", fileChunk);
           resolve(fileChunk);
         });
-        fileReader.readAsBinaryString(slicedFilePart);
+        fileReader.readAsDataURL(slicedFilePart);
       } catch (error) {
         console.error(error);
         reject(error);
@@ -185,9 +185,7 @@ class FileUploadMaster extends React.Component {
       try {
         remoteMasterPeersWebRtcConnections.map((remoteMasterNodeObj) => {
           if (remoteMasterNodeObj.filesDataChannels) {
-            const fileChunkToSendString = arrayBufferUtils.encode(fileChunkToSend)
             console.log("fileChunkToSend: ", fileChunkToSend);
-            console.log("fileChunkToSendString: ", fileChunkToSendString);
             const dataChannel =
               remoteMasterNodeObj.filesDataChannels[fileName].dataChannel;
             dataChannel.send(
