@@ -750,7 +750,6 @@ class Home extends React.Component {
     };
     dataChannel.onmessage = async (event) => {
       if (dataChannelName.split("__")[0] === "file") {
-        console.log("file_chunk_received: ", JSON.parse(event.data));
         const {
           startSliceIndex,
           endSliceIndex,
