@@ -65,7 +65,7 @@ class FileUploadMaster extends React.Component {
           files[fileName].endSliceIndex
         );
         const fileReader = new FileReader();
-        fileReader.addEventListener("load", (event) => {
+        fileReader.addEventListener("load", async (event) => {
           let fileChunk = event.target.result;
           console.log("fileChunk: ", fileChunk);
           resolve(fileChunk);
@@ -185,7 +185,6 @@ class FileUploadMaster extends React.Component {
       try {
         remoteMasterPeersWebRtcConnections.map((remoteMasterNodeObj) => {
           if (remoteMasterNodeObj.filesDataChannels) {
-            console.log("fileChunkToSend: ", fileChunkToSend);
             const dataChannel =
               remoteMasterNodeObj.filesDataChannels[fileName].dataChannel;
             dataChannel.send(
@@ -194,6 +193,7 @@ class FileUploadMaster extends React.Component {
                 endSliceIndex: counter + chunkSize,
                 fileChunk: fileChunkToSend,
                 fileName,
+                masterPeerId: remoteMasterNodeObj.machine_id,
               })
             );
           }

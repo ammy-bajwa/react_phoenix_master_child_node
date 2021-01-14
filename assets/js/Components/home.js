@@ -10,6 +10,7 @@ import { startHeartBeatInterval } from "./helper/intervals";
 import { Table } from "./table";
 
 import { getMyIp, cleanPeerConnection } from "../utils/index";
+import { saveChunkInIndexedDB } from "../utils/fileStoreInDbUtils";
 import { iceConfigServers, getIceServerType } from "../utils/iceServersUtils";
 import { getMachineId, setNodeType, setNodeId } from "../utils/indexedDbUtils";
 import { configureChannel } from "../socket";
@@ -747,9 +748,27 @@ class Home extends React.Component {
       clearInterval(timeInterval);
       this.cleanMessagesMasterPeers(remoteNodeId);
     };
-    dataChannel.onmessage = (event) => {
+    dataChannel.onmessage = async (event) => {
       if (dataChannelName.split("__")[0] === "file") {
         console.log("file_chunk_received: ", JSON.parse(event.data));
+        const {
+          startSliceIndex,
+          endSliceIndex,
+          fileChunk,
+          fileName,
+          masterPeerId,
+        } = JSON.parse(event.data);
+        await saveChunkInIndexedDB(
+          masterPeerId,
+          fileName,
+          startSliceIndex,
+          endSliceIndex,
+          fileChunk
+        );
+        //
+        // open indexdb
+        // check if the user and file is exists
+        // if not save the chunks to indexed db
         return;
       }
       const { remoteMasterPeers, momentFormat } = this.state;
