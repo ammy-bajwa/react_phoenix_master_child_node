@@ -57,9 +57,6 @@ class FileUploadMaster extends React.Component {
     const { files } = this.state;
     const fileChunkPromise = new Promise((resolve, reject) => {
       try {
-        console.log("files: ", files);
-        console.log("fileName: ", fileName);
-        console.log("files[fileName]: ", files[fileName]);
         const slicedFilePart = file.slice(
           files[fileName].startSliceIndex,
           files[fileName].endSliceIndex
@@ -225,23 +222,32 @@ class FileUploadMaster extends React.Component {
   };
 
   createAndSendChunksOfFile = async ({ fileName, file, size }) => {
-    const { chunkSize } = this.state;
-    let counter = 0;
-    const fileDataChannelName = `file__${fileName}`;
-    await this.setupDataChannel(fileDataChannelName);
-    console.log("loop status: ", counter < size);
-    while (counter < size) {
+    const createAndSendChunksPromise = new Promise(async (resolve, reject) => {
       try {
-        await this.causeDelay();
-        await this.chunkAndUpdateIndex(fileDataChannelName, file, counter);
-        counter = counter + chunkSize;
-        console.log(counter);
+        const { chunkSize } = this.state;
+        let counter = 0;
+        const fileDataChannelName = `file__${fileName}`;
+        await this.setupDataChannel(fileDataChannelName);
+        console.log("loop status: ", counter < size);
+        while (counter < size) {
+          try {
+            await this.causeDelay();
+            await this.chunkAndUpdateIndex(fileDataChannelName, file, counter);
+            counter = counter + chunkSize;
+            console.log(counter);
+          } catch (error) {
+            console.error(error);
+            reject(error);
+            break;
+          }
+        }
+        resolve(true);
       } catch (error) {
-        console.error(error);
-        break;
+        reject(error);
       }
-    }
+    });
     console.log("While loop end");
+    return await createAndSendChunksPromise;
   };
 
   handleFilesToMasters = async (event) => {

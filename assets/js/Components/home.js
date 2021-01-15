@@ -764,6 +764,10 @@ class Home extends React.Component {
           endSliceIndex,
           fileChunk
         );
+        console.log(
+          "size of chunk: ",
+          (encodeURI(fileChunk).split(/%..|./).length - 1) / 1000
+        );
         //
         // open indexdb
         // check if the user and file is exists
