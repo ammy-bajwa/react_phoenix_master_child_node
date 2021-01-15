@@ -4,7 +4,7 @@ import { RenderFileNames } from "./renderFileNames";
 
 class FileUploadMaster extends React.Component {
   state = {
-    chunkSize: 6000, // Bytes
+    chunkSize: 60000, // Bytes
     files: {},
     filesBufferArr: [],
     fileNamesArr: [],
@@ -67,7 +67,6 @@ class FileUploadMaster extends React.Component {
         const fileReader = new FileReader();
         fileReader.addEventListener("load", async (event) => {
           let fileChunk = event.target.result;
-          console.log("fileChunk: ", fileChunk);
           resolve(fileChunk);
         });
         fileReader.readAsDataURL(slicedFilePart);
@@ -138,10 +137,9 @@ class FileUploadMaster extends React.Component {
               }
             }
             if (isFileDataChannelExists) {
-              console.log("this should execute");
-              console.log(remoteMasterNodeObj.filesDataChannels[fileName]);
+              console.log("Datachannel already exists");
+              return;
             } else {
-              console.log("remoteMasterNodeObj: ", remoteMasterNodeObj);
               const {
                 dataChannel,
                 peerConnection,
@@ -149,7 +147,6 @@ class FileUploadMaster extends React.Component {
                 remoteMasterNodeObj.peerConnection,
                 fileName
               );
-              console.log(dataChannel, peerConnection);
               const fileDataChannelObj = {
                 dataChannel,
                 fileName,
@@ -183,19 +180,24 @@ class FileUploadMaster extends React.Component {
     const sendFileChunkPromise = new Promise((resolve, reject) => {
       const { remoteMasterPeersWebRtcConnections, chunkSize } = this.state;
       try {
-        remoteMasterPeersWebRtcConnections.map((remoteMasterNodeObj) => {
+        remoteMasterPeersWebRtcConnections.map(async (remoteMasterNodeObj) => {
           if (remoteMasterNodeObj.filesDataChannels) {
-            const dataChannel =
+            let dataChannel =
               remoteMasterNodeObj.filesDataChannels[fileName].dataChannel;
-            dataChannel.send(
-              JSON.stringify({
-                startSliceIndex: counter,
-                endSliceIndex: counter + chunkSize,
-                fileChunk: fileChunkToSend,
-                fileName,
-                masterPeerId: remoteMasterNodeObj.machine_id,
-              })
-            );
+            if (dataChannel.readyState === "open") {
+              dataChannel.send(
+                JSON.stringify({
+                  startSliceIndex: counter,
+                  endSliceIndex: counter + chunkSize,
+                  fileChunk: fileChunkToSend,
+                  fileName,
+                  masterPeerId: remoteMasterNodeObj.machine_id,
+                })
+              );
+            } else {
+              console.log("Datachannel state is not open: ", dataChannel);
+              reject("Datachannel is not open");
+            }
           }
         });
         resolve(true);
@@ -213,6 +215,15 @@ class FileUploadMaster extends React.Component {
     await this.updateSliceIndexes(fileName);
   };
 
+  causeDelay = async () => {
+    const delayPromise = new Promise((resolve, reject) => {
+      setTimeout(() => {
+        resolve(true);
+      }, 300);
+    });
+    return await delayPromise;
+  };
+
   createAndSendChunksOfFile = async ({ fileName, file, size }) => {
     const { chunkSize } = this.state;
     let counter = 0;
@@ -220,9 +231,15 @@ class FileUploadMaster extends React.Component {
     await this.setupDataChannel(fileDataChannelName);
     console.log("loop status: ", counter < size);
     while (counter < size) {
-      await this.chunkAndUpdateIndex(fileDataChannelName, file, counter);
-      counter = counter + chunkSize;
-      console.log(counter);
+      try {
+        await this.causeDelay();
+        await this.chunkAndUpdateIndex(fileDataChannelName, file, counter);
+        counter = counter + chunkSize;
+        console.log(counter);
+      } catch (error) {
+        console.error(error);
+        break;
+      }
     }
     console.log("While loop end");
   };
