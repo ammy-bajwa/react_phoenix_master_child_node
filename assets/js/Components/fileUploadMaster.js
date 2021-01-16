@@ -274,7 +274,7 @@ class FileUploadMaster extends React.Component {
             multiple
           />
           <label className="custom-file-label" htmlFor="masterFileUpload">
-            Choose file
+            Choose files
           </label>
         </div>
         <RenderFileNames fileNamesArr={fileNamesArr} />
