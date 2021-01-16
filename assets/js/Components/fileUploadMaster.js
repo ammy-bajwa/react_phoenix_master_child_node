@@ -216,7 +216,7 @@ class FileUploadMaster extends React.Component {
     const delayPromise = new Promise((resolve, reject) => {
       setTimeout(() => {
         resolve(true);
-      }, 300);
+      }, 500);
     });
     return await delayPromise;
   };
