@@ -53,6 +53,7 @@ class FileUploadMaster extends React.Component {
     }
   };
 
+<<<<<<< HEAD
   getChunkOfFile = async (fileName, file) => {
     const { files } = this.state;
     const fileChunkPromise = new Promise((resolve, reject) => {
@@ -71,6 +72,17 @@ class FileUploadMaster extends React.Component {
         console.error(error);
         reject(error);
       }
+=======
+  getChunkOfFile = async (file, startSliceIndex, endSliceIndex) => {
+    const fileChunkPromise = new Promise((resolve, reject) => {
+      const slicedFilePart = file.slice(startSliceIndex, endSliceIndex);
+      const fileReader = new FileReader();
+      fileReader.addEventListener("load", (event) => {
+        let fileChunk = event.target.result;
+        resolve(fileChunk);
+      });
+      fileReader.readAsArrayBuffer(slicedFilePart);
+>>>>>>> parent of bc5c7b2... Fixing bug in chunking indexex
     });
     return await fileChunkPromise;
   };
@@ -173,6 +185,7 @@ class FileUploadMaster extends React.Component {
     return await setupDataChannelPromise;
   };
 
+<<<<<<< HEAD
   sendFileChunkOverDataChannel = async (fileName, fileChunkToSend, counter) => {
     const sendFileChunkPromise = new Promise((resolve, reject) => {
       const { remoteMasterPeersWebRtcConnections, chunkSize } = this.state;
@@ -246,6 +259,45 @@ class FileUploadMaster extends React.Component {
         reject(error);
       }
     });
+=======
+  chunkAndUpdateIndex = async (
+    fileName,
+    file,
+    size,
+    startSliceIndex,
+    endSliceIndex
+  ) => {
+    let fileChunkToSend = await this.getChunkOfFile(
+      file,
+      startSliceIndex,
+      endSliceIndex,
+      size
+    );
+    this.sendChunk(fileChunkToSend);
+    await this.updateSliceIndexes(fileName);
+  };
+
+  createAndSendChunksOfFile = async ({
+    fileName,
+    file,
+    size,
+    startSliceIndex,
+    endSliceIndex,
+  }) => {
+    const { chunkSize } = this.state;
+    let counter = startSliceIndex;
+    while (counter < size) {
+      await this.chunkAndUpdateIndex(
+        fileName,
+        file,
+        size,
+        startSliceIndex,
+        endSliceIndex
+      );
+      counter = counter + chunkSize;
+      console.log(counter);
+    }
+>>>>>>> parent of bc5c7b2... Fixing bug in chunking indexex
     console.log("While loop end");
     return await createAndSendChunksPromise;
   };
