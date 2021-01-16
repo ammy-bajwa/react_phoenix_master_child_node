@@ -7,6 +7,7 @@ export const Table = ({
   masterPeersMessages,
   lanPeersMessages,
 }) => {
+  
   return (
     <table className="table table-striped table-dark table-bordered table-hover">
       <thead>
