@@ -3,6 +3,7 @@ import React from "react";
 import { RenderFileNames } from "./renderFileNames";
 
 class FileUploadMaster extends React.Component {
+  
   state = {
     chunkSize: 50000, // Bytes
     files: {},
@@ -14,16 +15,19 @@ class FileUploadMaster extends React.Component {
       // maxPacketLifeTime: 300, // in milliseconds
     },
   };
+
   componentDidMount() {
     const { remoteMasterPeersWebRtcConnections } = this.props;
     this.setState({ remoteMasterPeersWebRtcConnections });
   }
+
   componentWillReceiveProps(nextProps) {
     this.setState({
       remoteMasterPeersWebRtcConnections:
         nextProps.remoteMasterPeersWebRtcConnections,
     });
   }
+
   handleChange = (event) => {
     const { chunkSize } = this.state;
     const inputElement = document.getElementById("masterFileUpload");
