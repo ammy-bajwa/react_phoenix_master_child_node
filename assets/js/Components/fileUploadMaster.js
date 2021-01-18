@@ -3,7 +3,6 @@ import React from "react";
 import { RenderFileNames } from "./renderFileNames";
 
 class FileUploadMaster extends React.Component {
-  
   state = {
     chunkSize: 50000, // Bytes
     files: {},
@@ -80,8 +79,8 @@ class FileUploadMaster extends React.Component {
   };
 
   updateSliceIndexes = async (fileName) => {
-    const { chunkSize, files } = this.state;
     const updateIndexPromise = new Promise((resolve, reject) => {
+      const { chunkSize, files } = this.state;
       files[fileName].startSliceIndex =
         files[fileName].startSliceIndex + chunkSize;
       files[fileName].endSliceIndex = files[fileName].endSliceIndex + chunkSize;
@@ -164,11 +163,14 @@ class FileUploadMaster extends React.Component {
           }
         );
         const resolvingPromises = await Promise.all(updatedRemoteMasterPeers);
-        console.log(resolvingPromises);
-        this.setState({
-          remoteMasterPeersWebRtcConnections: resolvingPromises,
-        });
-        resolve(true);
+        this.setState(
+          {
+            remoteMasterPeersWebRtcConnections: resolvingPromises,
+          },
+          () => {
+            resolve(true);
+          }
+        );
       } catch (error) {
         console.error(error);
         reject(error);
@@ -196,6 +198,8 @@ class FileUploadMaster extends React.Component {
                 })
               );
             } else {
+              // repair data channel here
+              console.log("remoteMasterNodeObj: ", remoteMasterNodeObj);
               console.log("Datachannel state is not open: ", dataChannel);
               reject("Datachannel is not open");
             }
@@ -220,7 +224,7 @@ class FileUploadMaster extends React.Component {
     const delayPromise = new Promise((resolve, reject) => {
       setTimeout(() => {
         resolve(true);
-      }, 300);
+      }, 10);
     });
     return await delayPromise;
   };
@@ -238,7 +242,7 @@ class FileUploadMaster extends React.Component {
             await this.causeDelay();
             await this.chunkAndUpdateIndex(fileDataChannelName, file, counter);
             counter = counter + chunkSize;
-            console.log(counter);
+            console.count(counter / 1000000);
           } catch (error) {
             console.error(error);
             reject(error);
@@ -264,6 +268,17 @@ class FileUploadMaster extends React.Component {
         }
       }
     }
+  };
+  cleanIndexedDb = async () => {
+    await window.indexedDB
+      .databases()
+      .then((r) => {
+        for (var i = 0; i < r.length; i++)
+          window.indexedDB.deleteDatabase(r[i].name);
+      })
+      .then(() => {
+        alert("All data cleared.");
+      });
   };
   render() {
     const { fileNamesArr } = this.state;
@@ -294,6 +309,13 @@ class FileUploadMaster extends React.Component {
             onClick={this.handleFilesToMasters}
           >
             Send Files To Masters
+          </button>
+
+          <button
+            className="btn btn-outline-light m-2"
+            onClick={this.cleanIndexedDb}
+          >
+            Clean IndexedDb
           </button>
         </div>
       </div>
