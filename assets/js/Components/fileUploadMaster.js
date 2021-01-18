@@ -179,8 +179,22 @@ class FileUploadMaster extends React.Component {
     return await setupDataChannelPromise;
   };
 
+  checkChunkResponse = async (
+    startSliceIndex,
+    endSliceIndex,
+    fileDataChannel
+  ) => {
+    const responsePromise = new Promise((resolve, reject) => {
+      fileDataChannel.onmessage = (event) => {
+        console.log("response: ", event.data);
+        resolve(true);
+      };
+    });
+    return await responsePromise;
+  };
+
   sendFileChunkOverDataChannel = async (fileName, fileChunkToSend, counter) => {
-    const sendFileChunkPromise = new Promise((resolve, reject) => {
+    const sendFileChunkPromise = new Promise(async (resolve, reject) => {
       const { remoteMasterPeersWebRtcConnections, chunkSize } = this.state;
       try {
         const updatedRemoteMasterPeers = remoteMasterPeersWebRtcConnections.map(
@@ -211,22 +225,30 @@ class FileUploadMaster extends React.Component {
                 remoteMasterNodeObj.peerConnection = peerConnection;
                 fileDataChannel = dataChannel;
               }
+              const startSliceIndex = counter;
+              const endSliceIndex = counter + chunkSize;
               fileDataChannel.send(
                 JSON.stringify({
-                  startSliceIndex: counter,
-                  endSliceIndex: counter + chunkSize,
+                  startSliceIndex,
+                  endSliceIndex,
                   fileChunk: fileChunkToSend,
                   fileName,
                   masterPeerId: remoteMasterNodeObj.machine_id,
                 })
               );
+              const chunkResponse = await this.checkChunkResponse(
+                startSliceIndex,
+                endSliceIndex,
+                fileDataChannel
+              );
             }
             return remoteMasterNodeObj;
           }
         );
+        const resolvedPromises = await Promise.all(updatedRemoteMasterPeers);
         this.setState(
           {
-            remoteMasterPeersWebRtcConnections: updatedRemoteMasterPeers,
+            remoteMasterPeersWebRtcConnections: resolvedPromises,
           },
           () => {
             resolve(true);
@@ -266,7 +288,7 @@ class FileUploadMaster extends React.Component {
         console.log("loop status: ", counter < size);
         while (counter < size) {
           try {
-            await this.causeDelay();
+            // await this.causeDelay();
             await this.chunkAndUpdateIndex(fileDataChannelName, file, counter);
             counter = counter + chunkSize;
             console.log(counter / 1000000);

@@ -768,6 +768,7 @@ class Home extends React.Component {
           "size of chunk: ",
           (encodeURI(fileChunk).split(/%..|./).length - 1) / 1000
         );
+        dataChannel.send("Chunk received successfully");
         //
         // open indexdb
         // check if the user and file is exists
