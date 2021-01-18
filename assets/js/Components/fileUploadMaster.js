@@ -185,7 +185,9 @@ class FileUploadMaster extends React.Component {
       try {
         const updatedRemoteMasterPeers = remoteMasterPeersWebRtcConnections.map(
           async (remoteMasterNodeObj) => {
-            if (remoteMasterNodeObj.filesDataChannels) {
+            const hasFileDataChannels =
+              remoteMasterNodeObj?.filesDataChannels || false;
+            if (hasFileDataChannels) {
               let fileDataChannel =
                 remoteMasterNodeObj.filesDataChannels[fileName].dataChannel;
               if (fileDataChannel.readyState !== "open") {
@@ -248,7 +250,7 @@ class FileUploadMaster extends React.Component {
     const delayPromise = new Promise((resolve, reject) => {
       setTimeout(() => {
         resolve(true);
-      }, 10);
+      }, 300);
     });
     return await delayPromise;
   };
@@ -258,6 +260,7 @@ class FileUploadMaster extends React.Component {
       try {
         const { chunkSize } = this.state;
         let counter = 0;
+        let counterHelper = 0;
         const fileDataChannelName = `file__${fileName}`;
         await this.setupDataChannel(fileDataChannelName);
         console.log("loop status: ", counter < size);
@@ -266,7 +269,9 @@ class FileUploadMaster extends React.Component {
             await this.causeDelay();
             await this.chunkAndUpdateIndex(fileDataChannelName, file, counter);
             counter = counter + chunkSize;
-            console.count(counter / 1000000);
+            console.log(counter / 1000000);
+            counterHelper = counterHelper + 1;
+            console.log("counterHelper: ", counterHelper);
           } catch (error) {
             console.error(error);
             reject(error);
