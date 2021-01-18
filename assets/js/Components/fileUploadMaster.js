@@ -57,8 +57,8 @@ class FileUploadMaster extends React.Component {
   };
 
   getChunkOfFile = async (fileName, file) => {
-    const { files } = this.state;
     const fileChunkPromise = new Promise((resolve, reject) => {
+      const { files } = this.state;
       try {
         const slicedFilePart = file.slice(
           files[fileName].startSliceIndex,
@@ -123,9 +123,9 @@ class FileUploadMaster extends React.Component {
   };
 
   setupDataChannel = async (fileName) => {
-    const { remoteMasterPeersWebRtcConnections } = this.state;
     // If does not exist create one and send chunk
     const setupDataChannelPromise = new Promise(async (resolve, reject) => {
+      const { remoteMasterPeersWebRtcConnections } = this.state;
       try {
         const updatedRemoteMasterPeers = remoteMasterPeersWebRtcConnections.map(
           async (remoteMasterNodeObj) => {
