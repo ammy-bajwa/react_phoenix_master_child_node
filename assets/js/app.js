@@ -1,7 +1,6 @@
 // import '../css/app.css';
 
 import "phoenix_html";
-import "antd/dist/antd.css";
 import "./Styles/main.css";
 
 import * as React from "react";
