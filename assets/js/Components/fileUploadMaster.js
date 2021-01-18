@@ -183,12 +183,33 @@ class FileUploadMaster extends React.Component {
     const sendFileChunkPromise = new Promise((resolve, reject) => {
       const { remoteMasterPeersWebRtcConnections, chunkSize } = this.state;
       try {
-        remoteMasterPeersWebRtcConnections.map(async (remoteMasterNodeObj) => {
-          if (remoteMasterNodeObj.filesDataChannels) {
-            let dataChannel =
-              remoteMasterNodeObj.filesDataChannels[fileName].dataChannel;
-            if (dataChannel.readyState === "open") {
-              dataChannel.send(
+        const updatedRemoteMasterPeers = remoteMasterPeersWebRtcConnections.map(
+          async (remoteMasterNodeObj) => {
+            if (remoteMasterNodeObj.filesDataChannels) {
+              let fileDataChannel =
+                remoteMasterNodeObj.filesDataChannels[fileName].dataChannel;
+              if (fileDataChannel.readyState !== "open") {
+                const {
+                  dataChannel,
+                  peerConnection,
+                } = await this.createFileDataChannel(
+                  remoteMasterNodeObj.peerConnection,
+                  fileName
+                );
+                const fileDataChannelObj = {
+                  dataChannel,
+                  fileName,
+                };
+                if (!remoteMasterNodeObj.filesDataChannels) {
+                  remoteMasterNodeObj.filesDataChannels = {};
+                }
+                remoteMasterNodeObj.filesDataChannels[
+                  fileName
+                ] = fileDataChannelObj;
+                remoteMasterNodeObj.peerConnection = peerConnection;
+                fileDataChannel = dataChannel;
+              }
+              fileDataChannel.send(
                 JSON.stringify({
                   startSliceIndex: counter,
                   endSliceIndex: counter + chunkSize,
@@ -197,15 +218,18 @@ class FileUploadMaster extends React.Component {
                   masterPeerId: remoteMasterNodeObj.machine_id,
                 })
               );
-            } else {
-              // repair data channel here
-              console.log("remoteMasterNodeObj: ", remoteMasterNodeObj);
-              console.log("Datachannel state is not open: ", dataChannel);
-              reject("Datachannel is not open");
             }
+            return remoteMasterNodeObj;
           }
-        });
-        resolve(true);
+        );
+        this.setState(
+          {
+            remoteMasterPeersWebRtcConnections: updatedRemoteMasterPeers,
+          },
+          () => {
+            resolve(true);
+          }
+        );
       } catch (error) {
         console.error(error);
         reject(error);
@@ -250,11 +274,11 @@ class FileUploadMaster extends React.Component {
           }
         }
         resolve(true);
+        console.log("While loop end");
       } catch (error) {
         reject(error);
       }
     });
-    console.log("While loop end");
     return await createAndSendChunksPromise;
   };
 
