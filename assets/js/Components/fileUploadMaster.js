@@ -4,7 +4,7 @@ import { RenderFileNames } from "./renderFileNames";
 
 class FileUploadMaster extends React.Component {
   state = {
-    chunkSize: 50 * 1000, // Bytes
+    chunkSize: 30 * 1000, // Bytes
     files: {},
     filesBufferArr: [],
     fileNamesArr: [],
@@ -69,7 +69,7 @@ class FileUploadMaster extends React.Component {
           let fileChunk = event.target.result;
           resolve(fileChunk);
         });
-        fileReader.readAsDataURL(slicedFilePart);
+        fileReader.readAsBinaryString(slicedFilePart);
       } catch (error) {
         console.error(error);
         reject(error);
