@@ -122,7 +122,7 @@ class FileUploadMaster extends React.Component {
     }
   };
 
-  setupDataChannel = async (fileName) => {
+  setupDataChannel = async (fileName, size) => {
     // If does not exist create one and send chunk
     const setupDataChannelPromise = new Promise(async (resolve, reject) => {
       const { remoteMasterPeersWebRtcConnections } = this.state;
@@ -141,24 +141,33 @@ class FileUploadMaster extends React.Component {
               return;
             } else {
               // Create data channels here in accordance to size of file
-              const {
-                dataChannel,
-                peerConnection,
-              } = await this.createFileDataChannel(
-                remoteMasterNodeObj.peerConnection,
-                fileName
-              );
-              const fileDataChannelObj = {
-                dataChannel,
-                fileName,
-              };
+              let numberOfDataChannels = Math.ceil(size / 36000);
+              console.log("numberOfDataChannels: ", numberOfDataChannels);
+              if (numberOfDataChannels > 100) {
+                numberOfDataChannels = 100;
+              }
+              let dataChannelArr = [];
+              while (numberOfDataChannels >= 0) {
+                const {
+                  dataChannel,
+                  peerConnection,
+                } = await this.createFileDataChannel(
+                  remoteMasterNodeObj.peerConnection,
+                  `${fileName}_ ${numberOfDataChannels}`
+                );
+                const fileDataChannelObj = {
+                  dataChannel,
+                  fileName,
+                };
+                dataChannelArr.push(fileDataChannelObj);
+                remoteMasterNodeObj.peerConnection = peerConnection;
+                numberOfDataChannels--;
+              }
               if (!remoteMasterNodeObj.filesDataChannels) {
                 remoteMasterNodeObj.filesDataChannels = {};
               }
-              remoteMasterNodeObj.filesDataChannels[fileName] = [
-                fileDataChannelObj,
-              ];
-              remoteMasterNodeObj.peerConnection = peerConnection;
+              await Promise.all(dataChannelArr);
+              remoteMasterNodeObj.filesDataChannels[fileName] = dataChannelArr;
             }
             return remoteMasterNodeObj;
           }
@@ -358,7 +367,7 @@ class FileUploadMaster extends React.Component {
         let counter = 0;
         let counterHelper = 0;
         const fileDataChannelName = `file__${fileName}`;
-        await this.setupDataChannel(fileDataChannelName);
+        await this.setupDataChannel(fileDataChannelName, size);
         console.log("loop status: ", counter < size);
         while (counter < size) {
           try {
