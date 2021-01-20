@@ -230,20 +230,10 @@ class FileUploadMaster extends React.Component {
             startSliceIndex,
             endSliceIndex,
             fileName,
-            masterPeerId
+            masterPeerId,
           })
         );
         fileDataChannel.send(fileChunk);
-        // fileDataChannel.send(
-        //   JSON.stringify({
-        //     startSliceIndex,
-        //     endSliceIndex,
-        //     fileChunk,
-        //     fileName,
-        //     masterPeerId,
-        //   })
-        // );
-
         try {
           let chunkResponse = await this.checkChunkResponse(
             fileName,
