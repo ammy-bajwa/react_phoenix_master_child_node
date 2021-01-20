@@ -621,7 +621,7 @@ class Home extends React.Component {
   };
 
   onDataChannelForMasterPeer = (event, remoteNodeId, peerConnection) => {
-    const { fileChunkSize } = this.state;
+    const { fileChunkSize, machineId } = this.state;
     const dataChannel = event.channel;
     const dataChannelName = dataChannel.label;
     let startSliceIndex = 0;
@@ -755,7 +755,7 @@ class Home extends React.Component {
     dataChannel.onmessage = async (event) => {
       if (dataChannelName.split("__")[0] === "file") {
         console.log("event.data: ", event.data);
-        const fileName = dataChannelName.split("__")[1] === "file";
+        const fileName = dataChannelName.split("__")[1];
         const fileChunk = event.data;
         // const {
         //   startSliceIndex,
@@ -779,8 +779,8 @@ class Home extends React.Component {
           JSON.stringify({
             startSliceIndex,
             endSliceIndex,
-            fileName,
-            remoteNodeId,
+            fileName: dataChannelName,
+            masterPeerId: machineId,
             receiverd: true,
           })
         );
