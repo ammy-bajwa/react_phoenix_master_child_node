@@ -154,9 +154,9 @@ class FileUploadMaster extends React.Component {
               if (!remoteMasterNodeObj.filesDataChannels) {
                 remoteMasterNodeObj.filesDataChannels = {};
               }
-              remoteMasterNodeObj.filesDataChannels[
-                fileName
-              ] = fileDataChannelObj;
+              remoteMasterNodeObj.filesDataChannels[fileName] = [
+                fileDataChannelObj,
+              ];
               remoteMasterNodeObj.peerConnection = peerConnection;
             }
             return remoteMasterNodeObj;
@@ -264,7 +264,7 @@ class FileUploadMaster extends React.Component {
               remoteMasterNodeObj?.filesDataChannels || false;
             if (hasFileDataChannels) {
               let fileDataChannel =
-                remoteMasterNodeObj.filesDataChannels[fileName].dataChannel;
+                remoteMasterNodeObj.filesDataChannels[fileName][0].dataChannel;
               if (fileDataChannel.readyState !== "open") {
                 const {
                   dataChannel,
