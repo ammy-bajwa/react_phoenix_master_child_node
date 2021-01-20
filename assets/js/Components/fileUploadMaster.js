@@ -140,6 +140,7 @@ class FileUploadMaster extends React.Component {
               console.log("Datachannel already exists");
               return;
             } else {
+              // Create data channels here in accordance to size of file
               const {
                 dataChannel,
                 peerConnection,
@@ -224,6 +225,14 @@ class FileUploadMaster extends React.Component {
   ) => {
     const sendMessageAndResponsePromise = new Promise(
       async (resolve, reject) => {
+        fileDataChannel.send(
+          JSON.stringify({
+            startSliceIndex,
+            endSliceIndex,
+            fileName,
+            masterPeerId
+          })
+        );
         fileDataChannel.send(fileChunk);
         // fileDataChannel.send(
         //   JSON.stringify({

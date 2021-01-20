@@ -624,6 +624,7 @@ class Home extends React.Component {
     const { fileChunkSize, machineId } = this.state;
     const dataChannel = event.channel;
     const dataChannelName = dataChannel.label;
+    const isFileDataChannel = dataChannelName.split("__")[0] === "file";
     let startSliceIndex = 0;
     let endSliceIndex = startSliceIndex + fileChunkSize;
     const channelId = uuidv4();
@@ -753,40 +754,54 @@ class Home extends React.Component {
       this.cleanMessagesMasterPeers(remoteNodeId);
     };
     dataChannel.onmessage = async (event) => {
-      if (dataChannelName.split("__")[0] === "file") {
-        console.log("event.data: ", event.data);
+      if (isFileDataChannel) {
         const fileName = dataChannelName.split("__")[1];
-        const fileChunk = event.data;
-        // const {
-        //   startSliceIndex,
-        //   endSliceIndex,
-        //   fileChunk,
-        //   fileName,
-        //   masterPeerId,
-        // } = JSON.parse(event.data);
-        await saveChunkInIndexedDB(
-          remoteNodeId,
-          fileName,
-          startSliceIndex,
-          endSliceIndex,
-          fileChunk
-        );
-        console.log(
-          "size of chunk: ",
-          (encodeURI(fileChunk).split(/%..|./).length - 1) / 1000
-        );
-        dataChannel.send(
-          JSON.stringify({
+        try {
+          // This is meta data for upcomming object
+          const {
+            startSliceIndex: startSliceIndexSender,
+            endSliceIndex: endSliceIndexSender,
+            fileName: fileNameSender,
+            masterPeerId,
+          } = JSON.parse(event.data);
+          if (
+            fileNameSender === dataChannelName &&
+            masterPeerId === machineId
+          ) {
+            startSliceIndex = startSliceIndexSender;
+            endSliceIndex = endSliceIndexSender;
+          }
+        } catch (error) {
+          // We have a chunk
+          const fileChunk = event.data;
+          // const {
+          //   startSliceIndex,
+          //   endSliceIndex,
+          //   fileChunk,
+          //   fileName,
+          //   masterPeerId,
+          // } = JSON.parse(event.data);
+          await saveChunkInIndexedDB(
+            remoteNodeId,
+            fileName,
             startSliceIndex,
             endSliceIndex,
-            fileName: dataChannelName,
-            masterPeerId: machineId,
-            receiverd: true,
-          })
-        );
-        startSliceIndex = startSliceIndex + fileChunkSize;
-        endSliceIndex = startSliceIndex + fileChunkSize;
-        //
+            fileChunk
+          );
+          console.log(
+            "size of chunk: ",
+            (encodeURI(fileChunk).split(/%..|./).length - 1) / 1000
+          );
+          dataChannel.send(
+            JSON.stringify({
+              startSliceIndex,
+              endSliceIndex,
+              fileName: dataChannelName,
+              masterPeerId: machineId,
+              receiverd: true,
+            })
+          );
+        }
         // open indexdb
         // check if the user and file is exists
         // if not save the chunks to indexed db
