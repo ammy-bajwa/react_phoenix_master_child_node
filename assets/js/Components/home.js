@@ -18,6 +18,7 @@ import { configureChannel } from "../socket";
 class Home extends React.Component {
   state = {
     momentFormat: "YYYY/MM/DD HH:mm:ss",
+    fileChunkSize: 12 * 1000,
     messageSendTime: 2000,
     messageVerifyTime: 3000,
     retryTime: 5000,
@@ -620,8 +621,11 @@ class Home extends React.Component {
   };
 
   onDataChannelForMasterPeer = (event, remoteNodeId, peerConnection) => {
+    const { fileChunkSize } = this.state;
     const dataChannel = event.channel;
     const dataChannelName = dataChannel.label;
+    let startSliceIndex = 0;
+    let endSliceIndex = startSliceIndex + fileChunkSize;
     const channelId = uuidv4();
     let messageInterval = null;
     let timeInterval = null;
@@ -750,15 +754,18 @@ class Home extends React.Component {
     };
     dataChannel.onmessage = async (event) => {
       if (dataChannelName.split("__")[0] === "file") {
-        const {
-          startSliceIndex,
-          endSliceIndex,
-          fileChunk,
-          fileName,
-          masterPeerId,
-        } = JSON.parse(event.data);
+        console.log("event.data: ", event.data);
+        const fileName = dataChannelName.split("__")[1] === "file";
+        const fileChunk = event.data;
+        // const {
+        //   startSliceIndex,
+        //   endSliceIndex,
+        //   fileChunk,
+        //   fileName,
+        //   masterPeerId,
+        // } = JSON.parse(event.data);
         await saveChunkInIndexedDB(
-          masterPeerId,
+          remoteNodeId,
           fileName,
           startSliceIndex,
           endSliceIndex,
@@ -773,10 +780,12 @@ class Home extends React.Component {
             startSliceIndex,
             endSliceIndex,
             fileName,
-            masterPeerId,
+            remoteNodeId,
             receiverd: true,
           })
         );
+        startSliceIndex = startSliceIndex + fileChunkSize;
+        endSliceIndex = startSliceIndex + fileChunkSize;
         //
         // open indexdb
         // check if the user and file is exists
