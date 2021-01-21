@@ -221,31 +221,53 @@ class FileUploadMaster extends React.Component {
     endSliceIndex,
     fileChunk,
     fileName,
-    masterPeerId
+    masterPeerId,
+    peerconnection
   ) => {
     const sendMessageAndResponsePromise = new Promise(
       async (resolve, reject) => {
-        fileDataChannel.send(
-          JSON.stringify({
-            startSliceIndex,
-            endSliceIndex,
-            fileName,
-            masterPeerId,
-          })
-        );
-        fileDataChannel.send(fileChunk);
-        try {
-          let chunkResponse = await this.checkChunkResponse(
-            fileName,
-            startSliceIndex,
-            endSliceIndex,
-            fileDataChannel
-          );
-          if (chunkResponse === masterPeerId) {
-            resolve(chunkResponse);
+        let retryCounter = 0;
+        while (true) {
+          try {
+            if (retryCounter > 5) {
+              break;
+            }
+            fileDataChannel.send(
+              JSON.stringify({
+                startSliceIndex,
+                endSliceIndex,
+                fileName,
+                masterPeerId,
+              })
+            );
+            fileDataChannel.send(fileChunk);
+            try {
+              let chunkResponse = await this.checkChunkResponse(
+                fileName,
+                startSliceIndex,
+                endSliceIndex,
+                fileDataChannel
+              );
+              if (chunkResponse === masterPeerId) {
+                resolve(chunkResponse);
+                break;
+              }
+            } catch (error) {
+              reject(error);
+              break;
+            }
+            break;
+          } catch (error) {
+            const {
+              dataChannel,
+              peerConnection,
+            } = await this.createFileDataChannel(
+              peerConnection,
+              fileDataChannel.label
+            );
+            fileDataChannel = dataChannel;
+            retryCounter++;
           }
-        } catch (error) {
-          reject(error);
         }
       }
     );
@@ -301,7 +323,8 @@ class FileUploadMaster extends React.Component {
                     endSliceIndex,
                     fileChunkToSend,
                     fileName,
-                    remoteMasterNodeObj.machine_id
+                    remoteMasterNodeObj.machine_id,
+                    remoteMasterNodeObj.peerConnection
                   );
                   if (remoteMasterId === remoteMasterNodeObj.machine_id) {
                     break;
