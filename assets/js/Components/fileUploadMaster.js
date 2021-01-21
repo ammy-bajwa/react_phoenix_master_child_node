@@ -126,6 +126,12 @@ class FileUploadMaster extends React.Component {
     // If does not exist create one and send chunk
     const setupDataChannelPromise = new Promise(async (resolve, reject) => {
       const { remoteMasterPeersWebRtcConnections } = this.state;
+      // Create data channels here in accordance to size of file
+      let numberOfDataChannels = Math.ceil(size / 36000);
+      console.log("numberOfDataChannels: ", numberOfDataChannels);
+      if (numberOfDataChannels > 100) {
+        numberOfDataChannels = 100;
+      }
       try {
         const updatedRemoteMasterPeers = remoteMasterPeersWebRtcConnections.map(
           async (remoteMasterNodeObj) => {
@@ -140,12 +146,6 @@ class FileUploadMaster extends React.Component {
               console.log("Datachannel already exists");
               return;
             } else {
-              // Create data channels here in accordance to size of file
-              let numberOfDataChannels = Math.ceil(size / 36000);
-              console.log("numberOfDataChannels: ", numberOfDataChannels);
-              if (numberOfDataChannels > 100) {
-                numberOfDataChannels = 100;
-              }
               let dataChannelArr = [];
               while (numberOfDataChannels >= 0) {
                 const {
@@ -178,7 +178,7 @@ class FileUploadMaster extends React.Component {
             remoteMasterPeersWebRtcConnections: resolvingPromises,
           },
           () => {
-            resolve(true);
+            resolve(numberOfDataChannels);
           }
         );
       } catch (error) {
@@ -367,8 +367,11 @@ class FileUploadMaster extends React.Component {
         let counter = 0;
         let counterHelper = 0;
         const fileDataChannelName = `file__${fileName}`;
-        await this.setupDataChannel(fileDataChannelName, size);
-        console.log("loop status: ", counter < size);
+        const numberOfDataChannels = await this.setupDataChannel(
+          fileDataChannelName,
+          size
+        );
+        console.log("numberOfDataChannels: ", numberOfDataChannels);
         while (counter < size) {
           try {
             // await this.causeDelay();

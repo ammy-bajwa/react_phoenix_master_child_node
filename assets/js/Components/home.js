@@ -774,13 +774,6 @@ class Home extends React.Component {
         } catch (error) {
           // We have a chunk
           const fileChunk = event.data;
-          // const {
-          //   startSliceIndex,
-          //   endSliceIndex,
-          //   fileChunk,
-          //   fileName,
-          //   masterPeerId,
-          // } = JSON.parse(event.data);
           await saveChunkInIndexedDB(
             remoteNodeId,
             fileName,
