@@ -128,10 +128,10 @@ class FileUploadMaster extends React.Component {
       const { remoteMasterPeersWebRtcConnections } = this.state;
       // Create data channels here in accordance to size of file
       let numberOfDataChannels = Math.ceil(size / 36000);
-      console.log("numberOfDataChannels: ", numberOfDataChannels);
       if (numberOfDataChannels > 100) {
         numberOfDataChannels = 100;
       }
+      console.log("numberOfDataChannels: ", numberOfDataChannels);
       try {
         const updatedRemoteMasterPeers = remoteMasterPeersWebRtcConnections.map(
           async (remoteMasterNodeObj) => {
@@ -147,13 +147,14 @@ class FileUploadMaster extends React.Component {
               return;
             } else {
               let dataChannelArr = [];
-              while (numberOfDataChannels >= 0) {
+              let loopControlVariable = numberOfDataChannels;
+              while (loopControlVariable >= 0) {
                 const {
                   dataChannel,
                   peerConnection,
                 } = await this.createFileDataChannel(
                   remoteMasterNodeObj.peerConnection,
-                  `${fileName}_ ${numberOfDataChannels}`
+                  `${fileName}_ ${loopControlVariable}`
                 );
                 const fileDataChannelObj = {
                   dataChannel,
@@ -161,7 +162,7 @@ class FileUploadMaster extends React.Component {
                 };
                 dataChannelArr.push(fileDataChannelObj);
                 remoteMasterNodeObj.peerConnection = peerConnection;
-                numberOfDataChannels--;
+                loopControlVariable--;
               }
               if (!remoteMasterNodeObj.filesDataChannels) {
                 remoteMasterNodeObj.filesDataChannels = {};
@@ -360,6 +361,39 @@ class FileUploadMaster extends React.Component {
     return await delayPromise;
   };
 
+  distributeChunksForDataChannels = (
+    totalDataChannels,
+    eachDataChannelBytes
+  ) => {
+    const { chunkSize } = this.state;
+    const dataChannelBytesDistributionInfo = {};
+    let eachBytesChunkEntrySize = 0;
+    let byteControlVariable = eachDataChannelBytes;
+    // In outer loop we will be adding an empty array of objects for each data channel
+    for (let index = 0; index < totalDataChannels; index++) {
+      dataChannelBytesDistributionInfo[`fileName__dc__${index}`] = [];
+      // Here we will assign values to datachannel arrays
+      while (eachBytesChunkEntrySize <= byteControlVariable) {
+        const startSliceIndex = eachBytesChunkEntrySize;
+        let endSliceIndex = eachBytesChunkEntrySize + chunkSize;
+        if (endSliceIndex > byteControlVariable) {
+          endSliceIndex = byteControlVariable;
+        }
+        dataChannelBytesDistributionInfo[`fileName__dc__${index}`].push({
+          startSliceIndex,
+          endSliceIndex,
+        });
+        eachBytesChunkEntrySize = eachBytesChunkEntrySize + chunkSize;
+      }
+      eachBytesChunkEntrySize = byteControlVariable;
+      byteControlVariable = byteControlVariable + eachDataChannelBytes;
+    }
+    console.log(
+      "dataChannelBytesDistributionInfo: ",
+      dataChannelBytesDistributionInfo
+    );
+  };
+
   createAndSendChunksOfFile = async ({ fileName, file, size }) => {
     const createAndSendChunksPromise = new Promise(async (resolve, reject) => {
       try {
@@ -367,25 +401,35 @@ class FileUploadMaster extends React.Component {
         let counter = 0;
         let counterHelper = 0;
         const fileDataChannelName = `file__${fileName}`;
+        // We get how many datachannels will be created for each file
         const numberOfDataChannels = await this.setupDataChannel(
           fileDataChannelName,
           size
         );
+        // Here we will calculate how many bytes each data channel will send
+        const numberOfChunkArrForEachDataChannel = Math.ceil(
+          size / numberOfDataChannels
+        );
+        // Here we will create an array for each datachannel to send
+        this.distributeChunksForDataChannels(
+          numberOfDataChannels,
+          numberOfChunkArrForEachDataChannel
+        );
         console.log("numberOfDataChannels: ", numberOfDataChannels);
-        while (counter < size) {
-          try {
-            // await this.causeDelay();
-            await this.chunkAndUpdateIndex(fileDataChannelName, file, counter);
-            counter = counter + chunkSize;
-            console.log(counter / 1000000);
-            counterHelper = counterHelper + 1;
-            console.log("counterHelper: ", counterHelper);
-          } catch (error) {
-            console.error(error);
-            reject(error);
-            break;
-          }
-        }
+        // while (counter < size) {
+        //   try {
+        //     // await this.causeDelay();
+        //     await this.chunkAndUpdateIndex(fileDataChannelName, file, counter);
+        //     counter = counter + chunkSize;
+        //     console.log(counter / 1000000);
+        //     counterHelper = counterHelper + 1;
+        //     console.log("counterHelper: ", counterHelper);
+        //   } catch (error) {
+        //     console.error(error);
+        //     reject(error);
+        //     break;
+        //   }
+        // }
         resolve(true);
         console.log("While loop end");
       } catch (error) {
