@@ -4,7 +4,7 @@ import { RenderFileNames } from "./renderFileNames";
 
 class FileUploadMaster extends React.Component {
   state = {
-    chunkSize: 12 * 1000, // Bytes
+    chunkSize: 16 * 1000, // Bytes
     files: {},
     filesBufferArr: [],
     fileNamesArr: [],
@@ -128,10 +128,9 @@ class FileUploadMaster extends React.Component {
       const { remoteMasterPeersWebRtcConnections } = this.state;
       // Create data channels here in accordance to size of file
       let numberOfDataChannels = Math.ceil(size / 36000);
-      if (numberOfDataChannels > 100) {
-        numberOfDataChannels = 100;
+      if (numberOfDataChannels > 10) {
+        numberOfDataChannels = 10;
       }
-      console.log("numberOfDataChannels: ", numberOfDataChannels);
       try {
         const updatedRemoteMasterPeers = remoteMasterPeersWebRtcConnections.map(
           async (remoteMasterNodeObj) => {
@@ -148,13 +147,13 @@ class FileUploadMaster extends React.Component {
             } else {
               let dataChannelArr = [];
               let loopControlVariable = numberOfDataChannels;
-              while (loopControlVariable >= 0) {
+              while (loopControlVariable > 0) {
                 const {
                   dataChannel,
                   peerConnection,
                 } = await this.createFileDataChannel(
                   remoteMasterNodeObj.peerConnection,
-                  `${fileName}_ ${loopControlVariable}`
+                  `${fileName}__${loopControlVariable}`
                 );
                 const fileDataChannelObj = {
                   dataChannel,
@@ -207,16 +206,7 @@ class FileUploadMaster extends React.Component {
             masterPeerId,
             receiverd,
           } = responseObj;
-          if (
-            startSliceIndexSender === startSliceIndex &&
-            endSliceIndexSender === endSliceIndex &&
-            fileNameSender === fileName &&
-            receiverd
-          ) {
-            resolve(masterPeerId);
-          } else {
-            reject(false);
-          }
+          resolve(masterPeerId);
         } catch (error) {
           reject(error);
         }
@@ -361,37 +351,163 @@ class FileUploadMaster extends React.Component {
     return await delayPromise;
   };
 
-  distributeChunksForDataChannels = (
+  distributeChunksForDataChannels = async (
+    fileDataChannelName,
     totalDataChannels,
     eachDataChannelBytes
   ) => {
-    const { chunkSize } = this.state;
-    const dataChannelBytesDistributionInfo = {};
-    let eachBytesChunkEntrySize = 0;
-    let byteControlVariable = eachDataChannelBytes;
-    // In outer loop we will be adding an empty array of objects for each data channel
-    for (let index = 0; index < totalDataChannels; index++) {
-      dataChannelBytesDistributionInfo[`fileName__dc__${index}`] = [];
-      // Here we will assign values to datachannel arrays
-      while (eachBytesChunkEntrySize <= byteControlVariable) {
-        const startSliceIndex = eachBytesChunkEntrySize;
-        let endSliceIndex = eachBytesChunkEntrySize + chunkSize;
-        if (endSliceIndex > byteControlVariable) {
-          endSliceIndex = byteControlVariable;
+    const distributionChunkPromise = new Promise((resolve, reject) => {
+      try {
+        const { chunkSize } = this.state;
+        const dataChannelBytesDistributionInfo = {};
+        let eachBytesChunkEntrySize = 0;
+        let byteControlVariable = eachDataChannelBytes;
+        // In outer loop we will be adding an empty array of objects for each data channel
+        for (let index = 0; index < totalDataChannels; index++) {
+          dataChannelBytesDistributionInfo[
+            `${fileDataChannelName}__${index + 1}`
+          ] = [];
+          // Here we will assign values to datachannel arrays
+          while (eachBytesChunkEntrySize <= byteControlVariable) {
+            const startSliceIndex = eachBytesChunkEntrySize;
+            let endSliceIndex = eachBytesChunkEntrySize + chunkSize;
+            if (endSliceIndex > byteControlVariable) {
+              endSliceIndex = byteControlVariable;
+            }
+            dataChannelBytesDistributionInfo[
+              `${fileDataChannelName}__${index + 1}`
+            ].push({
+              startSliceIndex,
+              endSliceIndex,
+            });
+            eachBytesChunkEntrySize = eachBytesChunkEntrySize + chunkSize;
+          }
+          eachBytesChunkEntrySize = byteControlVariable;
+          byteControlVariable = byteControlVariable + eachDataChannelBytes;
         }
-        dataChannelBytesDistributionInfo[`fileName__dc__${index}`].push({
-          startSliceIndex,
-          endSliceIndex,
-        });
-        eachBytesChunkEntrySize = eachBytesChunkEntrySize + chunkSize;
+        resolve(dataChannelBytesDistributionInfo);
+      } catch (error) {
+        reject(error);
       }
-      eachBytesChunkEntrySize = byteControlVariable;
-      byteControlVariable = byteControlVariable + eachDataChannelBytes;
-    }
-    console.log(
-      "dataChannelBytesDistributionInfo: ",
-      dataChannelBytesDistributionInfo
-    );
+    });
+    return await distributionChunkPromise;
+  };
+
+  getSpecificChunkOfFile = async (fileName, startSliceIndex, endSliceIndex) => {
+    const fileChunkPromise = new Promise((resolve, reject) => {
+      const { files } = this.state;
+      try {
+        const file = files[fileName].file;
+        const slicedFilePart = file.slice(startSliceIndex, endSliceIndex);
+        const fileReader = new FileReader();
+        fileReader.addEventListener("load", async (event) => {
+          let fileChunk = event.target.result;
+          resolve(fileChunk);
+        });
+        fileReader.readAsArrayBuffer(slicedFilePart);
+      } catch (error) {
+        console.error(error);
+        reject(error);
+      }
+    });
+    return await fileChunkPromise;
+  };
+
+  sendChunksDistributedly = async (
+    fileName,
+    fileDataChannel,
+    chunkIndexesArr = [],
+    remoteNodeId
+  ) => {
+    console.log("chunkIndexesArr.length: ", chunkIndexesArr.length);
+    const sendingChunkPromise = new Promise((resolve, reject) => {
+      chunkIndexesArr.map(async ({ startSliceIndex, endSliceIndex }, i) => {
+        console.count(i);
+        try {
+          const fileChunkToSend = await this.getSpecificChunkOfFile(
+            fileName,
+            startSliceIndex,
+            endSliceIndex
+          );
+
+          let retryCounter = 0;
+          while (true) {
+            try {
+              if (retryCounter > 5) {
+                break;
+              } else {
+                retryCounter = retryCounter + 1;
+              }
+              const remoteMasterId = await this.sendChunkToSingleMaster(
+                fileDataChannel,
+                startSliceIndex,
+                endSliceIndex,
+                fileChunkToSend,
+                fileName,
+                remoteNodeId
+              );
+              if (remoteMasterId === remoteNodeId) {
+                break;
+              } else {
+                const errorMessage = `Problem in sending chunk ${fileName} ${startSliceIndex} ${endSliceIndex} `;
+                console.error(errorMessage);
+                reject(errorMessage);
+              }
+            } catch (error) {
+              console.error(`Problem in sending chunk ${error}`);
+              reject(error);
+
+              break;
+            }
+          }
+          resolve(true);
+        } catch (error) {
+          console.error(error);
+          reject(error);
+        }
+      });
+    });
+    return await sendingChunkPromise;
+  };
+
+  setupChunksWithFileDataChannels = async (
+    fileDataChannelName,
+    distributionFileChunksInfo
+  ) => {
+    const sendFilePromise = new Promise((resolve, reject) => {
+      const { remoteMasterPeersWebRtcConnections } = this.state;
+      remoteMasterPeersWebRtcConnections.map(async (remoteMasterNodeObj) => {
+        const allFilesDataChannels =
+          remoteMasterNodeObj?.filesDataChannels || false;
+        if (!allFilesDataChannels) {
+          // Termiante here with not datachannel error
+          alert("No Data Channel Found");
+          reject("No data channel found");
+        } else {
+          try {
+            const currentFileDataChannelsArr =
+              allFilesDataChannels[fileDataChannelName];
+            currentFileDataChannelsArr.map(
+              async ({ dataChannel, fileName }) => {
+                const { label } = dataChannel;
+                const distributeChunksArr = distributionFileChunksInfo[label];
+                await this.sendChunksDistributedly(
+                  fileDataChannelName,
+                  dataChannel,
+                  distributeChunksArr,
+                  remoteMasterNodeObj.machine_id
+                );
+              }
+            );
+            resolve(true);
+          } catch (error) {
+            console.error(error);
+            reject(error);
+          }
+        }
+      });
+    });
+    return await sendFilePromise;
   };
 
   createAndSendChunksOfFile = async ({ fileName, file, size }) => {
@@ -411,11 +527,16 @@ class FileUploadMaster extends React.Component {
           size / numberOfDataChannels
         );
         // Here we will create an array for each datachannel to send
-        this.distributeChunksForDataChannels(
+        const distributionFileChunksInfo = await this.distributeChunksForDataChannels(
+          fileDataChannelName,
           numberOfDataChannels,
           numberOfChunkArrForEachDataChannel
         );
-        console.log("numberOfDataChannels: ", numberOfDataChannels);
+        await this.setupChunksWithFileDataChannels(
+          fileDataChannelName,
+          distributionFileChunksInfo
+        );
+
         // while (counter < size) {
         //   try {
         //     // await this.causeDelay();

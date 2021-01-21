@@ -621,12 +621,10 @@ class Home extends React.Component {
   };
 
   onDataChannelForMasterPeer = (event, remoteNodeId, peerConnection) => {
-    const { fileChunkSize, machineId } = this.state;
+    const { machineId } = this.state;
     const dataChannel = event.channel;
     const dataChannelName = dataChannel.label;
     const isFileDataChannel = dataChannelName.split("__")[0] === "file";
-    let startSliceIndex = 0;
-    let endSliceIndex = startSliceIndex + fileChunkSize;
     const channelId = uuidv4();
     let messageInterval = null;
     let timeInterval = null;
@@ -753,46 +751,45 @@ class Home extends React.Component {
       clearInterval(timeInterval);
       this.cleanMessagesMasterPeers(remoteNodeId);
     };
+    let startSliceIndexLocal = 0;
+    let endSliceIndexLocal = 0;
     dataChannel.onmessage = async (event) => {
       if (isFileDataChannel) {
         const fileName = dataChannelName.split("__")[1];
         try {
           // This is meta data for upcomming object
           const {
-            startSliceIndex: startSliceIndexSender,
-            endSliceIndex: endSliceIndexSender,
-            fileName: fileNameSender,
+            startSliceIndex,
+            endSliceIndex,
+            fileName,
             masterPeerId,
           } = JSON.parse(event.data);
-          if (
-            fileNameSender === dataChannelName &&
-            masterPeerId === machineId
-          ) {
-            startSliceIndex = startSliceIndexSender;
-            endSliceIndex = endSliceIndexSender;
+          if (masterPeerId === machineId) {
+            startSliceIndexLocal = startSliceIndex;
+            endSliceIndexLocal = endSliceIndex;
           }
         } catch (error) {
           // We have a chunk
           const fileChunk = event.data;
-          await saveChunkInIndexedDB(
-            remoteNodeId,
-            fileName,
-            startSliceIndex,
-            endSliceIndex,
-            fileChunk
+          dataChannel.send(
+            JSON.stringify({
+              startSliceIndex: startSliceIndexLocal,
+              endSliceIndex: endSliceIndexLocal,
+              fileName: dataChannelName,
+              masterPeerId: machineId,
+              receiverd: true,
+            })
           );
           console.log(
             "size of chunk: ",
             (encodeURI(fileChunk).split(/%..|./).length - 1) / 1000
           );
-          dataChannel.send(
-            JSON.stringify({
-              startSliceIndex,
-              endSliceIndex,
-              fileName: dataChannelName,
-              masterPeerId: machineId,
-              receiverd: true,
-            })
+          await saveChunkInIndexedDB(
+            remoteNodeId,
+            fileName,
+            startSliceIndexLocal,
+            endSliceIndexLocal,
+            fileChunk
           );
         }
         // open indexdb
@@ -949,7 +946,6 @@ class Home extends React.Component {
       iceConfigs[iceConfigsControlCounter]
     );
     peerConnection.ondatachannel = async (event) => {
-      console.log("Event: ", event.channel);
       const dataChannel = await this.onDataChannelForMasterPeer(
         event,
         remoteNodeId,
