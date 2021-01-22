@@ -128,8 +128,8 @@ class FileUploadMaster extends React.Component {
       const { remoteMasterPeersWebRtcConnections } = this.state;
       // Create data channels here in accordance to size of file
       let numberOfDataChannels = Math.ceil(size / 36000);
-      if (numberOfDataChannels > 10) {
-        numberOfDataChannels = 10;
+      if (numberOfDataChannels > 100) {
+        numberOfDataChannels = 100;
       }
       try {
         const updatedRemoteMasterPeers = remoteMasterPeersWebRtcConnections.map(
@@ -222,7 +222,7 @@ class FileUploadMaster extends React.Component {
     fileChunk,
     fileName,
     masterPeerId,
-    peerconnection
+    peerConnection
   ) => {
     const sendMessageAndResponsePromise = new Promise(
       async (resolve, reject) => {
@@ -248,6 +248,7 @@ class FileUploadMaster extends React.Component {
                 endSliceIndex,
                 fileDataChannel
               );
+              console.log("chunkResponse: ", chunkResponse);
               if (chunkResponse === masterPeerId) {
                 resolve(chunkResponse);
                 break;
@@ -442,10 +443,9 @@ class FileUploadMaster extends React.Component {
     chunkIndexesArr = [],
     remoteNodeId
   ) => {
-    console.log("chunkIndexesArr.length: ", chunkIndexesArr.length);
+    // Here we will be send chunks from provided array through datachannel
     const sendingChunkPromise = new Promise((resolve, reject) => {
-      chunkIndexesArr.map(async ({ startSliceIndex, endSliceIndex }, i) => {
-        console.count(i);
+      chunkIndexesArr.map(async ({ startSliceIndex, endSliceIndex }) => {
         try {
           const fileChunkToSend = await this.getSpecificChunkOfFile(
             fileName,
@@ -457,9 +457,8 @@ class FileUploadMaster extends React.Component {
           while (true) {
             try {
               if (retryCounter > 5) {
+                alert("Max retry to send chunk");
                 break;
-              } else {
-                retryCounter = retryCounter + 1;
               }
               const remoteMasterId = await this.sendChunkToSingleMaster(
                 fileDataChannel,
@@ -469,6 +468,7 @@ class FileUploadMaster extends React.Component {
                 fileName,
                 remoteNodeId
               );
+              console.log("response received: ", remoteMasterId);
               if (remoteMasterId === remoteNodeId) {
                 break;
               } else {
@@ -478,16 +478,16 @@ class FileUploadMaster extends React.Component {
               }
             } catch (error) {
               console.error(`Problem in sending chunk ${error}`);
+              retryCounter = retryCounter + 1;
               reject(error);
-
               break;
             }
           }
-          resolve(true);
         } catch (error) {
           console.error(error);
           reject(error);
         }
+        resolve(true);
       });
     });
     return await sendingChunkPromise;
