@@ -753,6 +753,7 @@ class Home extends React.Component {
     };
     let startSliceIndexLocal = 0;
     let endSliceIndexLocal = 0;
+    let helperCount = 0;
     dataChannel.onmessage = async (event) => {
       if (isFileDataChannel) {
         const fileName = dataChannelName.split("__")[1];
@@ -762,14 +763,29 @@ class Home extends React.Component {
             startSliceIndex,
             endSliceIndex,
             fileName,
+            fileChunk,
             masterPeerId,
           } = JSON.parse(event.data);
-          if (masterPeerId === machineId) {
-            startSliceIndexLocal = startSliceIndex;
-            endSliceIndexLocal = endSliceIndex;
-          }
+          dataChannel.send(
+            JSON.stringify({
+              startSliceIndex,
+              endSliceIndex,
+              fileName: dataChannelName,
+              masterPeerId: machineId,
+              receiverd: true,
+            })
+          );
+          console.log("helperCount: ", helperCount);
+          await saveChunkInIndexedDB(
+            remoteNodeId,
+            fileName,
+            startSliceIndex,
+            endSliceIndex,
+            fileChunk
+          );
         } catch (error) {
           // We have a chunk
+          console.log("error: ", error);
           const fileChunk = event.data;
           dataChannel.send(
             JSON.stringify({
