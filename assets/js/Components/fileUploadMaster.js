@@ -216,54 +216,6 @@ class FileUploadMaster extends React.Component {
     return await responsePromise;
   };
 
-  sendChunkToSingleMaster = async (
-    fileDataChannel,
-    startSliceIndex,
-    endSliceIndex,
-    fileChunk,
-    fileName,
-    masterPeerId,
-    peerConnection
-  ) => {
-    const sendMessageAndResponsePromise = new Promise(
-      async (resolve, reject) => {
-        const messagePayload = JSON.stringify({
-          startSliceIndex,
-          endSliceIndex,
-          fileName,
-          masterPeerId,
-          fileChunk,
-        });
-        try {
-          fileDataChannel.send(messagePayload);
-          resolve(true);
-        } catch (error) {
-          const {
-            dataChannel,
-            peerConnection,
-          } = await this.createFileDataChannel(peerConnection, fileName);
-          dataChannel.send(messagePayload);
-        }
-        // try {
-        // let chunkResponse = await this.checkChunkResponse(
-        //   fileName,
-        //   startSliceIndex,
-        //   endSliceIndex,
-        //   fileDataChannel
-        // );
-        // if (chunkResponse === masterPeerId) {
-        //   break;
-        // }
-        // } catch (error) {
-        //   console.log("Error ChunkResponse: ", error);
-        //   reject(error);
-        // }
-      }
-    );
-
-    return await sendMessageAndResponsePromise;
-  };
-
   sendFileChunkOverDataChannel = async (fileName, fileChunkToSend, counter) => {
     const sendFileChunkPromise = new Promise(async (resolve, reject) => {
       const { remoteMasterPeersWebRtcConnections, chunkSize } = this.state;
@@ -405,7 +357,12 @@ class FileUploadMaster extends React.Component {
     return await distributionChunkPromise;
   };
 
-  getSpecificChunkOfFile = async (fileName, startSliceIndex, endSliceIndex) => {
+  getSpecificChunkOfFile = async (
+    fileName,
+    startSliceIndex,
+    endSliceIndex,
+    remotePeerId
+  ) => {
     const fileChunkPromise = new Promise(async (resolve, reject) => {
       const { files } = this.state;
       try {
@@ -414,7 +371,7 @@ class FileUploadMaster extends React.Component {
         const fileReader = new FileReader();
         fileReader.addEventListener("load", async (event) => {
           let fileChunk = event.target.result;
-          resolve(fileChunk);
+          resolve({ fileChunk, startSliceIndex, endSliceIndex, remotePeerId });
         });
         fileReader.readAsBinaryString(slicedFilePart);
       } catch (error) {
@@ -425,14 +382,23 @@ class FileUploadMaster extends React.Component {
     return await fileChunkPromise;
   };
 
-  getPromisesForFileReadForSingleDC = async (fileName, chunkIndexesArr) => {
+  getPromisesForFileReadForSingleDC = async (
+    fileName,
+    chunkIndexesArr,
+    remotePeerId
+  ) => {
     const chunksArrLength = chunkIndexesArr.length;
     let allFileChunksPromisArr = [];
     const promisesForReadFileChunks = new Promise((resolve, reject) => {
       for (let index = 0; index < chunksArrLength; index++) {
         const { startSliceIndex, endSliceIndex } = chunkIndexesArr[index];
         allFileChunksPromisArr.push(
-          this.getSpecificChunkOfFile(fileName, startSliceIndex, endSliceIndex)
+          this.getSpecificChunkOfFile(
+            fileName,
+            startSliceIndex,
+            endSliceIndex,
+            remotePeerId
+          )
         );
       }
       resolve(allFileChunksPromisArr);
@@ -440,23 +406,65 @@ class FileUploadMaster extends React.Component {
     return await promisesForReadFileChunks;
   };
 
-  getFileChunksInPromises = async (fileName, chunkIndexesArr = []) => {
+  getFileChunksInPromises = async (
+    fileName,
+    chunkIndexesArr = [],
+    remotePeerId
+  ) => {
     // Here we will be send chunks from provided array through datachannel
     const sendingChunkPromise = new Promise(async (resolve, reject) => {
       const fileChunksPromisArrForDC = await this.getPromisesForFileReadForSingleDC(
         fileName,
-        chunkIndexesArr
+        chunkIndexesArr,
+        remotePeerId
       );
-      console.log("chunkIndexesArr ", chunkIndexesArr);
       resolve(fileChunksPromisArrForDC);
     });
     return await sendingChunkPromise;
   };
 
-  handleChunkAndSending = (dataChannel, chunkPromisesArr) => {
+  sendChunkToSingleMaster = async (
+    fileDataChannel,
+    startSliceIndex,
+    endSliceIndex,
+    fileChunk,
+    fileName,
+    masterPeerId,
+    peerConnection
+  ) => {
+    const sendMessageAndResponsePromise = new Promise(
+      async (resolve, reject) => {
+        const messagePayload = JSON.stringify({
+          startSliceIndex,
+          endSliceIndex,
+          fileName,
+          masterPeerId,
+          fileChunk,
+        });
+        try {
+          fileDataChannel.send(messagePayload);
+          resolve(true);
+        } catch (error) {
+          const {
+            dataChannel,
+            peerConnection,
+          } = await this.createFileDataChannel(peerConnection, fileName);
+          dataChannel.send(messagePayload);
+        }
+      }
+    );
+
+    return await sendMessageAndResponsePromise;
+  };
+
+  handleChunkAndSending = (dataChannel, chunkPromisesArr, peerConnection) => {
     const chunkReadAndSendPromise = new Promise(async (resolve, reject) => {
       const allFileChunksForDC = await Promise.all(chunkPromisesArr);
       console.log("allFileChunksForDC: ", allFileChunksForDC);
+      const totalChunksLength = allFileChunksForDC.length;
+      for (let index = 0; index < totalChunksLength; index++) {
+        const fileChunk = allFileChunksForDC[index];
+      }
       resolve(allFileChunksForDC);
     });
 
@@ -490,11 +498,13 @@ class FileUploadMaster extends React.Component {
               const distributeChunksArr = distributionFileChunksInfo[label];
               const readFileArrChunkPromises = await this.getFileChunksInPromises(
                 fileName,
-                distributeChunksArr
+                distributeChunksArr,
+                remoteMasterNodeObj.machine_id
               );
               const singleDCChunksSendedPromises = this.handleChunkAndSending(
                 dataChannel,
-                readFileArrChunkPromises
+                readFileArrChunkPromises,
+                remoteMasterNodeObj.peerConnection
               );
               AllDCChunksSendedPromises.push(singleDCChunksSendedPromises);
             }
