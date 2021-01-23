@@ -456,7 +456,7 @@ class FileUploadMaster extends React.Component {
   handleChunkAndSending = (dataChannel, chunkPromisesArr) => {
     const chunkReadAndSendPromise = new Promise(async (resolve, reject) => {
       const allFileChunksForDC = await Promise.all(chunkPromisesArr);
-      console.log("chunkPromisesArr: ", chunkPromisesArr);
+      console.log("allFileChunksForDC: ", allFileChunksForDC);
       resolve(allFileChunksForDC);
     });
 
@@ -498,10 +498,8 @@ class FileUploadMaster extends React.Component {
               );
               AllDCChunksSendedPromises.push(singleDCChunksSendedPromises);
             }
-            const allFileSendeResult = await Promise.all(
-              AllDCChunksSendedPromises
-            );
-            console.log("allFileSendeResult: ", allFileSendeResult);
+            await Promise.all(AllDCChunksSendedPromises);
+            // console.log("allFileSendeResult: ", allFileSendeResult);
             resolve(true);
           } catch (error) {
             console.error(error);
