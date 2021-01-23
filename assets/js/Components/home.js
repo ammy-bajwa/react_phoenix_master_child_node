@@ -766,14 +766,6 @@ class Home extends React.Component {
             fileChunk,
             masterPeerId,
           } = JSON.parse(event.data);
-          console.log("helperCount: ", helperCount);
-          await saveChunkInIndexedDB(
-            remoteNodeId,
-            fileName,
-            startSliceIndex,
-            endSliceIndex,
-            fileChunk
-          );
           dataChannel.send(
             JSON.stringify({
               startSliceIndex,
@@ -783,9 +775,18 @@ class Home extends React.Component {
               receiverd: true,
             })
           );
+          console.log("Response send");
+          await saveChunkInIndexedDB(
+            remoteNodeId,
+            fileName,
+            startSliceIndex,
+            endSliceIndex,
+            fileChunk
+          );
         } catch (error) {
           // We have a chunk
           console.error("error: ", error);
+          console.error("event.data: ", event.data);
         }
         // open indexdb
         // check if the user and file is exists
