@@ -572,20 +572,25 @@ class FileUploadMaster extends React.Component {
           size
         );
         // Here we will calculate how many bytes each data channel will send
-        const numberOfChunkArrForEachDataChannel = Math.ceil(
-          size / numberOfDataChannels
-        );
+        if (size < 300000000) {
+          const numberOfChunksArrForEachDataChannel = Math.ceil(
+            size / numberOfDataChannels
+          );
 
-        // Here we will create an array for each datachannel to send
-        const distributionFileChunksInfo = await this.distributeChunksForDataChannels(
-          fileDataChannelName,
-          numberOfDataChannels,
-          numberOfChunkArrForEachDataChannel
-        );
-        await this.setupChunksReadAndSend(
-          fileDataChannelName,
-          distributionFileChunksInfo
-        );
+          // Here we will create an array for each datachannel to send
+          const distributionFileChunksInfo = await this.distributeChunksForDataChannels(
+            fileDataChannelName,
+            numberOfDataChannels,
+            numberOfChunksArrForEachDataChannel
+          );
+
+          await this.setupChunksReadAndSend(
+            fileDataChannelName,
+            distributionFileChunksInfo
+          );
+        } else {
+          // here we will programe to send large file chunks
+        }
         console.timeEnd(fileName);
         // while (counter < size) {
         //   try {
