@@ -425,49 +425,45 @@ class FileUploadMaster extends React.Component {
     return await fileChunkPromise;
   };
 
-  sendChunksDistributedly = async (
-    fileName,
-    fileDataChannel,
-    chunkIndexesArr = [],
-    remoteNodeId
-  ) => {
+  getPromisesForFileReadForSingleDC = async (fileName, chunkIndexesArr) => {
+    const chunksArrLength = chunkIndexesArr.length;
+    let allFileChunksPromisArr = [];
+    const promisesForReadFileChunks = new Promise((resolve, reject) => {
+      for (let index = 0; index < chunksArrLength; index++) {
+        const { startSliceIndex, endSliceIndex } = chunkIndexesArr[index];
+        allFileChunksPromisArr.push(
+          this.getSpecificChunkOfFile(fileName, startSliceIndex, endSliceIndex)
+        );
+      }
+      resolve(allFileChunksPromisArr);
+    });
+    return await promisesForReadFileChunks;
+  };
+
+  getFileChunksInPromises = async (fileName, chunkIndexesArr = []) => {
     // Here we will be send chunks from provided array through datachannel
     const sendingChunkPromise = new Promise(async (resolve, reject) => {
-      const chunkDistributionPromise = chunkIndexesArr.map(
-        async ({ startSliceIndex, endSliceIndex }) => {
-          try {
-            const fileChunkToSend = await this.getSpecificChunkOfFile(
-              fileName,
-              startSliceIndex,
-              endSliceIndex
-            );
-            const remoteMasterId = await this.sendChunkToSingleMaster(
-              fileDataChannel,
-              startSliceIndex,
-              endSliceIndex,
-              fileChunkToSend,
-              fileName,
-              remoteNodeId
-            );
-            if (remoteMasterId) {
-            } else {
-              const errorMessage = `Problem in sending chunk ${fileName} ${startSliceIndex} ${endSliceIndex} `;
-              console.error(errorMessage);
-              reject(errorMessage);
-            }
-          } catch (error) {
-            console.error(`Problem in sending chunk ${error}`);
-            reject(error);
-          }
-        }
+      const fileChunksPromisArrForDC = await this.getPromisesForFileReadForSingleDC(
+        fileName,
+        chunkIndexesArr
       );
-      await Promise.all(chunkDistributionPromise);
-      resolve(true);
+      console.log("chunkIndexesArr ", chunkIndexesArr);
+      resolve(fileChunksPromisArrForDC);
     });
     return await sendingChunkPromise;
   };
 
-  setupChunksWithFileDataChannels = async (
+  handleChunkAndSending = (dataChannel, chunkPromisesArr) => {
+    const chunkReadAndSendPromise = new Promise(async (resolve, reject) => {
+      const allFileChunksForDC = await Promise.all(chunkPromisesArr);
+      console.log("chunkPromisesArr: ", chunkPromisesArr);
+      resolve(allFileChunksForDC);
+    });
+
+    return chunkReadAndSendPromise;
+  };
+
+  setupChunksReadAndSend = async (
     fileDataChannelName,
     distributionFileChunksInfo
   ) => {
@@ -484,24 +480,28 @@ class FileUploadMaster extends React.Component {
           try {
             const currentFileDataChannelsArr =
               allFilesDataChannels[fileDataChannelName];
-            let sendMessagePromise = currentFileDataChannelsArr.map(
-              async ({ dataChannel, fileName }) => {
-                const { label } = dataChannel;
-                const distributeChunksArr = distributionFileChunksInfo[label];
-                // await this.sendChunksDistributedly(
-                //   fileDataChannelName,
-                //   dataChannel,
-                //   distributeChunksArr,
-                //   remoteMasterNodeObj.machine_id
-                // );
-              }
+            const AllDCChunksSendedPromises = [];
+            const totalChunksArrLength = currentFileDataChannelsArr.length;
+            for (let index = 0; index < totalChunksArrLength; index++) {
+              const { dataChannel, fileName } = currentFileDataChannelsArr[
+                index
+              ];
+              const { label } = dataChannel;
+              const distributeChunksArr = distributionFileChunksInfo[label];
+              const readFileArrChunkPromises = await this.getFileChunksInPromises(
+                fileName,
+                distributeChunksArr
+              );
+              const singleDCChunksSendedPromises = this.handleChunkAndSending(
+                dataChannel,
+                readFileArrChunkPromises
+              );
+              AllDCChunksSendedPromises.push(singleDCChunksSendedPromises);
+            }
+            const allFileSendeResult = await Promise.all(
+              AllDCChunksSendedPromises
             );
-            // await Promise.all(sendMessagePromise);
-            // currentFileDataChannelsArr.map(
-            //   async ({ dataChannel, fileName }) => {
-            //     dataChannel.close();
-            //   }
-            // );
+            console.log("allFileSendeResult: ", allFileSendeResult);
             resolve(true);
           } catch (error) {
             console.error(error);
@@ -538,7 +538,7 @@ class FileUploadMaster extends React.Component {
           numberOfDataChannels,
           numberOfChunkArrForEachDataChannel
         );
-        await this.setupChunksWithFileDataChannels(
+        await this.setupChunksReadAndSend(
           fileDataChannelName,
           distributionFileChunksInfo
         );
