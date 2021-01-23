@@ -130,8 +130,8 @@ class FileUploadMaster extends React.Component {
       const { remoteMasterPeersWebRtcConnections } = this.state;
       // Create data channels here in accordance to size of file
       let numberOfDataChannels = Math.ceil(size / 36000);
-      if (numberOfDataChannels > 100) {
-        numberOfDataChannels = 100;
+      if (numberOfDataChannels > 50) {
+        numberOfDataChannels = 50;
       }
       try {
         const updatedRemoteMasterPeers = remoteMasterPeersWebRtcConnections.map(
@@ -371,7 +371,13 @@ class FileUploadMaster extends React.Component {
         const fileReader = new FileReader();
         fileReader.addEventListener("load", async (event) => {
           let fileChunk = event.target.result;
-          resolve({ fileChunk, startSliceIndex, endSliceIndex, remotePeerId });
+          resolve({
+            fileName,
+            fileChunk,
+            startSliceIndex,
+            endSliceIndex,
+            remotePeerId,
+          });
         });
         fileReader.readAsBinaryString(slicedFilePart);
       } catch (error) {
@@ -430,7 +436,7 @@ class FileUploadMaster extends React.Component {
     fileChunk,
     fileName,
     masterPeerId,
-    peerConnection
+    peerConnectionInstance
   ) => {
     const sendMessageAndResponsePromise = new Promise(
       async (resolve, reject) => {
@@ -445,11 +451,15 @@ class FileUploadMaster extends React.Component {
           fileDataChannel.send(messagePayload);
           resolve(true);
         } catch (error) {
-          const {
-            dataChannel,
-            peerConnection,
-          } = await this.createFileDataChannel(peerConnection, fileName);
-          dataChannel.send(messagePayload);
+          try {
+            const { dataChannel } = await this.createFileDataChannel(
+              peerConnectionInstance,
+              fileName
+            );
+            dataChannel.send(messagePayload);
+          } catch (error) {
+            reject(error);
+          }
         }
       }
     );
@@ -460,11 +470,30 @@ class FileUploadMaster extends React.Component {
   handleChunkAndSending = (dataChannel, chunkPromisesArr, peerConnection) => {
     const chunkReadAndSendPromise = new Promise(async (resolve, reject) => {
       const allFileChunksForDC = await Promise.all(chunkPromisesArr);
-      console.log("allFileChunksForDC: ", allFileChunksForDC);
       const totalChunksLength = allFileChunksForDC.length;
+      let messagesPromisesArr = [];
       for (let index = 0; index < totalChunksLength; index++) {
-        const fileChunk = allFileChunksForDC[index];
+        const {
+          fileName,
+          fileChunk,
+          startSliceIndex,
+          endSliceIndex,
+          remotePeerId,
+        } = allFileChunksForDC[index];
+        messagesPromisesArr.push(
+          this.sendChunkToSingleMaster(
+            dataChannel,
+            startSliceIndex,
+            endSliceIndex,
+            fileChunk,
+            fileName,
+            remotePeerId,
+            peerConnection
+          )
+        );
       }
+      const myMessageResult = await Promise.all(messagesPromisesArr);
+      console.log("myMessageResult: ", myMessageResult.length);
       resolve(allFileChunksForDC);
     });
 
@@ -551,7 +580,6 @@ class FileUploadMaster extends React.Component {
           distributionFileChunksInfo
         );
         console.timeEnd(fileName);
-        console.log(distributionFileChunksInfo);
         // while (counter < size) {
         //   try {
         //     // await this.causeDelay();
