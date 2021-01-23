@@ -557,6 +557,15 @@ class FileUploadMaster extends React.Component {
     return await sendFilePromise;
   };
 
+  largeFileReadAndSetup = async (
+    fileDataChannelName,
+    distributionFileChunksInfo
+  ) => {
+    // Iterate over array of chunks
+    // On each iteration get array for chunks
+    // Send that array using all avaiable datachannels
+  };
+
   createAndSendChunksOfFile = async ({ fileName, file, size }) => {
     const createAndSendChunksPromise = new Promise(async (resolve, reject) => {
       try {
@@ -571,25 +580,29 @@ class FileUploadMaster extends React.Component {
           fileDataChannelName,
           size
         );
+        const numberOfChunksArrForEachDataChannel = Math.ceil(
+          size / numberOfDataChannels
+        );
+
+        // Here we will create an array for each datachannel to send
+        const distributionFileChunksInfo = await this.distributeChunksForDataChannels(
+          fileDataChannelName,
+          numberOfDataChannels,
+          numberOfChunksArrForEachDataChannel
+        );
         // Here we will calculate how many bytes each data channel will send
-        if (size < 300000000) {
-          const numberOfChunksArrForEachDataChannel = Math.ceil(
-            size / numberOfDataChannels
-          );
-
-          // Here we will create an array for each datachannel to send
-          const distributionFileChunksInfo = await this.distributeChunksForDataChannels(
-            fileDataChannelName,
-            numberOfDataChannels,
-            numberOfChunksArrForEachDataChannel
-          );
-
-          await this.setupChunksReadAndSend(
+        if (size < 400000000) {
+          alert("Sending chunks");
+          // await this.setupChunksReadAndSend(
+          //   fileDataChannelName,
+          //   distributionFileChunksInfo
+          // );
+        } else {
+          // Here we will programe to send large file chunks
+          await this.largeFileReadAndSetup(
             fileDataChannelName,
             distributionFileChunksInfo
           );
-        } else {
-          // here we will programe to send large file chunks
         }
         console.timeEnd(fileName);
         // while (counter < size) {
