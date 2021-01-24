@@ -589,9 +589,10 @@ class FileUploadMaster extends React.Component {
           endSliceIndex = endSliceIndex + chunkSize;
         }
         for (let index = 0; index < totalRemotePeers; index++) {
-          const { filesDataChannels } = remoteMasterPeersWebRtcConnections[
-            index
-          ];
+          const {
+            filesDataChannels,
+            peerConnection,
+          } = remoteMasterPeersWebRtcConnections[index];
           const currentFileDataChannels = filesDataChannels[fileName];
           for (
             let innerIndex = 0;
@@ -599,11 +600,19 @@ class FileUploadMaster extends React.Component {
             innerIndex++
           ) {
             const { dataChannel } = currentFileDataChannels[innerIndex];
-            dataChannel.send(JSON.stringify(fileChunksArr[innerIndex]));
+            if (dataChannel.readyState === "open") {
+              dataChannel.send(JSON.stringify(fileChunksArr[innerIndex]));
+            } else {
+              const { label } = dataChannel;
+              const {
+                dataChannel: newDataChannel,
+              } = this.createFileDataChannel(peerConnection, label);
+              newDataChannel.send(JSON.stringify(fileChunksArr[innerIndex]));
+            }
           }
           fileChunksArr = [];
         }
-        console.log("endSliceIndex: ", endSliceIndex);
+        console.log(`Sended data is ${endSliceIndex / 1000000} MB `);
       }
       resolve(true);
     });
