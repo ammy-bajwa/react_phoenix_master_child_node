@@ -4,7 +4,7 @@ import { RenderFileNames } from "./renderFileNames";
 
 class FileUploadMaster extends React.Component {
   state = {
-    chunkSize: 12 * 1000, // Bytes
+    chunkSize: 40 * 1000, // Bytes
     files: {},
     infoMessage: "",
     maxDataChannelsNumber: 500,

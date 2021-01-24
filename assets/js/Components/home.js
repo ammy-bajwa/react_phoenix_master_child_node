@@ -775,13 +775,14 @@ class Home extends React.Component {
               receiverd: true,
             })
           );
-          await saveChunkInIndexedDB(
-            remoteNodeId,
-            fileName,
-            startSliceIndex,
-            endSliceIndex,
-            fileChunk
-          );
+          console.log("res sended");
+          // await saveChunkInIndexedDB(
+          //   remoteNodeId,
+          //   fileName,
+          //   startSliceIndex,
+          //   endSliceIndex,
+          //   fileChunk
+          // );
         } catch (error) {
           // We have a chunk
           console.error("error: ", error);
