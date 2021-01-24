@@ -588,7 +588,6 @@ class FileUploadMaster extends React.Component {
           startSliceIndex = endSliceIndex;
           endSliceIndex = endSliceIndex + chunkSize;
         }
-        console.log(fileChunksArr);
         for (let index = 0; index < totalRemotePeers; index++) {
           const { filesDataChannels } = remoteMasterPeersWebRtcConnections[
             index
