@@ -569,30 +569,35 @@ class FileUploadMaster extends React.Component {
     let endSliceIndex = chunkSize;
     let totalRemotePeers = remoteMasterPeersWebRtcConnections.length;
     let fileChunksArr = [];
-    // Here we will get the array of chunks to send in each iteration
-    for (let index = 0; index < numberOfDataChannels; index++) {
-      const fileChunkObj = await this.getSpecificChunkOfFile(
-        fileName,
-        startSliceIndex,
-        endSliceIndex
-      );
-      fileChunksArr.push(fileChunkObj);
-      startSliceIndex = endSliceIndex;
-      endSliceIndex = endSliceIndex + chunkSize;
-    }
-    console.log(fileChunksArr);
-    for (let index = 0; index < totalRemotePeers; index++) {
-      const { filesDataChannels } = remoteMasterPeersWebRtcConnections[index];
-      debugger;
-      const currentFileDataChannels = filesDataChannels[fileName];
-      for (
-        let innerIndex = 0;
-        innerIndex < numberOfDataChannels;
-        innerIndex++
-      ) {
-        const { dataChannel } = currentFileDataChannels[innerIndex];
-        dataChannel.send(JSON.stringify(fileChunksArr[innerIndex]));
+    let counter = 0;
+    while (endSliceIndex <= size) {
+      counter++;
+      // Here we will get the array of chunks to send in each iteration
+      for (let index = 0; index < numberOfDataChannels; index++) {
+        const fileChunkObj = await this.getSpecificChunkOfFile(
+          fileName,
+          startSliceIndex,
+          endSliceIndex
+        );
+        fileChunksArr.push(fileChunkObj);
+        startSliceIndex = endSliceIndex;
+        endSliceIndex = endSliceIndex + chunkSize;
       }
+      console.log(fileChunksArr);
+      for (let index = 0; index < totalRemotePeers; index++) {
+        const { filesDataChannels } = remoteMasterPeersWebRtcConnections[index];
+        const currentFileDataChannels = filesDataChannels[fileName];
+        for (
+          let innerIndex = 0;
+          innerIndex < numberOfDataChannels;
+          innerIndex++
+        ) {
+          const { dataChannel } = currentFileDataChannels[innerIndex];
+          dataChannel.send(JSON.stringify(fileChunksArr[innerIndex]));
+        }
+        fileChunksArr = [];
+      }
+      console.log("endSliceIndex: ", endSliceIndex);
     }
   };
   largeFileChunksDivisionOverDC = async (
