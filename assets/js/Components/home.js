@@ -775,7 +775,6 @@ class Home extends React.Component {
               receiverd: true,
             })
           );
-          console.log("Response send");
           await saveChunkInIndexedDB(
             remoteNodeId,
             fileName,

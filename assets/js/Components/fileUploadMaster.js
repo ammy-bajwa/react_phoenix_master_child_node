@@ -6,6 +6,7 @@ class FileUploadMaster extends React.Component {
   state = {
     chunkSize: 12 * 1000, // Bytes
     files: {},
+    infoMessage: "",
     maxDataChannelsNumber: 500,
     filesBufferArr: [],
     fileNamesArr: [],
@@ -562,7 +563,7 @@ class FileUploadMaster extends React.Component {
   };
 
   largeFileReadAndSetup = async (fileName, numberOfDataChannels) => {
-    const readAndSendFilePromise = new Promise(async () => {
+    const readAndSendFilePromise = new Promise(async (resolve, reject) => {
       const {
         files,
         chunkSize,
@@ -612,7 +613,9 @@ class FileUploadMaster extends React.Component {
           }
           fileChunksArr = [];
         }
-        console.log(`Sended data is ${endSliceIndex / 1000000} MB `);
+        this.setState({
+          infoMessage: `Sended data is ${endSliceIndex / 1000000} MB `,
+        });
       }
       resolve(true);
     });
@@ -733,7 +736,7 @@ class FileUploadMaster extends React.Component {
       });
   };
   render() {
-    const { fileNamesArr } = this.state;
+    const { fileNamesArr, infoMessage } = this.state;
     return (
       <div>
         <div className="custom-file mt-2 mb-2">
@@ -770,6 +773,9 @@ class FileUploadMaster extends React.Component {
             Clean IndexedDb
           </button>
         </div>
+        <h2 className="text-light" id="debugInfo">
+          {infoMessage}
+        </h2>
       </div>
     );
   }
