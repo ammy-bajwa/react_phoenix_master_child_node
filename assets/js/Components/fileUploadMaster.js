@@ -562,43 +562,53 @@ class FileUploadMaster extends React.Component {
   };
 
   largeFileReadAndSetup = async (fileName, numberOfDataChannels) => {
-    const { files, chunkSize, remoteMasterPeersWebRtcConnections } = this.state;
-    const file = files[fileName];
-    const { size } = file;
-    let startSliceIndex = 0;
-    let endSliceIndex = chunkSize;
-    let totalRemotePeers = remoteMasterPeersWebRtcConnections.length;
-    let fileChunksArr = [];
-    let counter = 0;
-    while (endSliceIndex <= size) {
-      counter++;
-      // Here we will get the array of chunks to send in each iteration
-      for (let index = 0; index < numberOfDataChannels; index++) {
-        const fileChunkObj = await this.getSpecificChunkOfFile(
-          fileName,
-          startSliceIndex,
-          endSliceIndex
-        );
-        fileChunksArr.push(fileChunkObj);
-        startSliceIndex = endSliceIndex;
-        endSliceIndex = endSliceIndex + chunkSize;
-      }
-      console.log(fileChunksArr);
-      for (let index = 0; index < totalRemotePeers; index++) {
-        const { filesDataChannels } = remoteMasterPeersWebRtcConnections[index];
-        const currentFileDataChannels = filesDataChannels[fileName];
-        for (
-          let innerIndex = 0;
-          innerIndex < numberOfDataChannels;
-          innerIndex++
-        ) {
-          const { dataChannel } = currentFileDataChannels[innerIndex];
-          dataChannel.send(JSON.stringify(fileChunksArr[innerIndex]));
+    const readAndSendFilePromise = new Promise(async () => {
+      const {
+        files,
+        chunkSize,
+        remoteMasterPeersWebRtcConnections,
+      } = this.state;
+      const file = files[fileName];
+      const { size } = file;
+      let startSliceIndex = 0;
+      let endSliceIndex = chunkSize;
+      let totalRemotePeers = remoteMasterPeersWebRtcConnections.length;
+      let fileChunksArr = [];
+      let counter = 0;
+      while (endSliceIndex <= size) {
+        counter++;
+        // Here we will get the array of chunks to send in each iteration
+        for (let index = 0; index < numberOfDataChannels; index++) {
+          const fileChunkObj = await this.getSpecificChunkOfFile(
+            fileName,
+            startSliceIndex,
+            endSliceIndex
+          );
+          fileChunksArr.push(fileChunkObj);
+          startSliceIndex = endSliceIndex;
+          endSliceIndex = endSliceIndex + chunkSize;
         }
-        fileChunksArr = [];
+        console.log(fileChunksArr);
+        for (let index = 0; index < totalRemotePeers; index++) {
+          const { filesDataChannels } = remoteMasterPeersWebRtcConnections[
+            index
+          ];
+          const currentFileDataChannels = filesDataChannels[fileName];
+          for (
+            let innerIndex = 0;
+            innerIndex < numberOfDataChannels;
+            innerIndex++
+          ) {
+            const { dataChannel } = currentFileDataChannels[innerIndex];
+            dataChannel.send(JSON.stringify(fileChunksArr[innerIndex]));
+          }
+          fileChunksArr = [];
+        }
+        console.log("endSliceIndex: ", endSliceIndex);
       }
-      console.log("endSliceIndex: ", endSliceIndex);
-    }
+      resolve(true);
+    });
+    return await readAndSendFilePromise;
   };
   largeFileChunksDivisionOverDC = async (
     fileSize,
@@ -648,19 +658,18 @@ class FileUploadMaster extends React.Component {
 
         // Here we will calculate how many bytes each data channel will send
         if (size < 400000000) {
-          // const numberOfChunksArrForEachDataChannel = Math.ceil(
-          //   size / numberOfDataChannels
-          // );
-          // const distributionFileChunksInfo = await this.distributeChunksForDataChannels(
-          //   fileDataChannelName,
-          //   numberOfDataChannels,
-          //   numberOfChunksArrForEachDataChannel
-          // );
-          alert("Sending chunks");
-          // await this.setupChunksReadAndSend(
-          //   fileDataChannelName,
-          //   distributionFileChunksInfo
-          // );
+          const numberOfChunksArrForEachDataChannel = Math.ceil(
+            size / numberOfDataChannels
+          );
+          const distributionFileChunksInfo = await this.distributeChunksForDataChannels(
+            fileDataChannelName,
+            numberOfDataChannels,
+            numberOfChunksArrForEachDataChannel
+          );
+          await this.setupChunksReadAndSend(
+            fileDataChannelName,
+            distributionFileChunksInfo
+          );
         } else {
           // Here we will programe to send large file chunks
 
