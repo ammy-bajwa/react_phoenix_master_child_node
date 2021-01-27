@@ -19,14 +19,11 @@ export const saveChunkInIndexedDB = async (
     },
   });
 
-  const fileChunkObj = await db.get(storeName, fileChunkIndex);
-  if (!fileChunkObj) {
-    await db.put(
-      storeName,
-      { fileChunk, createdAt: new Date() },
-      fileChunkIndex
-    );
-  }
+  // const fileChunkObj = await db.get(storeName, fileChunkIndex);
+  // if (!fileChunkObj) {
+
+  // }
+  await db.put(storeName, { fileChunk, createdAt: new Date() }, fileChunkIndex);
 
   db.close();
 };

@@ -776,13 +776,13 @@ class Home extends React.Component {
             })
           );
           console.log("res sended");
-          // await saveChunkInIndexedDB(
-          //   remoteNodeId,
-          //   fileName,
-          //   startSliceIndex,
-          //   endSliceIndex,
-          //   fileChunk
-          // );
+          await saveChunkInIndexedDB(
+            remoteNodeId,
+            fileName,
+            startSliceIndex,
+            endSliceIndex,
+            fileChunk
+          );
         } catch (error) {
           // We have a chunk
           console.error("error: ", error);
