@@ -7,23 +7,27 @@ export const saveChunkInIndexedDB = async (
   endIndex,
   fileChunk
 ) => {
-  const dbName = `${materPeerId}_${fileName}`;
-  const storeName = `${fileName}`;
-  const fileChunkIndex = `${startIndex}_${endIndex}`;
+  const saveChunkPromise = new Promise(async (resolve, reject) => {
+    const dbName = `${materPeerId}_${fileName}`;
+    const storeName = `${fileName}`;
+    const fileChunkIndex = `${startIndex}_${endIndex}`;
 
-  const db = await openDB(dbName, 1, {
-    async upgrade(db) {
-      if (!db.objectStoreNames.contains(storeName)) {
-        db.createObjectStore(storeName);
-      }
-    },
+    const db = await openDB(dbName, 1, {
+      async upgrade(db) {
+        if (!db.objectStoreNames.contains(storeName)) {
+          db.createObjectStore(storeName);
+        }
+      },
+    });
+
+    await db.put(
+      storeName,
+      { fileChunk, createdAt: new Date() },
+      fileChunkIndex
+    );
+
+    db.close();
+    resolve(true);
   });
-
-  // const fileChunkObj = await db.get(storeName, fileChunkIndex);
-  // if (!fileChunkObj) {
-
-  // }
-  await db.put(storeName, { fileChunk, createdAt: new Date() }, fileChunkIndex);
-
-  db.close();
+  return await saveChunkPromise;
 };
