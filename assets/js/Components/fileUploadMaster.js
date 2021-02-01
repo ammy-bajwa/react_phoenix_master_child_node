@@ -4,7 +4,7 @@ import { RenderFileNames } from "./renderFileNames";
 
 class FileUploadMaster extends React.Component {
   state = {
-    chunkSize: 40 * 1000, // Bytes
+    chunkSize: 50 * 1000, // Bytes
     files: {},
     infoMessage: "",
     sendFileToMasterBtnStatus: false,
@@ -650,10 +650,55 @@ class FileUploadMaster extends React.Component {
     });
   };
 
+  handleDCNumberChange = (event) => {
+    try {
+      this.setState({
+        maxDataChannelsNumber: parseInt(event.target.value),
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  handleChangeChunkSize = (event) => {
+    try {
+      this.setState({
+        chunkSize: parseInt(event.target.value) * 1000,
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   render() {
-    const { fileNamesArr, infoMessage, sendFileToMasterBtnStatus } = this.state;
+    const {
+      fileNamesArr,
+      infoMessage,
+      sendFileToMasterBtnStatus,
+      maxDataChannelsNumber,
+      chunkSize,
+    } = this.state;
     return (
       <div>
+        <div className="input-group">
+          <div className="input-group-prepend">
+            <span className="input-group-text" id="">
+              Number Of DC And Chunk Size
+            </span>
+          </div>
+          <input
+            type="text"
+            onChange={this.handleDCNumberChange}
+            placeholder={`Default number of DC is ${maxDataChannelsNumber}`}
+            className="form-control"
+          />
+          <input
+            type="text"
+            onChange={this.handleChangeChunkSize}
+            placeholder={`Default chunk size is ${chunkSize} bytes / type in Killo bytes`}
+            className="form-control"
+          />
+        </div>
         <div className="custom-file mt-2 mb-2">
           <input
             type="file"
