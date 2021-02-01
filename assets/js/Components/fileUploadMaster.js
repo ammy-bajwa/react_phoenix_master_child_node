@@ -652,20 +652,40 @@ class FileUploadMaster extends React.Component {
 
   handleDCNumberChange = (event) => {
     try {
+      const maxDCNumbers = parseInt(event.target.value);
+      if (!maxDCNumbers) {
+        this.setState({
+          maxDataChannelsNumber: 500,
+        });
+        return;
+      }
       this.setState({
         maxDataChannelsNumber: parseInt(event.target.value),
       });
     } catch (error) {
+      this.setState({
+        maxDataChannelsNumber: 500,
+      });
       console.error(error);
     }
   };
 
   handleChangeChunkSize = (event) => {
     try {
+      const maxChunkSize = parseInt(event.target.value);
+      if (!maxChunkSize) {
+        this.setState({
+          chunkSize: 50 * 1000,
+        });
+        return;
+      }
       this.setState({
         chunkSize: parseInt(event.target.value) * 1000,
       });
     } catch (error) {
+      this.setState({
+        chunkSize: 50 * 1000,
+      });
       console.error(error);
     }
   };
@@ -687,13 +707,13 @@ class FileUploadMaster extends React.Component {
             </span>
           </div>
           <input
-            type="text"
+            type="number"
             onChange={this.handleDCNumberChange}
             placeholder={`Default number of DC is ${maxDataChannelsNumber}`}
             className="form-control"
           />
           <input
-            type="text"
+            type="number"
             onChange={this.handleChangeChunkSize}
             placeholder={`Default chunk size is ${chunkSize} bytes / type in Killo bytes`}
             className="form-control"
