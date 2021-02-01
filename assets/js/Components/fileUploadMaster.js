@@ -514,7 +514,9 @@ class FileUploadMaster extends React.Component {
               }
             }
             try {
-              await Promise.all(messagePromises);
+              console.log("messagePromises: ", messagePromises);
+              const chunkResponses = await Promise.all(messagePromises);
+              console.log("chunkResponses: ", chunkResponses);
               this.setState({
                 infoMessage: `Sended data is ${endSliceIndex / 1000000} MB `,
               });
@@ -535,35 +537,6 @@ class FileUploadMaster extends React.Component {
     return await readAndSendFilePromise;
   };
 
-  largeFileChunksDivisionOverDC = async (
-    fileSize,
-    sizeOfMegaChunk,
-    fileDataChannelName,
-    numberOfDataChannels,
-    numberOfChunksArrForEachDataChannel
-  ) => {
-    const distributionChunksPromise = new Promise((resolve, reject) => {
-      try {
-        const { chunkSize, files } = this.state;
-        const chunksDivisionInfo = [];
-        let startChunk = 0;
-        let endChunk = sizeOfMegaChunk;
-        // In outer loop we will be adding an empty array of objects for each data channel
-        for (let index = 0; index < fileSize; index + sizeOfMegaChunk) {
-          chunksDivisionInfo.push({
-            startChunk: 0,
-            endChunk: sizeOfMegaChunk,
-          });
-          startChunk = endChunk;
-          endChunk = endChunk + sizeOfMegaChunk;
-        }
-        resolve(chunksDivisionInfo);
-      } catch (error) {
-        reject(error);
-      }
-    });
-    return await distributionChunksPromise;
-  };
   createAndSendChunksOfFile = async ({ fileName, file, size }) => {
     const createAndSendChunksPromise = new Promise(async (resolve, reject) => {
       try {

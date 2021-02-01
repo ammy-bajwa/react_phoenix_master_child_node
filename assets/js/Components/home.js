@@ -830,7 +830,7 @@ class Home extends React.Component {
           }
         } catch (error) {
           // We have a chunk
-          console.error("error: ", error);
+          console.log("error: ", error);
           dataChannel.send(
             JSON.stringify({
               fileName: dataChannelName,
