@@ -7,6 +7,7 @@ class FileUploadMaster extends React.Component {
     chunkSize: 40 * 1000, // Bytes
     files: {},
     infoMessage: "",
+    sendFileToMasterBtnStatus: false,
     maxDataChannelsNumber: 500,
     filesBufferArr: [],
     fileNamesArr: [],
@@ -58,47 +59,6 @@ class FileUploadMaster extends React.Component {
     } else {
       console.log("No file selected");
     }
-  };
-
-  getChunkOfFile = async (fileName, file) => {
-    const fileChunkPromise = new Promise((resolve, reject) => {
-      const { files } = this.state;
-      try {
-        const slicedFilePart = file.slice(
-          files[fileName].startSliceIndex,
-          files[fileName].endSliceIndex
-        );
-        const fileReader = new FileReader();
-        fileReader.addEventListener("load", async (event) => {
-          let fileChunk = event.target.result;
-          resolve(fileChunk);
-        });
-        fileReader.readAsArrayBuffer(slicedFilePart);
-      } catch (error) {
-        console.error(error);
-        reject(error);
-      }
-    });
-    return await fileChunkPromise;
-  };
-
-  updateSliceIndexes = async (fileName) => {
-    const updateIndexPromise = new Promise((resolve, reject) => {
-      const { chunkSize, files } = this.state;
-      files[fileName].startSliceIndex =
-        files[fileName].startSliceIndex + chunkSize;
-      files[fileName].endSliceIndex = files[fileName].endSliceIndex + chunkSize;
-      this.setState(
-        {
-          files,
-        },
-        () => {
-          resolve(`indexes updated for ${fileName}`);
-        }
-      );
-    });
-
-    return await updateIndexPromise;
   };
 
   createFileDataChannel = async (peerConnection, fileName) => {
@@ -220,96 +180,6 @@ class FileUploadMaster extends React.Component {
       };
     });
     return await responsePromise;
-  };
-
-  sendFileChunkOverDataChannel = async (fileName, fileChunkToSend, counter) => {
-    const sendFileChunkPromise = new Promise(async (resolve, reject) => {
-      const { remoteMasterPeersWebRtcConnections, chunkSize } = this.state;
-      try {
-        const updatedRemoteMasterPeers = remoteMasterPeersWebRtcConnections.map(
-          async (remoteMasterNodeObj) => {
-            const hasFileDataChannels =
-              remoteMasterNodeObj?.filesDataChannels || false;
-            if (hasFileDataChannels) {
-              let fileDataChannel =
-                remoteMasterNodeObj.filesDataChannels[fileName][0].dataChannel;
-              if (fileDataChannel.readyState !== "open") {
-                const {
-                  dataChannel,
-                  peerConnection,
-                } = await this.createFileDataChannel(
-                  remoteMasterNodeObj.peerConnection,
-                  fileName
-                );
-                const fileDataChannelObj = {
-                  dataChannel,
-                  fileName,
-                };
-                if (!remoteMasterNodeObj.filesDataChannels) {
-                  remoteMasterNodeObj.filesDataChannels = {};
-                }
-                remoteMasterNodeObj.filesDataChannels[
-                  fileName
-                ] = fileDataChannelObj;
-                remoteMasterNodeObj.peerConnection = peerConnection;
-                fileDataChannel = dataChannel;
-              }
-              const startSliceIndex = counter;
-              const endSliceIndex = counter + chunkSize;
-              let retryCounter = 0;
-              while (true) {
-                try {
-                  if (retryCounter > 5) {
-                    break;
-                  } else {
-                    retryCounter = retryCounter + 1;
-                  }
-                  const remoteMasterId = await this.sendChunkToSingleMaster(
-                    fileDataChannel,
-                    startSliceIndex,
-                    endSliceIndex,
-                    fileChunkToSend,
-                    fileName,
-                    remoteMasterNodeObj.machine_id,
-                    remoteMasterNodeObj.peerConnection
-                  );
-                  if (remoteMasterId === remoteMasterNodeObj.machine_id) {
-                    break;
-                  } else {
-                    console.error(
-                      `Problem in sending chunk ${fileName} ${startSliceIndex} ${endSliceIndex} `
-                    );
-                  }
-                } catch (error) {
-                  console.error(`Problem in sending chunk ${error}`);
-                  break;
-                }
-              }
-            }
-            return remoteMasterNodeObj;
-          }
-        );
-        const resolvedPromises = await Promise.all(updatedRemoteMasterPeers);
-        this.setState(
-          {
-            remoteMasterPeersWebRtcConnections: resolvedPromises,
-          },
-          () => {
-            resolve(true);
-          }
-        );
-      } catch (error) {
-        console.error(error);
-        reject(error);
-      }
-    });
-    return await sendFileChunkPromise;
-  };
-
-  chunkAndUpdateIndex = async (fileName, file, counter) => {
-    let fileChunkToSend = await this.getChunkOfFile(fileName, file);
-    await this.sendFileChunkOverDataChannel(fileName, fileChunkToSend, counter);
-    await this.updateSliceIndexes(fileName);
   };
 
   causeDelay = async () => {
@@ -645,6 +515,9 @@ class FileUploadMaster extends React.Component {
             }
             try {
               await Promise.all(messagePromises);
+              this.setState({
+                infoMessage: `Sended data is ${endSliceIndex / 1000000} MB `,
+              });
             } catch (error) {
               console.error(error);
             }
@@ -652,9 +525,6 @@ class FileUploadMaster extends React.Component {
             console.log("Chunk send successfully");
             fileChunksArr = [];
           }
-          this.setState({
-            infoMessage: `Sended data is ${endSliceIndex / 1000000} MB `,
-          });
         } catch (error) {
           console.error(error);
           reject(error);
@@ -734,22 +604,9 @@ class FileUploadMaster extends React.Component {
           );
         }
         console.timeEnd(fileName);
-        // while (counter < size) {
-        //   try {
-        //     // await this.causeDelay();
-        //     await this.chunkAndUpdateIndex(fileDataChannelName, file, counter);
-        //     counter = counter + chunkSize;
-        //     console.log(counter / 1000000);
-        //     counterHelper = counterHelper + 1;
-        //     console.log("counterHelper: ", counterHelper);
-        //   } catch (error) {
-        //     console.error(error);
-        //     reject(error);
-        //     break;
-        //   }
-        // }
         resolve(true);
         console.log("While loop end");
+        this.enableSendButtons();
       } catch (error) {
         reject(error);
       }
@@ -760,6 +617,7 @@ class FileUploadMaster extends React.Component {
   handleFilesToMasters = async (event) => {
     const { files } = this.state;
     if (Object.keys(files).length > 0) {
+      this.disableSendButtons();
       for (const key in files) {
         if (Object.hasOwnProperty.call(files, key)) {
           const fileObj = files[key];
@@ -779,8 +637,21 @@ class FileUploadMaster extends React.Component {
         alert("All data cleared.");
       });
   };
+
+  enableSendButtons = () => {
+    this.setState({
+      sendFileToMasterBtnStatus: false,
+    });
+  };
+
+  disableSendButtons = () => {
+    this.setState({
+      sendFileToMasterBtnStatus: true,
+    });
+  };
+
   render() {
-    const { fileNamesArr, infoMessage } = this.state;
+    const { fileNamesArr, infoMessage, sendFileToMasterBtnStatus } = this.state;
     return (
       <div>
         <div className="custom-file mt-2 mb-2">
@@ -806,6 +677,7 @@ class FileUploadMaster extends React.Component {
           <button
             className="btn btn-outline-light m-2"
             onClick={this.handleFilesToMasters}
+            disabled={sendFileToMasterBtnStatus}
           >
             Send Files To Masters
           </button>

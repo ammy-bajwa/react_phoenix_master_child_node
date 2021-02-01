@@ -1052,6 +1052,9 @@ class Home extends React.Component {
     let connectionRetry;
     let connectionCheckingInterval;
     let isOther = true;
+    this.setState({
+      infoMessage: "Send file from here",
+    });
     let peerConnection = await this.peerConnectionCreatorMasterPeers(
       channel,
       remoteNodeIp,
@@ -2499,6 +2502,7 @@ class Home extends React.Component {
       messageFromLanPeers,
       remoteMasterPeersWebRtcConnections,
       // messagesFromChildsPeers,
+      infoMessage,
     } = this.state;
     const style =
       type === "MASTER"
@@ -2519,7 +2523,7 @@ class Home extends React.Component {
         >
           {type}__{ip}__{machineId}
         </h1>
-
+        <h2 className="text-white">{infoMessage}</h2>
         {type === "MASTER" && (
           <div>
             <FileUploadMaster
