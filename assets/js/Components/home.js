@@ -23,6 +23,7 @@ class Home extends React.Component {
     messageVerifyTime: 3000,
     retryTime: 5000,
     currentReceivedFileChuhnks: [],
+    currentChunksArrStartIndex: 0,
     dataChannelOptions: {
       ordered: true, // do not guarantee order
       // maxPacketLifeTime: 300, // in milliseconds
@@ -752,12 +753,12 @@ class Home extends React.Component {
       clearInterval(timeInterval);
       this.cleanMessagesMasterPeers(remoteNodeId);
     };
-    let startSliceIndexLocal = 0;
-    let endSliceIndexLocal = 0;
-    let helperCount = 0;
     dataChannel.onmessage = async (event) => {
       if (isFileDataChannel) {
-        const { currentReceivedFileChuhnks } = this.state;
+        const {
+          currentReceivedFileChuhnks,
+          currentChunksArrStartIndex,
+        } = this.state;
         const fileName = dataChannelName.split("__")[1];
         try {
           // This is meta data for upcomming object
@@ -768,18 +769,8 @@ class Home extends React.Component {
             fileChunk,
             masterPeerId,
           } = JSON.parse(event.data);
-          console.log("res sended");
-          dataChannel.send(
-            JSON.stringify({
-              startSliceIndex,
-              endSliceIndex,
-              fileName: dataChannelName,
-              masterPeerId: machineId,
-              receiverd: true,
-            })
-          );
-          if (currentReceivedFileChuhnks.length > 400) {
-            console.log("Saving chunk......");
+          console.log("res sended: ", currentReceivedFileChuhnks.length);
+          if (currentReceivedFileChuhnks.length >= 499) {
             await saveChunkInIndexedDB(
               remoteNodeId,
               fileName,
@@ -787,31 +778,56 @@ class Home extends React.Component {
               endSliceIndex,
               currentReceivedFileChuhnks
             );
-            console.log("Chunk Saved......");
-
-            this.setState((prevState) => {
-              return {
-                ...prevState,
-                currentReceivedFileChuhnks: [],
-              };
-            });
-          }
-          this.setState((prevState) => {
-            return {
-              ...prevState,
-              currentReceivedFileChuhnks: prevState.currentReceivedFileChuhnks.concat(
-                [
-                  {
+            this.setState(
+              (prevState) => {
+                return {
+                  ...prevState,
+                  currentReceivedFileChuhnks: [],
+                };
+              },
+              () => {
+                dataChannel.send(
+                  JSON.stringify({
                     startSliceIndex,
                     endSliceIndex,
-                    fileName,
-                    fileChunk,
-                    masterPeerId,
-                  },
-                ]
-              ),
-            };
-          });
+                    fileName: dataChannelName,
+                    masterPeerId: machineId,
+                    receiverd: true,
+                  })
+                );
+              }
+            );
+          } else {
+            this.setState(
+              (prevState) => {
+                return {
+                  ...prevState,
+                  currentReceivedFileChuhnks: prevState.currentReceivedFileChuhnks.concat(
+                    [
+                      {
+                        startSliceIndex,
+                        endSliceIndex,
+                        fileName,
+                        fileChunk,
+                        masterPeerId,
+                      },
+                    ]
+                  ),
+                };
+              },
+              () => {
+                dataChannel.send(
+                  JSON.stringify({
+                    startSliceIndex,
+                    endSliceIndex,
+                    fileName: dataChannelName,
+                    masterPeerId: machineId,
+                    receiverd: true,
+                  })
+                );
+              }
+            );
+          }
         } catch (error) {
           // We have a chunk
           console.error("error: ", error);
