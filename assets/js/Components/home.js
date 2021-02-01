@@ -1053,7 +1053,7 @@ class Home extends React.Component {
     let connectionCheckingInterval;
     let isOther = true;
     this.setState({
-      infoMessage: "Send file from here",
+      infoMessage: "Send files from here",
     });
     let peerConnection = await this.peerConnectionCreatorMasterPeers(
       channel,
