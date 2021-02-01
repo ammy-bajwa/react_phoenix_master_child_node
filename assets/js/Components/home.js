@@ -22,6 +22,7 @@ class Home extends React.Component {
     messageSendTime: 2000,
     messageVerifyTime: 3000,
     retryTime: 5000,
+    currentReceivedFileChuhnks: [],
     dataChannelOptions: {
       ordered: true, // do not guarantee order
       // maxPacketLifeTime: 300, // in milliseconds
@@ -756,6 +757,7 @@ class Home extends React.Component {
     let helperCount = 0;
     dataChannel.onmessage = async (event) => {
       if (isFileDataChannel) {
+        const { currentReceivedFileChuhnks } = this.state;
         const fileName = dataChannelName.split("__")[1];
         try {
           // This is meta data for upcomming object
@@ -767,13 +769,6 @@ class Home extends React.Component {
             masterPeerId,
           } = JSON.parse(event.data);
           console.log("res sended");
-          await saveChunkInIndexedDB(
-            remoteNodeId,
-            fileName,
-            startSliceIndex,
-            endSliceIndex,
-            fileChunk
-          );
           dataChannel.send(
             JSON.stringify({
               startSliceIndex,
@@ -783,6 +778,40 @@ class Home extends React.Component {
               receiverd: true,
             })
           );
+          if (currentReceivedFileChuhnks.length > 400) {
+            console.log("Saving chunk......");
+            await saveChunkInIndexedDB(
+              remoteNodeId,
+              fileName,
+              0,
+              endSliceIndex,
+              currentReceivedFileChuhnks
+            );
+            console.log("Chunk Saved......");
+
+            this.setState((prevState) => {
+              return {
+                ...prevState,
+                currentReceivedFileChuhnks: [],
+              };
+            });
+          }
+          this.setState((prevState) => {
+            return {
+              ...prevState,
+              currentReceivedFileChuhnks: prevState.currentReceivedFileChuhnks.concat(
+                [
+                  {
+                    startSliceIndex,
+                    endSliceIndex,
+                    fileName,
+                    fileChunk,
+                    masterPeerId,
+                  },
+                ]
+              ),
+            };
+          });
         } catch (error) {
           // We have a chunk
           console.error("error: ", error);
