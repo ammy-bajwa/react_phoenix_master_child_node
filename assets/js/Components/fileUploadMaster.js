@@ -514,9 +514,7 @@ class FileUploadMaster extends React.Component {
               }
             }
             try {
-              console.log("messagePromises: ", messagePromises);
-              const chunkResponses = await Promise.all(messagePromises);
-              console.log("chunkResponses: ", chunkResponses);
+              await Promise.all(messagePromises);
               this.setState({
                 infoMessage: `Sended data is ${endSliceIndex / 1000000} MB `,
               });
