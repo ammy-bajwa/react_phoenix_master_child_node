@@ -197,7 +197,6 @@ class FileUploadMaster extends React.Component {
     const responsePromise = new Promise((resolve, reject) => {
       fileDataChannel.onmessage = (event) => {
         try {
-          console.log("Child Response: ", event.data);
           const responseObj = JSON.parse(event.data);
           const {
             startSliceIndex,

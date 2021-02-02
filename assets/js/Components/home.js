@@ -2060,24 +2060,35 @@ class Home extends React.Component {
       if (isFileDataChannel) {
         // This is meta data for upcomming object
         const currentFileName = dataChannelName.split("__")[1];
-        const {
-          startSliceIndex,
-          endSliceIndex,
-          fileName,
-          fileChunk,
-          peerId,
-        } = JSON.parse(event.data);
-        console.log(`startSliceIndex: ${currentFileName} ${startSliceIndex}`);
-        console.log(`endSliceIndex: ${currentFileName} ${endSliceIndex}`);
-        dataChannel.send(
-          JSON.stringify({
+        try {
+          const {
             startSliceIndex,
             endSliceIndex,
-            fileName: dataChannelName,
-            peerId: lanPeerId,
-            receiverd: true,
-          })
-        );
+            fileName,
+            fileChunk,
+            peerId,
+          } = JSON.parse(event.data);
+          dataChannel.send(
+            JSON.stringify({
+              startSliceIndex,
+              endSliceIndex,
+              fileName: dataChannelName,
+              peerId: lanPeerId,
+              receiverd: true,
+            })
+          );
+        } catch (error) {
+          console.error(error);
+          dataChannel.send(
+            JSON.stringify({
+              startSliceIndex,
+              endSliceIndex,
+              fileName: dataChannelName,
+              peerId: lanPeerId,
+              receiverd: false,
+            })
+          );
+        }
         return;
       }
       const {
