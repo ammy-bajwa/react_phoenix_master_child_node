@@ -1972,6 +1972,8 @@ class Home extends React.Component {
 
   onDataChannelForLanPeer = (peerConnection, event, lanPeerId) => {
     const dataChannel = event.channel;
+    const dataChannelName = dataChannel.label;
+    const isFileDataChannel = dataChannelName.split("__")[0] === "file";
     let messageInterval = null;
     let timeInterval = null;
     console.log("ondatachannel: ", dataChannel);
@@ -1984,6 +1986,9 @@ class Home extends React.Component {
         messageSendTime,
       } = this.state;
       dataChannel.send(machineId);
+      if (isFileDataChannel) {
+        return;
+      }
       let verifyCount = 0;
       messageInterval = setInterval(() => {
         dataChannel.send(`${machineId}_${verifyCount}`);
@@ -2052,6 +2057,29 @@ class Home extends React.Component {
     let verifyCount = 0;
     let isFirst = true;
     dataChannel.onmessage = (event) => {
+      if (isFileDataChannel) {
+        // This is meta data for upcomming object
+        const currentFileName = dataChannelName.split("__")[1];
+        const {
+          startSliceIndex,
+          endSliceIndex,
+          fileName,
+          fileChunk,
+          peerId,
+        } = JSON.parse(event.data);
+        console.log(`startSliceIndex: ${currentFileName} ${startSliceIndex}`);
+        console.log(`endSliceIndex: ${currentFileName} ${endSliceIndex}`);
+        dataChannel.send(
+          JSON.stringify({
+            startSliceIndex,
+            endSliceIndex,
+            fileName: dataChannelName,
+            peerId: lanPeerId,
+            receiverd: true,
+          })
+        );
+        return;
+      }
       const {
         messageFromLanPeers,
         lanPeers,

@@ -197,12 +197,13 @@ class FileUploadMaster extends React.Component {
     const responsePromise = new Promise((resolve, reject) => {
       fileDataChannel.onmessage = (event) => {
         try {
+          console.log("Child Response: ", event.data);
           const responseObj = JSON.parse(event.data);
           const {
             startSliceIndex,
             endSliceIndex,
             fileName,
-            masterPeerId,
+            peerId,
             receiverd,
           } = responseObj;
           resolve(receiverd);
@@ -285,7 +286,7 @@ class FileUploadMaster extends React.Component {
             fileChunk,
             startSliceIndex,
             endSliceIndex,
-            remotePeerId,
+            peerId: remotePeerId,
           });
         });
         fileReader.readAsBinaryString(slicedFilePart);
@@ -495,13 +496,14 @@ class FileUploadMaster extends React.Component {
       const { size } = file;
       let startSliceIndex = 0;
       let endSliceIndex = chunkSize;
-      let totalRemotePeers = 0;
-      if (sendFileToMasterBtnStatus) {
+      let totalRemotePeers;
+      if (!sendFileToMasterBtnStatus) {
         totalRemotePeers = remoteMasterPeersWebRtcConnections.length;
       } else {
         totalRemotePeers = lanPeersWebRtcConnections.length;
       }
       let fileChunksArr = [];
+      console.log("totalRemotePeers: ", totalRemotePeers);
       while (endSliceIndex <= size) {
         try {
           // Here we will get the array of chunks to send in each iteration
@@ -518,7 +520,7 @@ class FileUploadMaster extends React.Component {
           for (let index = 0; index < totalRemotePeers; index++) {
             let allFilesDataChannels = null,
               myCurrentPeerConnection = null;
-            if (sendFileToMasterBtnStatus) {
+            if (!sendFileToMasterBtnStatus) {
               const {
                 filesDataChannels,
                 peerConnection,
@@ -534,6 +536,7 @@ class FileUploadMaster extends React.Component {
               myCurrentPeerConnection = peerConnection;
             }
             let currentFileDataChannels = allFilesDataChannels[fileName];
+
             let messagePromises = [];
             for (
               let innerIndex = 0;
@@ -555,7 +558,7 @@ class FileUploadMaster extends React.Component {
                 const { label } = dataChannel;
                 const {
                   dataChannel: newDataChannel,
-                } = this.createFileDataChannel(peerConnection, label);
+                } = this.createFileDataChannel(myCurrentPeerConnection, label);
                 newDataChannel.send(JSON.stringify(fileChunksArr[innerIndex]));
                 messagePromises.push(
                   await this.checkChunkResponse(
