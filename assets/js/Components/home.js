@@ -2501,6 +2501,7 @@ class Home extends React.Component {
       messagesFromMastersPeers,
       messageFromLanPeers,
       remoteMasterPeersWebRtcConnections,
+      lanPeersWebRtcConnections,
       // messagesFromChildsPeers,
       infoMessage,
     } = this.state;
@@ -2530,6 +2531,7 @@ class Home extends React.Component {
               remoteMasterPeersWebRtcConnections={
                 remoteMasterPeersWebRtcConnections
               }
+              lanPeersWebRtcConnections={lanPeersWebRtcConnections}
             />
             <input
               type="text"

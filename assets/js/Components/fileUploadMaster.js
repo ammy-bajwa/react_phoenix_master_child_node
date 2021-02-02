@@ -19,8 +19,14 @@ class FileUploadMaster extends React.Component {
   };
 
   componentDidMount() {
-    const { remoteMasterPeersWebRtcConnections } = this.props;
-    this.setState({ remoteMasterPeersWebRtcConnections });
+    const {
+      remoteMasterPeersWebRtcConnections,
+      lanPeersWebRtcConnections,
+    } = this.props;
+    this.setState({
+      remoteMasterPeersWebRtcConnections,
+      lanPeersWebRtcConnections,
+    });
   }
 
   componentWillReceiveProps(nextProps) {
@@ -28,6 +34,11 @@ class FileUploadMaster extends React.Component {
       this.setState({
         remoteMasterPeersWebRtcConnections:
           nextProps.remoteMasterPeersWebRtcConnections,
+      });
+    }
+    if (nextProps.lanPeersWebRtcConnections) {
+      this.setState({
+        lanPeersWebRtcConnections: nextProps.lanPeersWebRtcConnections,
       });
     }
   }
