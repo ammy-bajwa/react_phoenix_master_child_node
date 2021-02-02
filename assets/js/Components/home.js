@@ -767,7 +767,7 @@ class Home extends React.Component {
             endSliceIndex,
             fileName,
             fileChunk,
-            masterPeerId,
+            peerId,
           } = JSON.parse(event.data);
           console.log("res sended: ", currentReceivedFileChuhnks.length);
           if (currentReceivedFileChuhnks.length >= 499) {
@@ -791,7 +791,7 @@ class Home extends React.Component {
                     startSliceIndex,
                     endSliceIndex,
                     fileName: dataChannelName,
-                    masterPeerId: machineId,
+                    peerId: machineId,
                     receiverd: true,
                   })
                 );
@@ -809,7 +809,7 @@ class Home extends React.Component {
                         endSliceIndex,
                         fileName,
                         fileChunk,
-                        masterPeerId,
+                        peerId,
                       },
                     ]
                   ),
@@ -821,7 +821,7 @@ class Home extends React.Component {
                     startSliceIndex,
                     endSliceIndex,
                     fileName: dataChannelName,
-                    masterPeerId: machineId,
+                    peerId: machineId,
                     receiverd: true,
                   })
                 );
@@ -834,7 +834,7 @@ class Home extends React.Component {
           dataChannel.send(
             JSON.stringify({
               fileName: dataChannelName,
-              masterPeerId: machineId,
+              peerId: machineId,
               receiverd: false,
             })
           );
@@ -2056,10 +2056,15 @@ class Home extends React.Component {
     let totalVerified = 0;
     let verifyCount = 0;
     let isFirst = true;
-    dataChannel.onmessage = (event) => {
+    dataChannel.onmessage = async (event) => {
       if (isFileDataChannel) {
         // This is meta data for upcomming object
         const currentFileName = dataChannelName.split("__")[1];
+
+        const {
+          currentReceivedFileChuhnks,
+          currentChunksArrStartIndex,
+        } = this.state;
         try {
           const {
             startSliceIndex,
@@ -2068,15 +2073,64 @@ class Home extends React.Component {
             fileChunk,
             peerId,
           } = JSON.parse(event.data);
-          dataChannel.send(
-            JSON.stringify({
-              startSliceIndex,
+          if (currentReceivedFileChuhnks.length >= 499) {
+            await saveChunkInIndexedDB(
+              lanPeerId,
+              fileName,
+              0,
               endSliceIndex,
-              fileName: dataChannelName,
-              peerId: lanPeerId,
-              receiverd: true,
-            })
-          );
+              currentReceivedFileChuhnks
+            );
+            this.setState(
+              (prevState) => {
+                return {
+                  ...prevState,
+                  currentReceivedFileChuhnks: [],
+                };
+              },
+              () => {
+                dataChannel.send(
+                  JSON.stringify({
+                    startSliceIndex,
+                    endSliceIndex,
+                    fileName: dataChannelName,
+                    peerId: lanPeerId,
+                    receiverd: true,
+                  })
+                );
+              }
+            );
+          } else {
+            this.setState(
+              (prevState) => {
+                return {
+                  ...prevState,
+                  currentReceivedFileChuhnks: prevState.currentReceivedFileChuhnks.concat(
+                    [
+                      {
+                        startSliceIndex,
+                        endSliceIndex,
+                        fileName,
+                        fileChunk,
+                        peerId,
+                      },
+                    ]
+                  ),
+                };
+              },
+              () => {
+                dataChannel.send(
+                  JSON.stringify({
+                    startSliceIndex,
+                    endSliceIndex,
+                    fileName: dataChannelName,
+                    peerId: lanPeerId,
+                    receiverd: true,
+                  })
+                );
+              }
+            );
+          }
         } catch (error) {
           console.error(error);
           dataChannel.send(
