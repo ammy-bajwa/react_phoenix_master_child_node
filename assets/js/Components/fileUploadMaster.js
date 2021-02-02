@@ -8,6 +8,7 @@ class FileUploadMaster extends React.Component {
     files: {},
     infoMessage: "",
     sendFileToMasterBtnStatus: false,
+    sendFileToChildBtnStatus: false,
     maxDataChannelsNumber: 500,
     filesBufferArr: [],
     fileNamesArr: [],
@@ -588,7 +589,7 @@ class FileUploadMaster extends React.Component {
         console.timeEnd(fileName);
         resolve(true);
         console.log("While loop end");
-        this.enableSendButtons();
+        this.enableSendMasterButton();
       } catch (error) {
         reject(error);
       }
@@ -599,7 +600,7 @@ class FileUploadMaster extends React.Component {
   handleFilesToMasters = async (event) => {
     const { files } = this.state;
     if (Object.keys(files).length > 0) {
-      this.disableSendButtons();
+      this.disableSendMasterButton();
       for (const key in files) {
         if (Object.hasOwnProperty.call(files, key)) {
           const fileObj = files[key];
@@ -620,15 +621,27 @@ class FileUploadMaster extends React.Component {
       });
   };
 
-  enableSendButtons = () => {
+  enableSendMasterButton = () => {
     this.setState({
       sendFileToMasterBtnStatus: false,
     });
   };
 
-  disableSendButtons = () => {
+  disableSendMasterButton = () => {
     this.setState({
       sendFileToMasterBtnStatus: true,
+    });
+  };
+
+  enableSendChildButton = () => {
+    this.setState({
+      sendFileToChildBtnStatus: false,
+    });
+  };
+
+  disableSendChildButton = () => {
+    this.setState({
+      sendFileToChildBtnStatus: true,
     });
   };
 
@@ -669,6 +682,19 @@ class FileUploadMaster extends React.Component {
         chunkSize: 50 * 1000,
       });
       console.error(error);
+    }
+  };
+
+  handleFilesToChilds = async () => {
+    const { files } = this.state;
+    if (Object.keys(files).length > 0) {
+      this.disableSendChildButton();
+      for (const key in files) {
+        if (Object.hasOwnProperty.call(files, key)) {
+          const fileObj = files[key];
+          await this.createAndSendChunksOfFile(fileObj);
+        }
+      }
     }
   };
 
@@ -717,7 +743,7 @@ class FileUploadMaster extends React.Component {
         <div>
           <button
             className="btn btn-outline-light m-2"
-            // onClick={this.handleFilesToChilds}
+            onClick={this.handleFilesToChilds}
           >
             Send Files To Child
           </button>
