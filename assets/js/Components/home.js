@@ -24,6 +24,7 @@ class Home extends React.Component {
     retryTime: 5000,
     currentReceivedFileChuhnks: [],
     currentChunksArrStartIndex: 0,
+    infoMessage: "",
     dataChannelOptions: {
       ordered: true, // do not guarantee order
       // maxPacketLifeTime: 300, // in milliseconds
@@ -783,6 +784,9 @@ class Home extends React.Component {
                 return {
                   ...prevState,
                   currentReceivedFileChuhnks: [],
+                  infoMessage: `${
+                    endSliceIndex / 1000000
+                  } MB Received For File ${fileName} `,
                 };
               },
               () => {
@@ -2081,11 +2085,15 @@ class Home extends React.Component {
               endSliceIndex,
               currentReceivedFileChuhnks
             );
+
             this.setState(
               (prevState) => {
                 return {
                   ...prevState,
                   currentReceivedFileChuhnks: [],
+                  infoMessage: `${
+                    endSliceIndex / 1000000
+                  } MB  Received ${fileName}`,
                 };
               },
               () => {

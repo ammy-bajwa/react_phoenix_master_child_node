@@ -7,8 +7,9 @@ class FileUploadMaster extends React.Component {
     chunkSize: 50 * 1000, // Bytes
     files: {},
     infoMessage: "",
-    sendFileToMasterBtnStatus: false,
-    sendFileToChildBtnStatus: false,
+    sendFileBtnsStatus: false,
+    sendingToChild: false,
+    sendingToMaster: false,
     maxDataChannelsNumber: 500,
     filesBufferArr: [],
     fileNamesArr: [],
@@ -105,16 +106,15 @@ class FileUploadMaster extends React.Component {
         remoteMasterPeersWebRtcConnections,
         lanPeersWebRtcConnections,
         sendFileToChildBtnStatus,
-        sendFileToMasterBtnStatus,
+        sendingToMaster,
         maxDataChannelsNumber,
       } = this.state;
       let peersToSendFile = [];
-      if (sendFileToMasterBtnStatus) {
+      if (sendingToMaster) {
         peersToSendFile = remoteMasterPeersWebRtcConnections;
       } else {
         peersToSendFile = lanPeersWebRtcConnections;
       }
-
       // Create data channels here in accordance to size of file
       let numberOfDataChannels = Math.ceil(size / 360000);
       if (numberOfDataChannels > maxDataChannelsNumber) {
@@ -161,7 +161,7 @@ class FileUploadMaster extends React.Component {
           }
         );
         const resolvingPromises = await Promise.all(updatedRemoteMasterPeers);
-        if (sendFileToMasterBtnStatus) {
+        if (sendingToMaster) {
           this.setState(
             {
               remoteMasterPeersWebRtcConnections: resolvingPromises,
@@ -488,21 +488,19 @@ class FileUploadMaster extends React.Component {
         chunkSize,
         remoteMasterPeersWebRtcConnections,
         lanPeersWebRtcConnections,
-        sendFileToMasterBtnStatus,
-        sendFileToChildBtnStatus,
+        sendingToMaster,
       } = this.state;
       const file = files[fileName];
       const { size } = file;
       let startSliceIndex = 0;
       let endSliceIndex = chunkSize;
       let totalRemotePeers;
-      if (!sendFileToMasterBtnStatus) {
+      if (sendingToMaster) {
         totalRemotePeers = remoteMasterPeersWebRtcConnections.length;
       } else {
         totalRemotePeers = lanPeersWebRtcConnections.length;
       }
       let fileChunksArr = [];
-      console.log("totalRemotePeers: ", totalRemotePeers);
       while (endSliceIndex <= size) {
         try {
           // Here we will get the array of chunks to send in each iteration
@@ -519,7 +517,7 @@ class FileUploadMaster extends React.Component {
           for (let index = 0; index < totalRemotePeers; index++) {
             let allFilesDataChannels = null,
               myCurrentPeerConnection = null;
-            if (!sendFileToMasterBtnStatus) {
+            if (sendingToMaster) {
               const {
                 filesDataChannels,
                 peerConnection,
@@ -642,13 +640,21 @@ class FileUploadMaster extends React.Component {
   handleFilesToMasters = async (event) => {
     const { files } = this.state;
     if (Object.keys(files).length > 0) {
-      this.disableSendMasterButton();
-      for (const key in files) {
-        if (Object.hasOwnProperty.call(files, key)) {
-          const fileObj = files[key];
-          await this.createAndSendChunksOfFile(fileObj);
+      this.diableSendButtons();
+      this.setState(
+        {
+          sendingToChild: false,
+          sendingToMaster: true,
+        },
+        async () => {
+          for (const key in files) {
+            if (Object.hasOwnProperty.call(files, key)) {
+              const fileObj = files[key];
+              await this.createAndSendChunksOfFile(fileObj);
+            }
+          }
         }
-      }
+      );
     }
   };
   cleanIndexedDb = async () => {
@@ -665,15 +671,13 @@ class FileUploadMaster extends React.Component {
 
   enableSendButtons = () => {
     this.setState({
-      sendFileToMasterBtnStatus: false,
-      sendFileToChildBtnStatus: false,
+      sendFileBtnsStatus: false,
     });
   };
 
   diableSendButtons = () => {
     this.setState({
-      sendFileToMasterBtnStatus: true,
-      sendFileToChildBtnStatus: true,
+      sendFileBtnsStatus: true,
     });
   };
 
@@ -721,12 +725,20 @@ class FileUploadMaster extends React.Component {
     const { files } = this.state;
     if (Object.keys(files).length > 0) {
       this.diableSendButtons();
-      for (const key in files) {
-        if (Object.hasOwnProperty.call(files, key)) {
-          const fileObj = files[key];
-          await this.createAndSendChunksOfFile(fileObj);
+      this.setState(
+        {
+          sendingToChild: true,
+          sendingToMaster: false,
+        },
+        async () => {
+          for (const key in files) {
+            if (Object.hasOwnProperty.call(files, key)) {
+              const fileObj = files[key];
+              await this.createAndSendChunksOfFile(fileObj);
+            }
+          }
         }
-      }
+      );
     }
   };
 
