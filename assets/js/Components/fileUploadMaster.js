@@ -533,7 +533,6 @@ class FileUploadMaster extends React.Component {
               myCurrentPeerConnection = peerConnection;
             }
             let currentFileDataChannels = allFilesDataChannels[fileName];
-
             let messagePromises = [];
             for (
               let innerIndex = 0;
